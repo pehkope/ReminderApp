@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Alzheimer-ystävällinen muistuttajasovellus tablettiin" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>Muistuttaja Tablet</title>
+    <base href="/" />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="app">
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-family: Arial; font-size: 24px; color: #1B365D;">
+            <div style="font-size: 60px; margin-bottom: 20px;">⏳</div>
+            <div>Ladataan muistuttajaa...</div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        <div style="padding: 20px; background: #ff6b6b; color: white; font-size: 18px; text-align: center;">
+            ⚠️ Sovelluksessa tapahtui odottamaton virhe.
+            <a href="" style="color: white; margin: 0 10px;">Päivitä sivu</a>
+            <span style="cursor: pointer;">✖️</span>
+        </div>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Estä kontekstimenu tableteilla
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('selectstart', e => e.preventDefault());
+    </script>
+</body>
+</html>

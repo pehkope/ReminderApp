@@ -1,0 +1,18 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Ei löytynyt</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div style="text-align: center; padding: 50px; font-size: 24px;">
+                <h1>🔍 Sivua ei löytynyt</h1>
+                <p>Anteeksi, tälle sivulle ei löytynyt sisältöä.</p>
+                <a href="/" style="font-size: 28px; color: #4A90E2; text-decoration: none;">
+                    🏠 Takaisin etusivulle
+                </a>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>
