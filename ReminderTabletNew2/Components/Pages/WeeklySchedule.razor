@@ -1,0 +1,67 @@
+@page "/weeklyschedule"
+@inject HttpClient Http
+@using ReminderTabletNew2.Models
+@using System.Text.Json
+@inject NavigationManager Navigation
+
+<div class="weekly-schedule">
+    <div class="header">
+        <h2>📅 KOKO VIIKON OHJELMA</h2>
+        <button class="back-button" @onclick="GoBack">← Takaisin</button>
+    </div>
+    
+    <div class="schedule-content">
+        @if (apiResponse?.UpcomingAppointments?.Any() == true)
+        {
+            @foreach (var appointment in apiResponse.UpcomingAppointments)
+            {
+                <div class="appointment-item">
+                    <div class="date">@appointment.Date</div>
+                    <div class="time">@appointment.Time</div>
+                    <div class="details">
+                        <div class="type">@appointment.Type</div>
+                        <div class="message">@appointment.Message</div>
+                        @if (!string.IsNullOrEmpty(appointment.Location))
+                        {
+                            <div class="location">📍 @appointment.Location</div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-appointments">
+                <p>Ei tulevaisuuden menoja merkittynä.</p>
+                <p>Nauti rauhallisesta viikosta! 😊</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private ReminderApiResponse? apiResponse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            var apiUrl = "https://script.google.com/macros/s/AKfycbwkWcbrLzcryaOAXcS3AqyS6l2KL4DuBk6qShxn2BCUuUcPDhy00rLn7bt66qfRmtRHCQ/exec?clientID=Äiti";
+            apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+} 
