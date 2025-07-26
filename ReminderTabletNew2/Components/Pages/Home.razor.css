@@ -1,0 +1,194 @@
+.main-display {
+    background-color: #e9e6f2;
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 400px;
+    margin: auto;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.time-container {
+    background-color: #d8d1e8;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.date {
+    font-size: 1.2em;
+    font-weight: 300;
+}
+
+.time {
+    font-size: 4em;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.time-of-day {
+    font-size: 1.5em;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #5c4b99;
+}
+
+.photo-container {
+    background-color: #ccc;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+}
+
+.no-photo {
+    color: #888;
+    font-size: 1.5em;
+}
+
+.notification-container, .important-today-container, .weather-container {
+    background-color: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.notification-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.notification-container .icon {
+    font-size: 2em;
+}
+
+.title {
+    font-weight: 700;
+    font-size: 0.8em;
+    color: #5c4b99;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.message {
+    font-size: 1.1em;
+    color: #444;
+}
+
+.actions-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    color: #555;
+}
+
+.action-button .icon {
+    font-size: 2.5em;
+}
+
+.action-button .text {
+    display: block;
+    margin-top: 5px;
+}
+
+/* Tasks Section */
+.tasks-section {
+    background-color: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+    font-weight: 700;
+    font-size: 0.8em;
+    color: #5c4b99;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.food-task {
+    background-color: #ffe4e1;
+    border-left: 4px solid #ff6b6b;
+}
+
+.medicine-task {
+    background-color: #fff2e6;
+    border-left: 4px solid #ff9500;
+}
+
+.activity-task {
+    background-color: #e8f5e8;
+    border-left: 4px solid #4ecdc4;
+}
+
+.general-task {
+    background-color: #f0f0f0;
+    border-left: 4px solid #999;
+}
+
+.completed {
+    opacity: 0.6;
+    background-color: #f8f9fa !important;
+}
+
+.acked-indicator {
+    color: #28a745;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.task-text {
+    flex: 1;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.ok-button {
+    background-color: #5c4b99;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.ok-button:hover {
+    background-color: #4a3d82;
+}
+
+/* Bell Animation */
+.animated-bell .icon {
+    animation: ring 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes ring {
+    0% { transform: rotate(-15deg); }
+    100% { transform: rotate(15deg); }
+} 

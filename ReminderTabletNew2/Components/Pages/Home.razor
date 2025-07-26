@@ -1,0 +1,229 @@
+@page "/"
+@inject HttpClient Http
+@using ReminderTabletNew2.Models
+@using System.Text.Json
+@using System.Text
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="main-display">
+    <div class="time-container">
+        <div class="date">@currentTime.ToString("dddd d. MMMM yyyy", new System.Globalization.CultureInfo("fi-FI"))</div>
+        <div class="time">@currentTime.ToString("HH:mm:ss")</div>
+        <div class="time-of-day">@GetTimeOfDay()</div>
+    </div>
+
+    <div class="photo-container">
+        @if (apiResponse?.DailyPhotoUrl != null && !string.IsNullOrEmpty(apiResponse.DailyPhotoUrl))
+        {
+            <img src="@apiResponse.DailyPhotoUrl" alt="@apiResponse.DailyPhotoCaption" />
+        }
+        else
+        {
+            <div class="no-photo">Ei kuvaa</div>
+        }
+    </div>
+
+    <div class="notification-container @(IsNewMessage ? "animated-bell" : "")">
+        <span class="icon">🔔</span>
+        <div class="notification-content">
+            <div class="title">UUSIN ILMOITUS</div>
+            <div class="message">@(apiResponse?.LatestReminder ?? "Ladataan...")</div>
+        </div>
+    </div>
+
+    <div class="tasks-section">
+        <div class="section-title">SEURAAVAKSI (@(apiResponse?.CurrentTimeOfDay?.ToUpper() ?? GetTimeOfDay()))</div>
+        
+        @if (apiResponse?.DailyTasks?.Any() == true)
+        {
+            @foreach (var task in apiResponse.DailyTasks)
+            {
+                <div class="task-item @GetTaskCssClass(task.Type) @(task.IsAckedToday ? "completed" : "")">
+                    <div class="task-text">
+                        @GetTaskIcon(task.Type) @task.Type.ToUpper(): @task.Description
+                    </div>
+                    @if (task.RequiresAck && !task.IsAckedToday)
+                    {
+                        <button class="ok-button" @onclick="() => AcknowledgeTask(task.Type, apiResponse.CurrentTimeOfDay)">OK</button>
+                    }
+                    else if (task.IsAckedToday)
+                    {
+                        <span class="acked-indicator">✅ Kuitattu</span>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="task-item activity-task">
+                <div class="task-text">☀️ PUUHAA: @(apiResponse?.Weather?.Description ?? "Nauti päivästä!")</div>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(apiResponse?.ImportantMessage))
+    {
+        <div class="important-today-container">
+            <div class="title">TÄNÄÄN TÄRKEÄÄ</div>
+            <div class="message">@apiResponse.ImportantMessage</div>
+        </div>
+    }
+    
+    <div class="actions-container">
+         <button class="action-button" @onclick="GoToWeeklySchedule">
+            <span class="icon">📅</span>
+            <span class="text">Katso koko ohjelma</span>
+        </button>
+        <button class="action-button" @onclick="GoToContacts">
+            <span class="icon">📞</span>
+            <span class="text">Soita perhe</span>
+        </button>
+    </div>
+
+</div>
+
+
+@code {
+    private PeriodicTimer? timer;
+    private DateTime currentTime = DateTime.Now;
+    private string statusMessage = "Ladataan tietoja...";
+    private ReminderApiResponse? apiResponse;
+    private bool IsNewMessage => true; // TODO: Track when new message arrives
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Update time once initially
+        currentTime = DateTime.Now;
+
+        // Start simple timer
+        StartTimer();
+
+        // Fetch initial data
+        await LoadData();
+    }
+
+    private void StartTimer()
+    {
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        _ = UpdateTimeLoop();
+    }
+
+    private async Task UpdateTimeLoop()
+    {
+        try
+        {
+            while (timer != null && await timer.WaitForNextTickAsync())
+            {
+                await InvokeAsync(() =>
+                {
+                    currentTime = DateTime.Now;
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Timer error: {ex.Message}");
+        }
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            var apiUrl = "https://script.google.com/macros/s/AKfycbwkWcbrLzcryaOAXcS3AqyS6l2KL4DuBk6qShxn2BCUuUcPDhy00rLn7bt66qfRmtRHCQ/exec?clientID=Äiti";
+            apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
+            
+            if (apiResponse != null)
+            {
+                statusMessage = $"Tietojen haku onnistui. Viimeisin päivitys: {DateTime.Now:HH:mm:ss}";
+            }
+            else
+            {
+                statusMessage = "Virhe: Google palautti tyhjän vastauksen";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Virhe ladattaessa tietoja: {ex.Message}";
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    
+    private void GoToWeeklySchedule()
+    {
+        Navigation.NavigateTo("/weeklyschedule");
+    }
+
+    private void GoToContacts()
+    {
+        Navigation.NavigateTo("/contacts");
+    }
+
+    private async Task AcknowledgeTask(string taskType, string timeOfDay)
+    {
+        try
+        {
+            // Send POST to Google Apps Script to acknowledge task
+            var postData = new { 
+                clientID = "Äiti", 
+                taskType = taskType, 
+                timeOfDay = timeOfDay,
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+            var apiUrl = "https://script.google.com/macros/s/AKfycbwkWcbrLzcryaOAXcS3AqyS6l2KL4DuBk6qShxn2BCUuUcPDhy00rLn7bt66qfRmtRHCQ/exec";
+            
+            var response = await Http.PostAsJsonAsync(apiUrl, postData);
+            if (response.IsSuccessStatusCode)
+            {
+                statusMessage = $"✅ {taskType} kuitattu!";
+                await LoadData(); // Reload to show updated acknowledgment status
+            }
+            else
+            {
+                statusMessage = $"❌ Kuittaus epäonnistui: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ Kuittausvirhe: {ex.Message}";
+        }
+    }
+
+    private string GetTaskIcon(string taskType)
+    {
+        return taskType.ToUpper() switch
+        {
+            "RUOKA" => "🍽️",
+            "LÄÄKKEET" => "💊",
+            "PUUHAA" => "☀️",
+            _ => "📋"
+        };
+    }
+
+    private string GetTaskCssClass(string taskType)
+    {
+        return taskType.ToUpper() switch
+        {
+            "RUOKA" => "food-task",
+            "LÄÄKKEET" => "medicine-task",
+            "PUUHAA" => "activity-task",
+            _ => "general-task"
+        };
+    }
+
+    private string GetTimeOfDay()
+    {
+        var hour = currentTime.Hour;
+        if (hour >= 5 && hour < 11) return "AAMU";
+        if (hour >= 11 && hour < 17) return "PÄIVÄ";
+        if (hour >= 17 && hour < 21) return "ILTA";
+        return "YÖ";
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+} 

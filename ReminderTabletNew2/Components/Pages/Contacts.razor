@@ -1,0 +1,74 @@
+@page "/contacts"
+@inject HttpClient Http
+@using ReminderTabletNew2.Models
+@using System.Text.Json
+@inject NavigationManager Navigation
+
+<div class="contacts-page">
+    <div class="header">
+        <h2>📞 SOITA PERHE</h2>
+        <button class="back-button" @onclick="GoBack">← Takaisin</button>
+    </div>
+    
+    <div class="contacts-content">
+        @if (apiResponse?.Contacts?.Any() == true)
+        {
+            @foreach (var contact in apiResponse.Contacts)
+            {
+                <div class="contact-item">
+                    <div class="contact-info">
+                        <div class="name">@contact.Name</div>
+                        <div class="phone">📱 @contact.Phone</div>
+                    </div>
+                    <button class="call-button" @onclick="() => CallContact(contact)">
+                        📞 Soita
+                    </button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-contacts">
+                <p>Yhteystietoja ei löytynyt.</p>
+                <p>Tarkista Google Sheets -asetukset.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private ReminderApiResponse? apiResponse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            var apiUrl = "https://script.google.com/macros/s/AKfycbwkWcbrLzcryaOAXcS3AqyS6l2KL4DuBk6qShxn2BCUuUcPDhy00rLn7bt66qfRmtRHCQ/exec?clientID=Äiti";
+            apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+    }
+
+    private void CallContact(Contact contact)
+    {
+        // In a real tablet app, this would open the phone app
+        // For now, we'll just show an alert
+        var phoneUrl = $"tel:{contact.Phone}";
+        Console.WriteLine($"Would call: {contact.Name} at {contact.Phone}");
+        
+        // You could also navigate to a phone app or show a confirmation dialog
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+} 
