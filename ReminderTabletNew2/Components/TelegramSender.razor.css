@@ -1,0 +1,248 @@
+.telegram-sender {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 90%;
+    max-width: 500px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.telegram-sender.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.telegram-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.telegram-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.telegram-content {
+    padding: 20px 25px 25px;
+}
+
+.telegram-disabled {
+    text-align: center;
+    color: #ffeb3b;
+    padding: 20px;
+}
+
+.telegram-disabled p {
+    margin: 5px 0;
+    font-size: 1.1rem;
+}
+
+.message-input-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.message-input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 100px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.message-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.char-counter {
+    position: absolute;
+    bottom: -20px;
+    right: 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+}
+
+.quick-messages {
+    margin-bottom: 25px;
+}
+
+.quick-messages h4 {
+    color: white;
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.quick-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.quick-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.quick-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.send-section {
+    margin-bottom: 15px;
+}
+
+.send-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: none;
+}
+
+.send-btn.enabled {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.send-btn.enabled:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+}
+
+.send-btn.disabled {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: not-allowed;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.status-message {
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.status-message.success {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-message.error {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+    .telegram-sender {
+        width: 95%;
+        margin: 10px;
+    }
+    
+    .telegram-header {
+        padding: 15px 20px 10px;
+    }
+    
+    .telegram-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .telegram-content {
+        padding: 15px 20px 20px;
+    }
+    
+    .quick-buttons {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+    
+    .quick-btn {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+}
+
+/* Large tablet view */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .telegram-sender {
+        max-width: 600px;
+    }
+} 

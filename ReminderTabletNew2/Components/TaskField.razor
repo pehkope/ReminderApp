@@ -1,0 +1,74 @@
+@using ReminderTabletNew2.Models
+
+<div class="tasks-section">
+    <h2>SEURAAVAKSI (@TimeOfDayText.ToUpper())</h2>
+    
+    @if (Tasks?.Any() == true)
+    {
+        @foreach (var task in Tasks)
+        {
+            <div class="task-item @GetTaskCssClass(task.Type) @(task.IsAckedToday ? "completed" : "")">
+                <div class="task-details">
+                    <i class="task-icon @GetTaskIconClass(task.Type)"></i>
+                    <span class="task-text">@task.Type.ToUpper(): @task.Description</span>
+                </div>
+                @if (ShouldShowOkButton(task))
+                {
+                    <button class="ok-button" @onclick="() => OnTaskAcknowledge.InvokeAsync(task)">OK</button>
+                }
+                else if (task.IsAckedToday && !task.Type.ToUpper().Contains("ASIAT") && !task.Type.ToUpper().Contains("LIIKUNTA"))
+                {
+                    <span class="acked-indicator">✅ Kuitattu</span>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="task-item activity-task">
+            <div class="task-details">
+                <i class="task-icon fas fa-sun"></i>
+                <span class="task-text">@DefaultActivityText</span>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<DailyTask>? Tasks { get; set; }
+    [Parameter] public string TimeOfDayText { get; set; } = "AAMU";
+    [Parameter] public string DefaultActivityText { get; set; } = "Ei tehtäviä tänään";
+    [Parameter] public EventCallback<DailyTask> OnTaskAcknowledge { get; set; }
+
+    private bool ShouldShowOkButton(DailyTask task)
+    {
+        // ASIAT ja LIIKUNTA ei tarvitse kuittausta
+        var taskType = task.Type.ToUpper();
+        return !taskType.Contains("ASIAT") && !taskType.Contains("LIIKUNTA") && !task.IsAckedToday;
+    }
+
+    private string GetTaskIconClass(string taskType)
+    {
+        return taskType.ToUpper() switch
+        {
+            "RUOKA" => "fas fa-utensils",
+            "LÄÄKKEET" => "fas fa-pills",
+            "LIIKUNTA" => "fas fa-star",
+            "PUUHAA" => "fas fa-sun",
+            _ when taskType.ToUpper().Contains("ASIAT") => "fas fa-clipboard-list",
+            _ => "fas fa-tasks"
+        };
+    }
+
+    private string GetTaskCssClass(string taskType)
+    {
+        var type = taskType.ToUpper();
+        
+        if (type.Contains("RUOKA")) return "food-task";
+        if (type.Contains("LÄÄKKEET")) return "medicine-task";
+        if (type.Contains("LIIKUNTA") || type.Contains("PUUHAA")) return "activity-task";
+        if (type.Contains("ASIAT")) return "general-task";
+        
+        return "general-task";
+    }
+} 

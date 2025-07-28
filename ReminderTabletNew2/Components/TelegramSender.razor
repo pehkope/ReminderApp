@@ -1,0 +1,185 @@
+@using ReminderTabletNew2.Services
+@using ReminderTabletNew2.Models
+@inject TelegramService TelegramService
+@inject IJSRuntime JSRuntime
+
+<div class="telegram-sender @(IsVisible ? "visible" : "")">
+    <div class="telegram-header">
+        <h3>📱 Lähetä viesti perheelle</h3>
+        <button class="close-btn" @onclick="Hide">✕</button>
+    </div>
+    
+    <div class="telegram-content">
+        @if (!isTelegramEnabled)
+        {
+            <div class="telegram-disabled">
+                <p>⚠️ Telegram ei ole vielä käytössä</p>
+                <p>Pyydä perhettä aktivoimaan Telegram backend:ssä</p>
+            </div>
+        }
+        else
+        {
+            <div class="message-input-container">
+                <textarea @bind="messageText" 
+                         @bind:event="oninput"
+                         @onkeydown="OnKeyDown"
+                         placeholder="Kirjoita viesti perheelle..."
+                         class="message-input"
+                         rows="4"
+                         maxlength="500"
+                         disabled="@isLoading"></textarea>
+                
+                <div class="char-counter">
+                    @(messageText?.Length ?? 0)/500
+                </div>
+            </div>
+
+            <div class="quick-messages">
+                <h4>Pikaviestit:</h4>
+                <div class="quick-buttons">
+                    <button @onclick="() => SetQuickMessage(quickMsg1)" class="quick-btn">
+                        ☀️ Kaikki hyvin
+                    </button>
+                    <button @onclick="() => SetQuickMessage(quickMsg2)" class="quick-btn">
+                        🏠 Tulkaa käymään
+                    </button>
+                    <button @onclick="() => SetQuickMessage(quickMsg3)" class="quick-btn">
+                        ❤️ Kiitos viestistä
+                    </button>
+                    <button @onclick="() => SetQuickMessage(quickMsg4)" class="quick-btn">
+                        🆘 Tarvitsen apua
+                    </button>
+                </div>
+            </div>
+
+            <div class="send-section">
+                <button @onclick="SendMessage" 
+                        class="send-btn @(CanSend ? "enabled" : "disabled")"
+                        disabled="@(!CanSend)">
+                    @if (isLoading)
+                    {
+                        <span class="loading">📤 Lähetetään...</span>
+                    }
+                    else
+                    {
+                        <span>📤 Lähetä viesti</span>
+                    }
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(statusMessage))
+            {
+                <div class="status-message @(lastSendSuccess ? "success" : "error")">
+                    @statusMessage
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnMessageSent { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private string messageText = "";
+    private bool isLoading = false;
+    private bool isTelegramEnabled = false;
+    private string statusMessage = "";
+    private bool lastSendSuccess = false;
+
+    // Quick message strings
+    private readonly string quickMsg1 = "Kaikki hyvin täällä! ☀️";
+    private readonly string quickMsg2 = "Tulkaa käymään kun ehdittte! 🏠";
+    private readonly string quickMsg3 = "Kiitos viestistänne! ❤️";
+    private readonly string quickMsg4 = "Tarvitsen apua tässä asiassa 🆘";
+
+    private bool CanSend => !isLoading && !string.IsNullOrWhiteSpace(messageText) && isTelegramEnabled;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckTelegramStatus();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && !isTelegramEnabled)
+        {
+            await CheckTelegramStatus();
+        }
+    }
+
+    private async Task CheckTelegramStatus()
+    {
+        isTelegramEnabled = await TelegramService.CheckTelegramStatusAsync();
+        StateHasChanged();
+    }
+
+    private void SetQuickMessage(string message)
+    {
+        messageText = message;
+        StateHasChanged();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        // Ctrl+Enter to send
+        if (e.Key == "Enter" && e.CtrlKey && CanSend)
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (!CanSend) return;
+
+        isLoading = true;
+        statusMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await TelegramService.SendMessageAsync(messageText);
+            
+            lastSendSuccess = response.Success;
+            statusMessage = response.Message;
+
+            if (response.Success)
+            {
+                // Clear message on success
+                messageText = "";
+                
+                // Notify parent component
+                await OnMessageSent.InvokeAsync();
+                
+                // Auto-hide after successful send
+                await Task.Delay(2000);
+                await Hide();
+            }
+        }
+        catch (Exception ex)
+        {
+            lastSendSuccess = false;
+            statusMessage = $"Virhe: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Hide()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    public async Task Show()
+    {
+        await CheckTelegramStatus();
+        messageText = "";
+        statusMessage = "";
+        StateHasChanged();
+    }
+} 

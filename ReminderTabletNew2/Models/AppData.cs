@@ -30,6 +30,9 @@ public class ReminderApiResponse
     [JsonPropertyName("dailyPhotoCaption")]
     public string DailyPhotoCaption { get; set; }
 
+    [JsonPropertyName("exerciseVideoUrl")]
+    public string ExerciseVideoUrl { get; set; }
+
     [JsonPropertyName("weather")]
     public Weather Weather { get; set; }
 
@@ -48,8 +51,17 @@ public class ReminderApiResponse
 
 public class DailyTask
 {
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = "";
+
+    [JsonPropertyName("time")]
+    public string Time { get; set; } = "";
+
     [JsonPropertyName("type")]
     public string Type { get; set; } = "";
+
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = "";
 
     [JsonPropertyName("description")]
     public string Description { get; set; } = "";
@@ -59,6 +71,7 @@ public class DailyTask
 
     [JsonPropertyName("isAckedToday")]
     public bool IsAckedToday { get; set; }
+}
 
 public class Settings
 {

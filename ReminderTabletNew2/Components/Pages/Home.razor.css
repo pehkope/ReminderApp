@@ -183,12 +183,298 @@
     background-color: #4a3d82;
 }
 
-/* Bell Animation */
+/* Enhanced Bell Animation */
 .animated-bell .icon {
     animation: ring 0.5s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
 }
 
 @keyframes ring {
-    0% { transform: rotate(-15deg); }
-    100% { transform: rotate(15deg); }
+    0% { 
+        transform: rotate(-15deg) scale(1); 
+        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+    }
+    100% { 
+        transform: rotate(15deg) scale(1.1); 
+        filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
+    }
+}
+
+/* Pulsing animation for important notifications */
+.important-notification {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    50% { 
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Audio feedback visual indicator */
+.audio-playing {
+    position: relative;
+}
+
+.audio-playing::before {
+    content: '🔊';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 1.2em;
+    animation: fadeInOut 0.5s ease-in-out;
+    z-index: 1001;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0; transform: scale(0.8); }
+}
+
+/* Sound wave animation */
+.sound-waves {
+    position: relative;
+    display: inline-block;
+}
+
+.sound-waves::before,
+.sound-waves::after {
+    content: '';
+    position: absolute;
+    border: 2px solid rgba(255, 215, 0, 0.6);
+    border-radius: 50%;
+    animation: soundWave 1.5s ease-out infinite;
+}
+
+.sound-waves::before {
+    width: 40px;
+    height: 40px;
+    top: -8px;
+    left: -8px;
+}
+
+.sound-waves::after {
+    width: 60px;
+    height: 60px;
+    top: -18px;
+    left: -18px;
+    animation-delay: 0.5s;
+}
+
+@keyframes soundWave {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* Task completion celebration */
+.task-completed {
+    animation: celebrate 0.8s ease-out;
+}
+
+@keyframes celebrate {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(2deg); }
+    50% { transform: scale(1.05) rotate(-2deg); }
+    75% { transform: scale(1.02) rotate(1deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Button press feedback */
+.button-pressed {
+    animation: buttonPress 0.2s ease-out;
+}
+
+@keyframes buttonPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+/* Swipe feedback animation */
+.swipe-feedback {
+    animation: swipeGlow 0.3s ease-out;
+}
+
+@keyframes swipeGlow {
+    0% { 
+        box-shadow: 0 0 0 rgba(116, 185, 255, 0.4);
+        transform: translateX(0);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(116, 185, 255, 0.6);
+        transform: translateX(5px);
+    }
+    100% { 
+        box-shadow: 0 0 0 rgba(116, 185, 255, 0.4);
+        transform: translateX(0);
+    }
+}
+
+/* ANDROID TABLET PORTRAIT optimized swipe container */
+.main-swipe-container {
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    max-width: 900px; /* Android tablet portrait mode */
+    margin: 0 auto;
+    padding: 0 15px; /* Hieman enemmän paddinga isommalla näytöllä */
+}
+
+/* Auto-return notification */
+.auto-return-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+.auto-return-notification .icon {
+    font-size: 1.2em;
+    animation: rotate 2s linear infinite;
+}
+
+.auto-return-notification .text {
+    font-weight: 500;
+}
+
+@keyframes slideInFromRight {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Visual feedback for swipe areas */
+.main-swipe-container::before {
+    content: '👈 Takaisin';
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 0 15px 15px 0;
+    font-size: 0.8em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.main-swipe-container::after {
+    content: 'Ohjelma 👉';
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 15px 0 0 15px;
+    font-size: 0.8em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 999;
+    pointer-events: none;
+}
+
+/* Show swipe hints on hover/touch */
+.main-swipe-container:hover::before,
+.main-swipe-container:hover::after {
+    opacity: 1;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+    .auto-return-notification {
+        top: 10px;
+        right: 10px;
+        font-size: 0.8em;
+        padding: 8px 12px;
+    }
+    
+    .main-swipe-container::before,
+    .main-swipe-container::after {
+        font-size: 0.7em;
+        padding: 6px 10px;
+    }
+}
+
+/* Telegram floating button */
+.telegram-float-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.telegram-float-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+}
+
+.telegram-float-btn:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+/* Mobile adjustments for floating button */
+@media (max-width: 600px) {
+    .telegram-float-btn {
+        width: 55px;
+        height: 55px;
+        bottom: 15px;
+        right: 15px;
+        font-size: 1.6rem;
+    }
 } 
