@@ -1,0 +1,68 @@
+@if (IsVisible)
+{
+    <div class="image-modal-overlay @(IsClosing ? "closing" : "")" @onclick="CloseModal">
+        <div class="image-modal-container" @onclick:stopPropagation="true">
+            <div class="image-modal-header">
+                <h3 class="image-title">@ImageTitle</h3>
+                <button class="close-button" @onclick="CloseModal">
+                    <span>✕</span>
+                </button>
+            </div>
+            
+            <div class="image-content">
+                <img src="@ImageSrc" alt="@ImageAlt" class="modal-image" />
+                @if (!string.IsNullOrEmpty(ImageCaption))
+                {
+                    <p class="image-caption">@ImageCaption</p>
+                }
+            </div>
+            
+            <div class="image-modal-footer">
+                <button class="close-footer-button" @onclick="CloseModal">
+                    <span class="icon">👈</span>
+                    <span class="text">Sulje</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string ImageSrc { get; set; } = "";
+    [Parameter] public string ImageAlt { get; set; } = "";
+    [Parameter] public string ImageTitle { get; set; } = "Kuvamuisto";
+    [Parameter] public string ImageCaption { get; set; } = "";
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private bool IsClosing = false;
+
+    private async Task CloseModal()
+    {
+        IsClosing = true;
+        StateHasChanged();
+        
+        // Wait for animation to complete
+        await Task.Delay(300);
+        
+        IsClosing = false;
+        await OnClose.InvokeAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            IsClosing = false;
+        }
+    }
+
+    // Handle keyboard events (ESC to close)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && IsVisible)
+        {
+            // Focus management could be added here
+        }
+    }
+} 

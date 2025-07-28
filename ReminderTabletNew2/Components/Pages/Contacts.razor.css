@@ -1,7 +1,12 @@
-.contacts-page {
-    max-width: 600px;
+.contacts-swipe-container {
+    max-width: 800px;
     margin: auto;
-    padding: 20px;
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    min-height: 100vh;
+}
+
+.contacts-page {
+    padding: 30px;
     font-family: 'Roboto', sans-serif;
 }
 
@@ -9,16 +14,16 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding: 20px;
+    margin-bottom: 40px;
+    padding: 25px;
     background-color: #4ecdc4;
     color: white;
-    border-radius: 10px;
+    border-radius: 15px;
 }
 
 .header h2 {
     margin: 0;
-    font-size: 1.5em;
+    font-size: 2em;
 }
 
 .back-button {
@@ -47,9 +52,15 @@
     align-items: center;
     background-color: white;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #4ecdc4;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-left: 5px solid #4ecdc4;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .contact-info {
@@ -57,31 +68,43 @@
 }
 
 .name {
-    font-size: 1.3em;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #2d3436;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.name::before {
+    content: "👤";
+    font-size: 1.5em;
 }
 
 .phone {
-    color: #666;
-    font-size: 1.1em;
+    color: #636e72;
+    font-size: 1.5em;
+    font-weight: 500;
 }
 
 .call-button {
-    background-color: #4ecdc4;
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
     color: white;
     border: none;
-    padding: 15px 25px;
-    border-radius: 25px;
-    font-size: 1.1em;
+    padding: 18px 30px;
+    border-radius: 30px;
+    font-size: 1.4em;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 16px rgba(0, 184, 148, 0.3);
 }
 
 .call-button:hover {
-    background-color: #45b7b8;
+    background: linear-gradient(135deg, #00a085 0%, #00b894 100%);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
 }
 
 .no-contacts {

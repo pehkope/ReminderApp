@@ -1,0 +1,61 @@
+.swipe-container {
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    touch-action: pan-y; /* Allow vertical scrolling, but handle horizontal swipes */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Visual feedback for swipe actions */
+.swipe-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* Left edge hint */
+.swipe-container::before {
+    left: 0;
+}
+
+/* Right edge hint */
+.swipe-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    background: linear-gradient(to left, transparent, rgba(255, 255, 255, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* Show hints on hover/touch */
+.swipe-container:hover::before,
+.swipe-container:hover::after {
+    opacity: 1;
+}
+
+/* Prevent text selection during swipe */
+.swipe-container * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+} 

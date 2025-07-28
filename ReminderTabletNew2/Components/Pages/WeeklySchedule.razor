@@ -3,41 +3,99 @@
 @using ReminderTabletNew2.Models
 @using System.Text.Json
 @inject NavigationManager Navigation
+@using ReminderTabletNew2.Components
 
-<div class="weekly-schedule">
+<SwipeContainer OnSwipe="HandleSwipe" CssClass="daily-schedule-swipe">
+<div class="daily-schedule">
     <div class="header">
-        <h2>📅 KOKO VIIKON OHJELMA</h2>
+        <h2>📅 TÄNÄÄN - PÄIVÄN OHJELMA</h2>
         <button class="back-button" @onclick="GoBack">← Takaisin</button>
     </div>
     
     <div class="schedule-content">
-        @if (apiResponse?.UpcomingAppointments?.Any() == true)
+        @if (apiResponse?.DailyTasks?.Any() == true)
         {
-            @foreach (var appointment in apiResponse.UpcomingAppointments)
-            {
-                <div class="appointment-item">
-                    <div class="date">@appointment.Date</div>
-                    <div class="time">@appointment.Time</div>
-                    <div class="details">
-                        <div class="type">@appointment.Type</div>
-                        <div class="message">@appointment.Message</div>
-                        @if (!string.IsNullOrEmpty(appointment.Location))
-                        {
-                            <div class="location">📍 @appointment.Location</div>
-                        }
+            @* AAMU *@
+            <div class="time-section">
+                <h3 class="time-title">🌅 AAMU (08:00-11:00)</h3>
+                @foreach (var task in GetTasksForTimeOfDay("AAMU"))
+                {
+                    <div class="task-item @GetTaskCssClass(task.Type)">
+                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
+                        <div class="task-details">
+                            <div class="task-text">@task.Message</div>
+                            <div class="task-time">@task.Time</div>
+                        </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
+
+            @* PÄIVÄ *@
+            <div class="time-section">
+                <h3 class="time-title">☀️ PÄIVÄ (11:00-16:00)</h3>
+                @foreach (var task in GetTasksForTimeOfDay("PÄIVÄ"))
+                {
+                    <div class="task-item @GetTaskCssClass(task.Type)">
+                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
+                        <div class="task-details">
+                            <div class="task-text">@task.Message</div>
+                            <div class="task-time">@task.Time</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* ILTA *@
+            <div class="time-section">
+                <h3 class="time-title">🌅 ILTA (16:00-21:00)</h3>
+                @foreach (var task in GetTasksForTimeOfDay("ILTA"))
+                {
+                    <div class="task-item @GetTaskCssClass(task.Type)">
+                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
+                        <div class="task-details">
+                            <div class="task-text">@task.Message</div>
+                            <div class="task-time">@task.Time</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* YÖ *@
+            <div class="time-section">
+                <h3 class="time-title">🌙 YÖ (21:00+)</h3>
+                @foreach (var task in GetTasksForTimeOfDay("YÖ"))
+                {
+                    <div class="task-item @GetTaskCssClass(task.Type)">
+                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
+                        <div class="task-details">
+                            <div class="task-text">@task.Message</div>
+                            <div class="task-time">@task.Time</div>
+                        </div>
+                    </div>
+                }
+            </div>
         }
         else
         {
-            <div class="no-appointments">
-                <p>Ei tulevaisuuden menoja merkittynä.</p>
-                <p>Nauti rauhallisesta viikosta! 😊</p>
+            <div class="no-tasks">
+                <p>Ei tehtäviä merkittynä tälle päivälle.</p>
+                <p>Nauti vapaasta päivästä! 😊</p>
             </div>
         }
-    </div>
+
+        @* Tärkeät tapahtumat *@
+        @if (!string.IsNullOrEmpty(apiResponse?.ImportantMessage))
+        {
+            <div class="important-section">
+                <h3 class="important-title">⚠️ TÄRKEÄÄ TÄNÄÄN</h3>
+                <div class="important-message">
+                    @apiResponse.ImportantMessage
+                </div>
+                         </div>
+         }
+     </div>
 </div>
+</SwipeContainer>
 
 @code {
     private ReminderApiResponse? apiResponse;
@@ -51,17 +109,126 @@
     {
         try
         {
-            var apiUrl = "https://script.google.com/macros/s/AKfycbwkWcbrLzcryaOAXcS3AqyS6l2KL4DuBk6qShxn2BCUuUcPDhy00rLn7bt66qfRmtRHCQ/exec?clientID=Äiti";
+            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec?clientID=mom";
             apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading data: {ex.Message}");
+            // Add test data if API fails
+            AddTestData();
         }
+
+        // Always add test data if no data exists
+        if (apiResponse == null || apiResponse.DailyTasks?.Any() != true)
+        {
+            AddTestData();
+        }
+    }
+
+    private void AddTestData()
+    {
+        if (apiResponse == null)
+        {
+            apiResponse = new ReminderApiResponse();
+        }
+
+        apiResponse.DailyTasks = new List<DailyTask>
+        {
+            new DailyTask { Date = "Tänään", Time = "08:30", Type = "AAMUPALA", Message = "Kumpaakin 1 kpl", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "09:00", Type = "LÄÄKKEET", Message = "Aamun lehden lukemista", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "12:00", Type = "LOUNAS", Message = "Ainakin kunnon välipala", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "13:30", Type = "LIIKUNTA", Message = "Kävelylenkki lähellä tai kaupungilla", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "15:00", Type = "ASIAT", Message = "Käy kaupassa ja osta mitä puuttuu", RequiresAck = false },
+            new DailyTask { Date = "Tänään", Time = "17:30", Type = "PÄIVÄLLINEN", Message = "Lämmin ruoka", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "19:00", Type = "LIIKUNTA", Message = "Pieni iltakävely jos sää sallii", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "20:30", Type = "PUUHAA", Message = "Miten olisi aivojumppa yhdessä?", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "22:00", Type = "ILTAPALA", Message = "Esim. rahkaa tai jugurttia", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "22:30", Type = "LÄÄKKEET", Message = "Silmätipat silmiin", RequiresAck = true }
+        };
+
+        apiResponse.ImportantMessage = "13.20 Hammaslääkäri Lauttasaaren terveysasemalla";
+    }
+
+    private IEnumerable<DailyTask> GetTasksForTimeOfDay(string timeOfDay)
+    {
+        if (apiResponse?.DailyTasks == null) return Enumerable.Empty<DailyTask>();
+
+        return timeOfDay switch
+        {
+            "AAMU" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "AAMU")),
+            "PÄIVÄ" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "PÄIVÄ")),
+            "ILTA" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "ILTA")),
+            "YÖ" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "YÖ")),
+            _ => Enumerable.Empty<DailyTask>()
+        };
+    }
+
+    private bool IsTaskForTimeOfDay(DailyTask task, string timeOfDay)
+    {
+        if (DateTime.TryParse(task.Time, out var taskTime))
+        {
+            var hour = taskTime.Hour;
+            return timeOfDay switch
+            {
+                "AAMU" => hour >= 8 && hour < 11,
+                "PÄIVÄ" => hour >= 11 && hour < 16,
+                "ILTA" => hour >= 16 && hour < 21,
+                "YÖ" => hour >= 21 || hour < 8,
+                _ => false
+            };
+        }
+
+        // Fallback: match by task type
+        return timeOfDay switch
+        {
+            "AAMU" => task.Type.Contains("AAMUPALA") || task.Type.Contains("LÄÄKKEET") && task.Time.Contains("0"),
+            "PÄIVÄ" => task.Type.Contains("LOUNAS") || task.Type.Contains("LIIKUNTA") || task.Type.Contains("ASIAT"),
+            "ILTA" => task.Type.Contains("PÄIVÄLLINEN") || task.Type.Contains("LIIKUNTA") || task.Type.Contains("PUUHAA"),
+            "YÖ" => task.Type.Contains("ILTAPALA") || task.Type.Contains("LÄÄKKEET") && task.Time.Contains("2"),
+            _ => false
+        };
+    }
+
+    private string GetTaskIcon(string taskType)
+    {
+        return taskType.ToUpper() switch
+        {
+            var type when type.Contains("AAMUPALA") => "☕",
+            var type when type.Contains("LOUNAS") => "🍽️",
+            var type when type.Contains("PÄIVÄLLINEN") => "🍽️",
+            var type when type.Contains("ILTAPALA") => "🍽️",
+            var type when type.Contains("LÄÄKKEET") => "💊",
+            var type when type.Contains("LIIKUNTA") => "🏃‍♀️",
+            var type when type.Contains("ASIAT") => "📋",
+            var type when type.Contains("PUUHAA") => "🧠",
+            _ => "📝"
+        };
+    }
+
+    private string GetTaskCssClass(string taskType)
+    {
+        return taskType.ToUpper() switch
+        {
+            var type when type.Contains("AAMUPALA") || type.Contains("LOUNAS") || type.Contains("PÄIVÄLLINEN") || type.Contains("ILTAPALA") => "food-task",
+            var type when type.Contains("LÄÄKKEET") => "medicine-task",
+            var type when type.Contains("LIIKUNTA") => "activity-task",
+            var type when type.Contains("ASIAT") => "general-task",
+            var type when type.Contains("PUUHAA") => "brain-task",
+            _ => "general-task"
+        };
     }
 
     private void GoBack()
     {
         Navigation.NavigateTo("/");
+    }
+
+    private void HandleSwipe(string direction)
+    {
+        if (direction == "left")
+        {
+            GoBack();
+        }
     }
 } 

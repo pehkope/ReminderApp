@@ -1,106 +1,103 @@
 @page "/"
 @inject HttpClient Http
 @using ReminderTabletNew2.Models
+@using ReminderTabletNew2.Services
 @using System.Text.Json
 @using System.Text
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject TelegramService TelegramService
 @implements IDisposable
 
-<div class="main-display">
-    <div class="time-container">
-        <div class="date">@currentTime.ToString("dddd d. MMMM yyyy", new System.Globalization.CultureInfo("fi-FI"))</div>
-        <div class="time">@currentTime.ToString("HH:mm:ss")</div>
-        <div class="time-of-day">@GetTimeOfDay()</div>
-    </div>
+<AudioNotificationService @ref="audioService" OnAudioInitialized="OnAudioReady" />
 
-    <div class="photo-container">
-        @if (apiResponse?.DailyPhotoUrl != null && !string.IsNullOrEmpty(apiResponse.DailyPhotoUrl))
-        {
-            <img src="@apiResponse.DailyPhotoUrl" alt="@apiResponse.DailyPhotoCaption" />
-        }
-        else
-        {
-            <div class="no-photo">Ei kuvaa</div>
-        }
-    </div>
-
-    <div class="notification-container @(IsNewMessage ? "animated-bell" : "")">
-        <span class="icon">🔔</span>
-        <div class="notification-content">
-            <div class="title">UUSIN ILMOITUS</div>
-            <div class="message">@(apiResponse?.LatestReminder ?? "Ladataan...")</div>
-        </div>
-    </div>
-
-    <div class="tasks-section">
-        <div class="section-title">SEURAAVAKSI (@(apiResponse?.CurrentTimeOfDay?.ToUpper() ?? GetTimeOfDay()))</div>
-        
-        @if (apiResponse?.DailyTasks?.Any() == true)
-        {
-            @foreach (var task in apiResponse.DailyTasks)
-            {
-                <div class="task-item @GetTaskCssClass(task.Type) @(task.IsAckedToday ? "completed" : "")">
-                    <div class="task-text">
-                        @GetTaskIcon(task.Type) @task.Type.ToUpper(): @task.Description
-                    </div>
-                    @if (task.RequiresAck && !task.IsAckedToday)
-                    {
-                        <button class="ok-button" @onclick="() => AcknowledgeTask(task.Type, apiResponse.CurrentTimeOfDay)">OK</button>
-                    }
-                    else if (task.IsAckedToday)
-                    {
-                        <span class="acked-indicator">✅ Kuitattu</span>
-                    }
-                </div>
-            }
-        }
-        else
-        {
-            <div class="task-item activity-task">
-                <div class="task-text">☀️ PUUHAA: @(apiResponse?.Weather?.Description ?? "Nauti päivästä!")</div>
-            </div>
-        }
-    </div>
-
-    @if (!string.IsNullOrWhiteSpace(apiResponse?.ImportantMessage))
+<SwipeContainer OnSwipe="HandleSwipe" CssClass="main-swipe-container">
+    @* Dynamic view based on time of day *@
+    @if (CurrentView == ViewMode.StartDay)
     {
-        <div class="important-today-container">
-            <div class="title">TÄNÄÄN TÄRKEÄÄ</div>
-            <div class="message">@apiResponse.ImportantMessage</div>
-        </div>
+        <StartDayView ApiResponse="@apiResponse" OnStartDayClicked="OnStartDayClicked" />
     }
-    
-    <div class="actions-container">
-         <button class="action-button" @onclick="GoToWeeklySchedule">
-            <span class="icon">📅</span>
-            <span class="text">Katso koko ohjelma</span>
-        </button>
-        <button class="action-button" @onclick="GoToContacts">
-            <span class="icon">📞</span>
-            <span class="text">Soita perhe</span>
-        </button>
+    else
+    {
+        <TimeBasedView TimeOfDay="@GetTimeBasedViewMode()" 
+                       CurrentTime="@currentTime"
+                       ApiResponse="@apiResponse" 
+                       OnAcknowledgeTask="OnAcknowledgeTaskHandler"
+                       OnNavigateToWeekly="GoToWeeklyScheduleAsync"
+                       OnNavigateToContacts="GoToContactsAsync"
+                       OnStartExercise="OnStartExerciseHandler"
+                       IsNewMessage="@IsNewMessage" />
+    }
+</SwipeContainer>
+
+@* Auto-return timer display *@
+@if (AutoReturnSecondsLeft > 0)
+{
+    <div class="auto-return-notification">
+        <span class="icon">↶</span>
+        <span class="text">Paluu päänäkymään @AutoReturnSecondsLeft s</span>
     </div>
+}
 
-</div>
+@* Telegram floating button *@
+@if (!isInTelegramMode && CurrentView != ViewMode.StartDay)
+{
+    <button class="telegram-float-btn" @onclick="ShowTelegram" title="Lähetä viesti perheelle">
+        📱
+    </button>
+}
 
+@* Telegram sender modal *@
+<TelegramSender IsVisible="@isInTelegramMode" 
+                OnMessageSent="OnTelegramMessageSent"
+                OnClose="HideTelegram" />
 
 @code {
+    public enum ViewMode
+    {
+        StartDay,    // Early morning before first message
+        Morning,     // 08:00-11:00
+        Day,         // 11:00-16:00
+        Evening,     // 16:00-21:00
+        Night        // 21:00+
+    }
+    
+    private ViewMode CurrentView = ViewMode.StartDay;
     private PeriodicTimer? timer;
+    private PeriodicTimer? autoReturnTimer;
     private DateTime currentTime = DateTime.Now;
     private string statusMessage = "Ladataan tietoja...";
     private ReminderApiResponse? apiResponse;
     private bool IsNewMessage => true; // TODO: Track when new message arrives
+    
+    // Auto-return functionality
+    private int AutoReturnSecondsLeft = 0;
+    private bool isInAlternativeView = false;
+    
+    // Telegram functionality
+    private bool isInTelegramMode = false;
+    
+    // Audio service
+    private AudioNotificationService? audioService;
+    private bool audioReady = false;
+    private DateTime lastMessageTime = DateTime.MinValue;
 
     protected override async Task OnInitializedAsync()
     {
         // Update time once initially
         currentTime = DateTime.Now;
 
+        // Determine initial view
+        UpdateCurrentView();
+
         // Start simple timer
         StartTimer();
 
-        // Fetch initial data
+                 // Fetch initial data
         await LoadData();
+        
+        // Check for new messages periodically
+        _ = StartPeriodicMessageCheck();
     }
 
     private void StartTimer()
@@ -118,6 +115,7 @@
                 await InvokeAsync(() =>
                 {
                     currentTime = DateTime.Now;
+                    UpdateCurrentView();
                     StateHasChanged();
                 });
             }
@@ -132,12 +130,62 @@
     {
         try
         {
-            var apiUrl = "https://script.google.com/macros/s/AKfycbwkWcbrLzcryaOAXcS3AqyS6l2KL4DuBk6qShxn2BCUuUcPDhy00rLn7bt66qfRmtRHCQ/exec?clientID=Äiti";
+            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec?clientID=mom";
             apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
             
-            if (apiResponse != null)
+                         if (apiResponse != null)
             {
                 statusMessage = $"Tietojen haku onnistui. Viimeisin päivitys: {DateTime.Now:HH:mm:ss}";
+                
+                // Debug: Log tasks data
+                if (apiResponse.DailyTasks?.Any() == true)
+                {
+                                    Console.WriteLine("=== DAILYTASKS DEBUG ===");
+                foreach(var task in apiResponse.DailyTasks)
+                {
+                    Console.WriteLine($"Task: {task.Type}, RequiresAck: {task.RequiresAck}, IsAckedToday: {task.IsAckedToday}, Desc: {task.Description}");
+                }
+                Console.WriteLine("========================");
+            }
+            else
+            {
+                Console.WriteLine("=== NO DAILYTASKS FOUND ===");
+                
+                // TEMPORARY: Add test tasks if none exist
+                apiResponse.DailyTasks = TestDataService.GetDefaultTasks();
+                
+                Console.WriteLine("Added temporary test tasks");
+            }
+
+            // ALWAYS check and add missing data regardless of tasks
+            // Add test important message if none exists
+            if (string.IsNullOrEmpty(apiResponse.ImportantMessage))
+            {
+                apiResponse.ImportantMessage = TestDataService.GetDefaultImportantMessage();
+                Console.WriteLine("Added test important message");
+            }
+            
+            // Add test weather if none exists (backend handles 4x daily updates)
+            if (apiResponse.Weather == null)
+            {
+                apiResponse.Weather = TestDataService.GetDefaultWeather();
+                Console.WriteLine($"Added test weather data (backend will handle real updates)");
+            }
+            
+            // Add test exercise video URL if none exists  
+            if (string.IsNullOrEmpty(apiResponse.ExerciseVideoUrl))
+            {
+                apiResponse.ExerciseVideoUrl = TestDataService.GetDefaultExerciseVideoUrl();
+                Console.WriteLine("Added test exercise video URL");
+            }
+            
+            // Add test photo if none exists
+            if (string.IsNullOrEmpty(apiResponse.DailyPhotoUrl))
+            {
+                apiResponse.DailyPhotoUrl = TestDataService.GetDefaultPhotoUrl();
+                apiResponse.DailyPhotoCaption = TestDataService.GetDefaultPhotoCaption();
+                Console.WriteLine("Added test photo data");
+            }
             }
             else
             {
@@ -151,28 +199,21 @@
         }
     }
     
-    private void GoToWeeklySchedule()
-    {
-        Navigation.NavigateTo("/weeklyschedule");
-    }
+         // Navigation methods moved to async versions below
 
-    private void GoToContacts()
-    {
-        Navigation.NavigateTo("/contacts");
-    }
-
+    // Legacy method - keeping for backward compatibility
     private async Task AcknowledgeTask(string taskType, string timeOfDay)
     {
         try
         {
             // Send POST to Google Apps Script to acknowledge task
             var postData = new { 
-                clientID = "Äiti", 
+                clientID = "mom", 
                 taskType = taskType, 
                 timeOfDay = timeOfDay,
                 timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
-            var apiUrl = "https://script.google.com/macros/s/AKfycbwkWcbrLzcryaOAXcS3AqyS6l2KL4DuBk6qShxn2BCUuUcPDhy00rLn7bt66qfRmtRHCQ/exec";
+            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec";
             
             var response = await Http.PostAsJsonAsync(apiUrl, postData);
             if (response.IsSuccessStatusCode)
@@ -191,6 +232,7 @@
         }
     }
 
+    // Legacy methods - keeping for backward compatibility
     private string GetTaskIcon(string taskType)
     {
         return taskType.ToUpper() switch
@@ -222,8 +264,296 @@
         return "YÖ";
     }
 
-    public void Dispose()
+    private void UpdateCurrentView()
     {
-        timer?.Dispose();
+        var hour = currentTime.Hour;
+        
+        // If "Start Day" was manually triggered, show morning view
+        if (CurrentView == ViewMode.Morning) return;
+        if (CurrentView == ViewMode.Day) return;
+        if (CurrentView == ViewMode.Evening) return;
+        if (CurrentView == ViewMode.Night) return;
+        
+        // Default time-based logic
+        if (hour >= 5 && hour < 8)
+        {
+            CurrentView = ViewMode.StartDay;
+        }
+        else if (hour >= 8 && hour < 11)
+        {
+            CurrentView = ViewMode.Morning;
+        }
+        else if (hour >= 11 && hour < 16)
+        {
+            CurrentView = ViewMode.Day;
+        }
+        else if (hour >= 16 && hour < 21)
+        {
+            CurrentView = ViewMode.Evening;
+        }
+        else
+        {
+            CurrentView = ViewMode.Night;
+        }
     }
+
+    private async Task OnStartDayClicked()
+    {
+        CurrentView = ViewMode.Morning;
+        
+        // Play gentle transition sound
+        if (audioReady && audioService != null)
+        {
+            await audioService.PlayNotificationSound("gentle");
+        }
+        
+        StateHasChanged();
+    }
+
+    private TimeBasedView.ViewMode GetTimeBasedViewMode()
+    {
+        return CurrentView switch
+        {
+            ViewMode.Morning => TimeBasedView.ViewMode.Morning,
+            ViewMode.Day => TimeBasedView.ViewMode.Day,
+            ViewMode.Evening => TimeBasedView.ViewMode.Evening,
+            ViewMode.Night => TimeBasedView.ViewMode.Night,
+            _ => TimeBasedView.ViewMode.Morning
+        };
+    }
+
+    private async Task OnAcknowledgeTaskHandler(TimeBasedView.TaskAckRequest request)
+    {
+        try
+        {
+            // Send POST to Google Apps Script to acknowledge task
+            var postData = new { 
+                clientID = "mom", 
+                taskType = request.TaskType, 
+                timeOfDay = request.TimeOfDay,
+                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec";
+            
+                         var response = await Http.PostAsJsonAsync(apiUrl, postData);
+                         if (response.IsSuccessStatusCode)
+             {
+                 statusMessage = $"✅ {request.TaskType} kuitattu - viesti lähetetty perheelle!";
+                 await LoadData(); // Reload to show updated acknowledgment status
+                 await OnTaskAcknowledged(); // Play completion sound
+             }
+            else
+            {
+                statusMessage = $"❌ Kuittaus epäonnistui: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ Kuittausvirhe: {ex.Message}";
+        }
+    }
+
+    private async Task HandleSwipe(string direction)
+    {
+        Console.WriteLine($"Swipe detected: {direction}");
+        
+        // Play swipe sound
+        await OnSwipePerformed();
+        
+        if (direction == "right")
+        {
+            // Right swipe - go to WeeklySchedule or Contacts
+            if (!isInAlternativeView)
+            {
+                await GoToWeeklyScheduleAsync();
+            }
+        }
+        else if (direction == "left")
+        {
+            // Left swipe - return to start day view or main view
+            if (isInAlternativeView)
+            {
+                await ReturnToMainView();
+            }
+            else
+            {
+                CurrentView = ViewMode.StartDay;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task GoToWeeklyScheduleAsync()
+    {
+        isInAlternativeView = true;
+        Navigation.NavigateTo("/weeklyschedule");
+        await StartAutoReturn();
+    }
+
+    private async Task GoToContactsAsync()
+    {
+        isInAlternativeView = true;
+        Navigation.NavigateTo("/contacts");
+        await StartAutoReturn();
+    }
+
+    private async Task StartAutoReturn()
+    {
+        AutoReturnSecondsLeft = 60; // 1 minute
+        autoReturnTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        _ = AutoReturnCountdown();
+    }
+
+    private async Task AutoReturnCountdown()
+    {
+        try
+        {
+            while (autoReturnTimer != null && await autoReturnTimer.WaitForNextTickAsync())
+            {
+                await InvokeAsync(() =>
+                {
+                    AutoReturnSecondsLeft--;
+                    if (AutoReturnSecondsLeft <= 0)
+                    {
+                        _ = ReturnToMainView();
+                        return;
+                    }
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Auto-return timer error: {ex.Message}");
+        }
+    }
+
+    private async Task ReturnToMainView()
+    {
+        isInAlternativeView = false;
+        AutoReturnSecondsLeft = 0;
+        autoReturnTimer?.Dispose();
+        autoReturnTimer = null;
+        Navigation.NavigateTo("/");
+        StateHasChanged();
+    }
+
+         // Legacy navigation methods (for backward compatibility) - removed duplicates
+
+    private void OnAudioReady()
+    {
+        audioReady = true;
+        Console.WriteLine("Audio service is ready");
+    }
+
+    private async Task CheckForNewMessages()
+    {
+        if (!audioReady || audioService == null) return;
+        
+        // Check if we have a new message (simplified logic)
+        if (apiResponse?.LatestReminder != null)
+        {
+            var messageHash = apiResponse.LatestReminder.GetHashCode();
+            var currentTime = DateTime.Now;
+            
+            // If message content changed or it's been more than 5 minutes since last check
+            if (lastMessageTime == DateTime.MinValue || 
+                (currentTime - lastMessageTime).TotalMinutes >= 5)
+            {
+                lastMessageTime = currentTime;
+                
+                // Play notification sound
+                await audioService.PlayNewMessageSound();
+                
+                // Start bell animation for 15 seconds
+                await audioService.StartBellAnimation(15);
+                
+                                 Console.WriteLine("New message notification played");
+             }
+         }
+     }
+
+     private async Task StartPeriodicMessageCheck()
+     {
+         while (true)
+         {
+             await Task.Delay(TimeSpan.FromMinutes(1)); // Check every minute
+             await CheckForNewMessages();
+         }
+     }
+
+    private async Task OnTaskAcknowledged()
+    {
+        if (audioReady && audioService != null)
+        {
+            await audioService.PlayTaskCompletedSound();
+        }
+    }
+
+    private async Task OnSwipePerformed()
+    {
+        if (audioReady && audioService != null)
+        {
+            await audioService.PlaySwipeSound();
+        }
+    }
+
+    private async Task OnStartExerciseHandler()
+    {
+        Console.WriteLine("Starting exercise video...");
+        
+        if (audioReady && audioService != null)
+        {
+            await audioService.PlayNotificationSound("gentle");
+        }
+        
+        // Check if we have a video URL from the API
+        if (!string.IsNullOrEmpty(apiResponse?.ExerciseVideoUrl))
+        {
+            // Open video in new tab/window
+            await JSRuntime.InvokeVoidAsync("window.open", apiResponse.ExerciseVideoUrl, "_blank");
+        }
+        else
+        {
+            // Use default/test video URL
+            var defaultVideoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; // Placeholder
+            await JSRuntime.InvokeVoidAsync("window.open", defaultVideoUrl, "_blank");
+        }
+        
+        statusMessage = "🏃‍♀️ Jumppa-video avattu! Hyvää treeniä!";
+    }
+
+    // Telegram handler methods
+    private void ShowTelegram()
+    {
+        isInTelegramMode = true;
+        StateHasChanged();
+    }
+
+    private void HideTelegram()
+    {
+        isInTelegramMode = false;
+        StateHasChanged();
+    }
+
+    private async Task OnTelegramMessageSent()
+    {
+        // Reload data to show any updates
+        await LoadData();
+        
+        // Play success sound
+        if (audioReady && audioService != null)
+        {
+            await audioService.PlayNotificationSound("gentle");
+        }
+        
+        statusMessage = "📱 Viesti lähetetty perheelle!";
+    }
+
+     public void Dispose()
+     {
+         timer?.Dispose();
+         autoReturnTimer?.Dispose();
+         audioService?.StopBellAnimation();
+     }
 } 

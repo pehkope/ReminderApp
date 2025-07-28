@@ -1,0 +1,105 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@code {
+    [Parameter] public EventCallback OnAudioInitialized { get; set; }
+    
+    private bool isInitialized = false;
+    private Timer? notificationTimer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isInitialized)
+        {
+            await InitializeAudio();
+            isInitialized = true;
+            await OnAudioInitialized.InvokeAsync();
+        }
+    }
+
+    private async Task InitializeAudio()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("AudioNotification.initialize");
+            Console.WriteLine("Audio notification service initialized");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing audio: {ex.Message}");
+        }
+    }
+
+    public async Task PlayNotificationSound(string type = "default")
+    {
+        if (!isInitialized) return;
+        
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("AudioNotification.playNotification", type);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error playing notification sound: {ex.Message}");
+        }
+    }
+
+    public async Task PlayNewMessageSound()
+    {
+        await PlayNotificationSound("bell");
+    }
+
+    public async Task PlayImportantNotification()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("AudioNotification.playImportantNotification");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error playing important notification: {ex.Message}");
+        }
+    }
+
+    public async Task PlayTaskCompletedSound()
+    {
+        await PlayNotificationSound("gentle");
+    }
+
+    public async Task PlaySwipeSound()
+    {
+        await PlayNotificationSound("gentle");
+    }
+
+    public async Task StartBellAnimation(int durationSeconds = 15)
+    {
+        // Start periodic notification sound
+        var interval = Math.Max(3, durationSeconds / 5); // Play 3-5 times during duration
+        
+        await PlayNewMessageSound();
+        
+        notificationTimer = new Timer(async _ => 
+        {
+            await PlayNotificationSound("bell");
+        }, null, TimeSpan.FromSeconds(interval), TimeSpan.FromSeconds(interval));
+
+        // Stop after duration
+        _ = Task.Delay(TimeSpan.FromSeconds(durationSeconds)).ContinueWith(_ => 
+        {
+            notificationTimer?.Dispose();
+            notificationTimer = null;
+        });
+    }
+
+    public void StopBellAnimation()
+    {
+        notificationTimer?.Dispose();
+        notificationTimer = null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        notificationTimer?.Dispose();
+    }
+} 

@@ -1,0 +1,40 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div id="@ElementId" class="swipe-container @CssClass">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string CssClass { get; set; } = "";
+    [Parameter] public EventCallback<string> OnSwipe { get; set; }
+    [Parameter] public string ElementId { get; set; } = $"swipe-{Guid.NewGuid():N}";
+
+    private DotNetObjectReference<SwipeContainer>? dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("SwipeHandler.initialize", ElementId, dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleSwipe(string direction)
+    {
+        await OnSwipe.InvokeAsync(direction);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (dotNetRef != null)
+        {
+            await JSRuntime.InvokeVoidAsync("SwipeHandler.cleanup", ElementId);
+            dotNetRef.Dispose();
+        }
+    }
+} 
