@@ -119,7 +119,7 @@ namespace ReminderTabletNew2.Services
 
         public static string GetDefaultLatestReminder()
         {
-            return "Muista ottaa aamulääkkeet ja syödä aamupala ennen ulkoilua. Mukavaa päivää! ☀️";
+            return ""; // Tyhjä string sen sijaan että testiviesti - viestit tulevat vain API:sta
         }
 
         public static List<Contact> GetDefaultContacts()

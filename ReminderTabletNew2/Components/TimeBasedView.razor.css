@@ -140,15 +140,15 @@
 .content-area {
     padding: 0 20px;
     flex: 1;
-    margin-top: 0px; /* Takaisin normaaliin tilaan */
+    /* Kaikki komponentit normaali document flow ylhäältä alaspäin */
 }
 
 /* Notification Section */
 .notification-wrapper {
     position: relative;
-    padding-top: 20px; /* Takaisin tilaa bell-iconille */
-    margin-top: 10px; /* Vielä pienempi väli time-containerin jälkeen */
-    margin-bottom: 10px; /* Pienempi marginaali */
+    padding-top: 20px;
+    margin-top: 15px; /* Vakio väli (oli 10px) */
+    margin-bottom: 15px; /* Vakio väli (oli 10px) */
 }
 
 .bell-icon {
@@ -232,14 +232,6 @@
 }
 
 /* Photo and Footer */
-.photo-container {
-    position: relative;
-    margin-top: 0px; /* Ei väliä tehtäviin */
-    margin-left: 0;
-    margin-right: 0;
-    padding-bottom: 100px; /* Vain riittävästi tilaa footer-alueelle */
-}
-
 .main-photo {
     width: 100%;
     height: 360px; /* TUPLA korkeus kuten pyydettiin! */
