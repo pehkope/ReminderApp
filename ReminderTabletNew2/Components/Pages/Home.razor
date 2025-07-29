@@ -7,9 +7,14 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject TelegramService TelegramService
+@inject ApiService ApiService
 @implements IDisposable
 
 <AudioNotificationService @ref="audioService" OnAudioInitialized="OnAudioReady" />
+<OfflineIndicator IsOffline="@isOfflineMode" 
+                  OfflineMessage="@offlineMessage"
+                  OnRetry="RetryConnection"
+                  IsRetrying="@isRetrying" />
 
 <SwipeContainer OnSwipe="HandleSwipe" CssClass="main-swipe-container">
     @* Dynamic view based on time of day *@
@@ -77,6 +82,11 @@
     // Telegram functionality
     private bool isInTelegramMode = false;
     
+    // Offline mode tracking
+    private bool isOfflineMode = false;
+    private string offlineMessage = "";
+    private bool isRetrying = false;
+    
     // Audio service
     private AudioNotificationService? audioService;
     private bool audioReady = false;
@@ -128,10 +138,15 @@
 
     private async Task LoadData()
     {
-        try
+        statusMessage = "📡 Haetaan tietoja...";
+        
+        var result = await ApiService.GetDataAsync("mom", maxRetries: 2); // Only 2 retries for faster UX
+        
+        if (result.IsSuccess && result.Data != null)
         {
-            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec?clientID=mom";
-            apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
+            apiResponse = result.Data;
+            isOfflineMode = false;
+            statusMessage = $"✅ Tiedot ladattu {DateTime.Now:HH:mm:ss}";
             
                          if (apiResponse != null)
             {
@@ -192,11 +207,38 @@
                 statusMessage = "Virhe: Google palautti tyhjän vastauksen";
             }
         }
-        catch (Exception ex)
+        else
         {
-            statusMessage = $"Virhe ladattaessa tietoja: {ex.Message}";
-            Console.WriteLine(ex.ToString());
+            Console.WriteLine($"❌ API virhe: {result.ErrorCode} - {result.ErrorMessage}");
+            isOfflineMode = true;
+            offlineMessage = result.ErrorCode switch
+            {
+                "API_TIMEOUT" => "API vastaa hitaasti",
+                "NETWORK_ERROR" => "Verkkoyhteys ongelma", 
+                _ => result.ErrorMessage
+            };
+            statusMessage = "📱 Offline-tila - käytetään testidata";
+            LoadFallbackData(result.ErrorCode);
         }
+    }
+
+    private void LoadFallbackData(string errorType)
+    {
+        apiResponse = new ReminderApiResponse
+        {
+            ClientID = "mom",
+            Status = errorType, 
+            Settings = new Settings { UseTelegram = false, UsePhotos = true },
+            ImportantMessage = "📱 Offline-tila - API ei vastaa",
+            UpcomingAppointments = TestDataService.GetDefaultAppointments(),
+            DailyPhotoUrl = TestDataService.GetDefaultPhotoUrl(),
+            DailyPhotoCaption = TestDataService.GetDefaultPhotoCaption(),
+            Weather = TestDataService.GetDefaultWeather(),
+            Contacts = TestDataService.GetDefaultContacts(),
+            LatestReminder = "", // Tyhjä string - viestit tulevat vain API:sta oikeaan aikaan
+            DailyTasks = TestDataService.GetDefaultTasks(),
+            CurrentTimeOfDay = GetTimeOfDay()
+        };
     }
     
          // Navigation methods moved to async versions below
@@ -548,6 +590,23 @@
         }
         
         statusMessage = "📱 Viesti lähetetty perheelle!";
+    }
+
+    private async Task RetryConnection()
+    {
+        if (isRetrying) return;
+        
+        isRetrying = true;
+        Console.WriteLine("🔄 Yritetään yhdistää uudelleen...");
+        
+        try
+        {
+            await LoadData();
+        }
+        finally
+        {
+            isRetrying = false;
+        }
     }
 
      public void Dispose()

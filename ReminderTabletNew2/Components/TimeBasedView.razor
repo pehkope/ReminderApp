@@ -4,49 +4,19 @@
 
 <div class="mobile-container @GetViewCssClass()">
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="time-container">
-            <div class="date-text">@CurrentTime.ToString("dddd d. MMMM yyyy", new System.Globalization.CultureInfo("fi-FI"))</div>
-            
-            <div class="time-main">
-                <div class="main-time">@CurrentTime.ToString("HH:mm")</div>
-                <div class="time-period">@GetTimeOfDayText()</div>
-            </div>
-            
-            @* Säätieto kellonaika-alueen sisällä alaosassa *@
-            <div class="weather-compact">
-                @if (ApiResponse?.Weather != null)
-                {
-                    <span class="weather-icon">@GetWeatherIcon(ApiResponse.Weather.Description)</span>
-                    <div class="weather-info">
-                        <span class="weather-temp">@ApiResponse.Weather.Temperature</span>
-                        <span class="weather-desc">@ApiResponse.Weather.Description</span>
-                    </div>
-                }
-                else
-                {
-                    <span class="weather-icon">🌤️</span>
-                    <div class="weather-info">
-                        <span class="weather-temp">22°C</span>
-                        <span class="weather-desc">Pilvinen</span>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
+    <DateTimeWeather CurrentTime="@CurrentTime" 
+                     TimeOfDayText="@GetTimeOfDayText()" 
+                     Weather="@ApiResponse?.Weather" />
 
     <!-- Content Area -->
     <div class="content-area">
-        @* Päivän viesti ReminderAppista (kl 8, 12, 16, 21) *@
-        <div class="notification-wrapper">
-            <div class="bell-icon @(IsNewMessage ? "animated-bell" : "")">
-                <i class="fas fa-bell"></i>
-            </div>
-            <div class="notification-bubble">
-                <div class="notification-title">@GetMessageTimestamp()</div>
-                <p>@GetContextualMessage()</p>
-            </div>
-        </div>
+        @* Viestikenttä näkyy vain kun on oikea viesti *@
+        @if (!string.IsNullOrEmpty(GetContextualMessage()))
+        {
+            <MessageNotification Message="@GetContextualMessage()" 
+                               MessageTimestamp="@GetMessageTimestamp()" 
+                               IsNewMessage="@IsNewMessage" />
+        }
 
         @* Tehtäväkentät erillisessä komponentissa *@
         <TaskField 
@@ -55,65 +25,18 @@
             DefaultActivityText="@GetActivitySuggestion()"
             OnTaskAcknowledge="HandleTaskAcknowledge" />
 
-    </div>
-
-    @* Kuva lähellä asiat-kenttää ja footer *@
-    <div class="photo-container">
-        @* Tärkeä viesti valokuvan päällä (jos tärkeissä tapaamisissa on tapaaminen tänään) *@
-        @if (!string.IsNullOrWhiteSpace(ApiResponse?.ImportantMessage))
-        {
-            <div class="important-banner">
-                ⚠️ TÄNÄÄN TÄRKEÄÄ: @ApiResponse.ImportantMessage
-            </div>
-        }
+        @* Tärkeä viesti (jos on) *@
+        <ImportantBanner ImportantMessage="@ApiResponse?.ImportantMessage" />
         
-        @{
-            string imageUrl = GetImageUrl();
-        }
-        
-                 @if (!string.IsNullOrEmpty(imageUrl))
-         {
-             <div class="main-photo photo-clickable" @onclick="() => OpenImageModal(imageUrl, GetImageCaption())">
-                                   <img src="@imageUrl" alt="@GetImageCaption()" style="width: 100%; height: 100%; object-fit: cover;" 
-                       @onload="@(() => LoggingService.LogImageLoad(imageUrl, true))"
-                       @onerror="@(() => LoggingService.LogImageLoad(imageUrl, false))" />
-                 <div class="photo-overlay">
-                     <span class="zoom-icon">🔍</span>
-                     <span>Suurenna</span>
-                 </div>
-             </div>
-                                         <div style="background: yellow; padding: 5px; font-size: 0.8rem;">
-                  DEBUG: Viikko @TestDataService.GetCurrentWeekNumber() - @imageUrl
-              </div>
-         }
-         else
-         {
-             <div class="main-photo">
-                 <div class="no-photo">❌ Ei kuva-URL:a saatavilla</div>
-             </div>
-         }
+        @* Päivän valokuva *@
+        <DailyPhoto ApiPhotoUrl="@ApiResponse?.DailyPhotoUrl"
+                   ApiPhotoCaption="@ApiResponse?.DailyPhotoCaption"
+                   OnPhotoClick="OnPhotoClickHandler" />
         
         @* Footer toiminnot *@
-        <div class="footer-bar">
-            <div class="footer-action" @onclick="() => OnNavigateToWeekly.InvokeAsync()">
-                <div class="action-icon-wrapper calendar">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <span>Päivän ohjelma</span>
-            </div>
-            <div class="footer-action" @onclick="() => OnNavigateToContacts.InvokeAsync()">
-                <div class="action-icon-wrapper phone">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <span>Soita perhe</span>
-            </div>
-            <div class="footer-action" @onclick="() => OnStartExercise.InvokeAsync()">
-                <div class="action-icon-wrapper brain">
-                    <i class="fas fa-running"></i>
-                </div>
-                <span>Aloita jumppa</span>
-            </div>
-        </div>
+        <ActionFooter OnNavigateToWeekly="OnNavigateToWeekly"
+                     OnNavigateToContacts="OnNavigateToContacts"
+                     OnStartExercise="OnStartExercise" />
     </div>
 </div>
 
@@ -147,6 +70,12 @@
         public string TaskType { get; set; } = "";
         public string TimeOfDay { get; set; } = "";
     }
+
+    // Image modal state
+    private bool showImageModal = false;
+    private string modalImageSrc = "";
+    private string modalImageAlt = "";
+    private string modalImageCaption = "";
 
     private string GetViewCssClass()
     {
@@ -186,17 +115,23 @@
 
     private string GetContextualMessage()
     {
-        if (!string.IsNullOrEmpty(ApiResponse?.LatestReminder))
-            return ApiResponse.LatestReminder;
-
-        return TimeOfDay switch
+        var message = ApiResponse?.LatestReminder;
+        
+        // Suodatetaan pois ei-toivotut viestit
+        if (!string.IsNullOrEmpty(message))
         {
-            ViewMode.Morning => "Aamun tuoksu tervehtii sinua. Kaunis päivä on edessä! ☀️",
-            ViewMode.Day => "Päivä etenee mukavasti. Toivottavasti voit hyvin! 🌤️",
-            ViewMode.Evening => "Ilta laskeutuu rauhallisesti. Aikaa rentoutua. 🌅",
-            ViewMode.Night => "Päivä on päättymässä. Lepää hyvin! 🌙",
-            _ => "Kaunis hetki juuri nyt."
-        };
+            // Estä "Tervetuloa!" ja muut ei-toivotut viestit
+            if (message.Contains("Tervetuloa") || 
+                message.Contains("Welcome") || 
+                message.Contains("tervetuloa"))
+            {
+                return string.Empty;
+            }
+            
+            return message;
+        }
+
+        return string.Empty;
     }
 
     private string GetActivitySuggestion()
@@ -221,11 +156,10 @@
         return ApiResponse.DailyTasks.Where(task => IsTaskRelevantForTime(task));
     }
 
-    // Image modal state
-    private bool showImageModal = false;
-    private string modalImageSrc = "";
-    private string modalImageAlt = "";
-    private string modalImageCaption = "";
+    private async Task OnPhotoClickHandler(DailyPhoto.PhotoClickArgs args)
+    {
+        OpenImageModal(args.ImageUrl, args.Caption);
+    }
 
     private void OpenImageModal(string imageSrc, string caption)
     {
@@ -259,43 +193,6 @@
     private async Task HandleTaskAcknowledge(DailyTask task)
     {
         await OnAcknowledgeTask.InvokeAsync(new TaskAckRequest { TaskType = task.Type, TimeOfDay = GetTimeOfDayText() });
-    }
-
-    private string GetWeatherIcon(string? description)
-    {
-        if (string.IsNullOrEmpty(description)) return "🌤️";
-        
-        var desc = description.ToLower();
-        if (desc.Contains("aurinko") || desc.Contains("kirkas") || desc.Contains("selkeä")) return "☀️";
-        if (desc.Contains("pilvi") || desc.Contains("pilvinen")) return "☁️";
-        if (desc.Contains("sade") || desc.Contains("sateinen")) return "🌧️";
-        if (desc.Contains("lumi") || desc.Contains("luminen")) return "❄️";
-        if (desc.Contains("usva") || desc.Contains("sumu")) return "🌫️";
-        if (desc.Contains("myrsky") || desc.Contains("ukkonen")) return "⛈️";
-        if (desc.Contains("tuuli") || desc.Contains("tuulinen")) return "💨";
-        
-        return "🌤️";
-    }
-
-    private string GetImageUrl()
-    {
-         // Ensisijaisesti API:sta
-         if (!string.IsNullOrEmpty(ApiResponse?.DailyPhotoUrl))
-         {
-             return ApiResponse.DailyPhotoUrl;
-         }
-         
-         // Toissijaisesti frontend:n viikottainen simulaatio (backend ei ole vielä käytössä)
-         var simulatedUrl = TestDataService.GetDefaultPhotoUrl();
-         return simulatedUrl;
-    }
-
-    private string GetImageCaption()
-    {
-        if (!string.IsNullOrEmpty(ApiResponse?.DailyPhotoCaption))
-            return ApiResponse.DailyPhotoCaption;
-            
-        return TestDataService.GetDefaultPhotoCaption();
     }
 
     // PARAS KÄYTÄNTÖ: IDisposable pattern
