@@ -2199,25 +2199,34 @@ async function sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, t
     const sheetId = scriptProperties.getProperty(SHEET_ID_KEY);
     const sheet = SpreadsheetApp.openById(sheetId);
     
-    // Get notification recipients from config
-    const configSheet = sheet.getSheetByName("Asetukset");
+    // Get notification recipients from existing Config sheet
+    const configSheet = sheet.getSheetByName("Config");
     if (!configSheet) {
-      console.error("Asetukset sheet not found for notification config");
+      console.error("Config sheet not found for notification config");
       return;
     }
     
-    // Find notification settings
+    // Find Tiitta and Petri from existing contacts
     let notificationRecipients = [];
     const configData = configSheet.getDataRange().getValues();
     
     for (let i = 1; i < configData.length; i++) {
-      const role = String(configData[i][0]).trim();
-      if (role.toLowerCase().includes('notification') || role.toLowerCase().includes('kuittaus')) {
+      const clientID = String(configData[i][0]).trim();
+      const name = String(configData[i][1]).trim();
+      const phone = String(configData[i][2]).trim();
+      
+      // Look for Tiitta and Petri contacts
+      if (name.toLowerCase().includes('tiitta') || name.toLowerCase().includes('petri')) {
+        // Chat ID might be in column D (3) or we'll add it later
+        const telegramChatID = configData[i][3] ? String(configData[i][3]).trim() : "";
+        
         notificationRecipients.push({
-          name: String(configData[i][1]),
-          phone: String(configData[i][2]), 
-          telegramChatID: String(configData[i][3])
+          name: name,
+          phone: phone, 
+          telegramChatID: telegramChatID
         });
+        
+        console.log(`Found notification recipient: ${name}, Phone: ${phone}, Chat ID: ${telegramChatID || 'Not set'}`);
       }
     }
     
