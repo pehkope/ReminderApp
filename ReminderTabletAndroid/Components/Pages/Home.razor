@@ -319,7 +319,7 @@
                 timeOfDay = request.TimeOfDay,
                 timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
-            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec";
+            var apiUrl = "https://script.google.com/macros/s/AKfycbzzTEWEMe53xHRKxgRL-l-otYBj9UHWanvEBNj4zdnysZNlPCs8-1Hovr8DKQoeGiyGWg/exec";
             
             var response = await Http.PostAsJsonAsync(apiUrl, postData);
             if (response.IsSuccessStatusCode)
