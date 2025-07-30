@@ -149,6 +149,9 @@ function doPost(e) {
     const success = acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, timestamp);
     
     if (success) {
+      // Send acknowledgment notifications to family
+      await sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timestamp);
+      
       return createJsonResponse({
         status: "success",
         message: "Task acknowledged successfully",
@@ -2181,5 +2184,88 @@ function testAnyPhotoMethod() {
     
   } catch (error) {
     console.error("❌ Photo test failed:", error.toString());
+  }
+}
+
+// ===================================================================================
+//  ACKNOWLEDGMENT NOTIFICATIONS TO FAMILY
+// ===================================================================================
+
+async function sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timestamp) {
+  try {
+    console.log(`Sending acknowledgment notifications for ${clientID}: ${taskType} (${timeOfDay})`);
+    
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const sheetId = scriptProperties.getProperty(SHEET_ID_KEY);
+    const sheet = SpreadsheetApp.openById(sheetId);
+    
+    // Get notification recipients from config
+    const configSheet = sheet.getSheetByName("Asetukset");
+    if (!configSheet) {
+      console.error("Asetukset sheet not found for notification config");
+      return;
+    }
+    
+    // Find notification settings
+    let notificationRecipients = [];
+    const configData = configSheet.getDataRange().getValues();
+    
+    for (let i = 1; i < configData.length; i++) {
+      const role = String(configData[i][0]).trim();
+      if (role.toLowerCase().includes('notification') || role.toLowerCase().includes('kuittaus')) {
+        notificationRecipients.push({
+          name: String(configData[i][1]),
+          phone: String(configData[i][2]), 
+          telegramChatID: String(configData[i][3])
+        });
+      }
+    }
+    
+    // Create acknowledgment message
+    const timeStr = new Date(timestamp).toLocaleTimeString('fi-FI', { 
+      timeZone: 'Europe/Helsinki',
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    
+    const taskEmoji = taskType.toLowerCase() === 'ruoka' ? '🍽️' : 
+                     taskType.toLowerCase() === 'lääkkeet' ? '💊' : '✅';
+    
+    const message = `${taskEmoji} Äiti kuitannut: ${taskType.toUpperCase()} (${timeOfDay})\n🕒 Aika: ${timeStr}\n📍 Sovellus: ReminderApp`;
+    
+    // Send notifications using existing functions
+    const telegramToken = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY);
+    const twilioFromNumber = scriptProperties.getProperty(TWILIO_FROM_NUMBER_KEY);
+    const accountSid = scriptProperties.getProperty(TWILIO_ACCOUNT_SID_KEY);
+    const authToken = scriptProperties.getProperty(TWILIO_AUTH_TOKEN_KEY);
+    
+    for (const recipient of notificationRecipients) {
+      // Strategy: Telegram first, SMS backup
+      let sent = false;
+      
+      // Try Telegram first
+      if (telegramToken && recipient.telegramChatID && recipient.telegramChatID !== "") {
+        try {
+          await sendTelegramNotification_(sheet, clientID, message, telegramToken, recipient.telegramChatID, false);
+          console.log(`✅ Telegram acknowledgment sent to ${recipient.name}`);
+          sent = true;
+        } catch (e) {
+          console.error(`❌ Telegram failed for ${recipient.name}: ${e.toString()}`);
+        }
+      }
+      
+      // Fallback to SMS if Telegram failed or not available
+      if (!sent && twilioFromNumber && authToken && accountSid && recipient.phone && recipient.phone !== "") {
+        try {
+          await sendSmsNotification_(message, recipient.phone, twilioFromNumber, accountSid, authToken, recipient.name);
+          console.log(`✅ SMS acknowledgment sent to ${recipient.name}`);
+        } catch (e) {
+          console.error(`❌ SMS failed for ${recipient.name}: ${e.toString()}`);
+        }
+      }
+    }
+    
+  } catch (error) {
+    console.error(`Error sending acknowledgment notifications: ${error.toString()}`);
   }
 } 
