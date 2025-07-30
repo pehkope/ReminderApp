@@ -1,0 +1,117 @@
+@page "/contacts"
+@inject HttpClient Http
+@using ReminderTabletAndroid.Models
+@using System.Text.Json
+@inject NavigationManager Navigation
+
+<SwipeContainer OnSwipe="HandleSwipe" CssClass="contacts-swipe-container">
+    <div class="contacts-page">
+        <div class="header">
+            <h2>📞 SOITA PERHE</h2>
+            <button class="back-button" @onclick="GoBack">← Takaisin</button>
+        </div>
+        
+        <div class="contacts-content">
+        @if (apiResponse?.Contacts?.Any() == true)
+        {
+            @foreach (var contact in apiResponse.Contacts)
+            {
+                <div class="contact-item">
+                    <div class="contact-info">
+                        <div class="name">@contact.Name</div>
+                        <div class="phone">📱 @contact.Phone</div>
+                    </div>
+                    <button class="call-button" @onclick="() => CallContact(contact)">
+                        📞 Soita
+                    </button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-contacts">
+                <p>Yhteystietoja ei löytynyt.</p>
+                <p>Tarkista Google Sheets -asetukset.</p>
+            </div>
+        }
+        </div>
+    </div>
+</SwipeContainer>
+
+@code {
+    private ReminderApiResponse? apiResponse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec?clientID=mom";
+            apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
+            
+            // If no contacts from API, add temporary test contacts
+            if (apiResponse?.Contacts?.Any() != true)
+            {
+                Console.WriteLine("=== NO CONTACTS FOUND ===");
+                
+                if (apiResponse == null)
+                    apiResponse = new ReminderApiResponse();
+                    
+                apiResponse.Contacts = new List<Contact>
+                {
+                    new Contact { Name = "Petri (poika)", Phone = "+358401234567" },
+                    new Contact { Name = "Tiita (tytär)", Phone = "+358501234568" },
+                    new Contact { Name = "Sisko (sisar)", Phone = "+358451234569" },
+                    new Contact { Name = "Ystävä Liisa", Phone = "+358401234570" },
+                    new Contact { Name = "Naapuri Marja", Phone = "+358501234571" },
+                    new Contact { Name = "Hätänumero", Phone = "112" }
+                };
+                
+                Console.WriteLine("Added temporary test contacts");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+            
+            // Create emergency fallback
+            apiResponse = new ReminderApiResponse
+            {
+                Contacts = new List<Contact>
+                {
+                    new Contact { Name = "Hätänumero", Phone = "112" },
+                    new Contact { Name = "Perhe", Phone = "+358401234567" }
+                }
+            };
+        }
+    }
+
+    private void CallContact(Contact contact)
+    {
+        // In a real tablet app, this would open the phone app
+        // For now, we'll just show an alert
+        var phoneUrl = $"tel:{contact.Phone}";
+        Console.WriteLine($"Would call: {contact.Name} at {contact.Phone}");
+        
+        // You could also navigate to a phone app or show a confirmation dialog
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private Task HandleSwipe(string direction)
+    {
+        if (direction == "left")
+        {
+            // Left swipe - go back to main page
+            GoBack();
+        }
+        return Task.CompletedTask;
+    }
+}

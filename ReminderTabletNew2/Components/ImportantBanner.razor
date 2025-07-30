@@ -1,0 +1,10 @@
+@if (!string.IsNullOrWhiteSpace(ImportantMessage))
+{
+    <div class="important-banner">
+        ⚠️ TÄNÄÄN TÄRKEÄÄ: @ImportantMessage
+    </div>
+}
+
+@code {
+    [Parameter] public string? ImportantMessage { get; set; }
+}

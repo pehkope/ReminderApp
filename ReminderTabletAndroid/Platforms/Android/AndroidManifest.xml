@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <application android:allowBackup="true" 
+                 android:icon="@mipmap/appicon" 
+                 android:supportsRtl="true"
+                 android:theme="@style/Maui.SplashTheme"
+                 android:screenOrientation="portrait">
+        
+        <activity android:name="crc64e1fb321c08285b90.MainActivity"
+                  android:exported="true"
+                  android:launchMode="singleTop"
+                  android:theme="@style/Maui.SplashTheme"
+                  android:screenOrientation="portrait"
+                  android:configChanges="orientation|keyboardHidden|keyboard|screenSize"
+                  android:windowSoftInputMode="adjustResize">
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

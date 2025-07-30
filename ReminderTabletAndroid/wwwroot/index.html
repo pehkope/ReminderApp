@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReminderApp Android</title>
+    <base href="/" />
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    
+    <!-- Android MAUI App -->
+    <meta name="theme-color" content="#512BD4" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ReminderApp">
+    
+    <style>
+        body {
+            background: linear-gradient(45deg, #667eea, #764ba2) !important;
+            color: white !important;
+        }
+        
+        #blazor-error-ui {
+            background: red !important;
+            color: white !important;
+            padding: 20px !important;
+            font-size: 18px !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white; font-size: 24px;">
+            <h1>📱 LADATAAN ANDROID SOVELLUSTA 📱</h1>
+            <p>ReminderApp Android tablettiin...</p>
+            <div style="border: 3px solid #FFC107; padding: 20px; margin: 20px; background: rgba(0,0,0,0.5); border-radius: 15px;">
+                <strong>ANDROID MAUI BLAZOR SOVELLUS</strong><br/>
+                Täydellinen tablet-kokemus!
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        📱 ANDROID: Odottamaton virhe tapahtui.
+        <a href="" class="reload">Lataa uudelleen</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+    <script src="js/swipe.js"></script>
+    <script src="js/audio.js"></script>
+</body>
+
+</html>

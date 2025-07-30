@@ -1,0 +1,68 @@
+@using ReminderTabletNew2.Models
+@using System.Globalization
+
+<div class="header-section">
+    <div class="time-container">
+        <div class="date-text">@GetFinnishDate()</div>
+        
+        <div class="time-main">
+            <div class="main-time">@CurrentTime.ToString("HH:mm")</div>
+            <div class="time-period">@TimeOfDayText</div>
+        </div>
+        
+        @* Säätieto kellonaika-alueen sisällä alaosassa *@
+        <div class="weather-compact">
+            @if (Weather != null)
+            {
+                <span class="weather-icon">@GetWeatherIcon(Weather.Description)</span>
+                <div class="weather-info">
+                    <span class="weather-temp">@Weather.Temperature</span>
+                    <span class="weather-desc">@Weather.Description</span>
+                </div>
+            }
+            else
+            {
+                <span class="weather-icon">🌤️</span>
+                <div class="weather-info">
+                    <span class="weather-temp">22°C</span>
+                    <span class="weather-desc">Pilvinen</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public required DateTime CurrentTime { get; set; }
+    [Parameter] public required string TimeOfDayText { get; set; }
+    [Parameter] public Weather? Weather { get; set; }
+
+    private string GetFinnishDate()
+    {
+        // Manuaaliset käännökset varmistaaksemme suomenkielisyyden
+        var finnishDays = new[] { "Sunnuntai", "Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai", "Lauantai" };
+        var finnishMonths = new[] { "", "tammikuu", "helmikuu", "maaliskuu", "huhtikuu", "toukokuu", "kesäkuu", 
+                                   "heinäkuu", "elokuu", "syyskuu", "lokakuu", "marraskuu", "joulukuu" };
+        
+        var dayName = finnishDays[(int)CurrentTime.DayOfWeek];
+        var monthName = finnishMonths[CurrentTime.Month];
+        
+        return $"{dayName} {CurrentTime.Day}. {monthName} {CurrentTime.Year}";
+    }
+
+    private string GetWeatherIcon(string? description)
+    {
+        if (string.IsNullOrEmpty(description)) return "🌤️";
+        
+        var desc = description.ToLower();
+        if (desc.Contains("aurinko") || desc.Contains("kirkas") || desc.Contains("selkeä")) return "☀️";
+        if (desc.Contains("pilvi") || desc.Contains("pilvinen")) return "☁️";
+        if (desc.Contains("sade") || desc.Contains("sateinen")) return "🌧️";
+        if (desc.Contains("lumi") || desc.Contains("luminen")) return "❄️";
+        if (desc.Contains("usva") || desc.Contains("sumu")) return "🌫️";
+        if (desc.Contains("myrsky") || desc.Contains("ukkonen")) return "⛈️";
+        if (desc.Contains("tuuli") || desc.Contains("tuulinen")) return "💨";
+        
+        return "🌤️";
+    }
+}

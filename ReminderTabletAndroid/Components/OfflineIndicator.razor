@@ -1,0 +1,30 @@
+@if (IsOffline)
+{
+    <div class="offline-indicator @(IsVisible ? "visible" : "")">
+        <div class="offline-content">
+            <span class="offline-icon">📶</span>
+            <div class="offline-text">
+                <div class="offline-title">Offline-tila</div>
+                <div class="offline-message">@OfflineMessage</div>
+            </div>
+            <button class="retry-btn" @onclick="OnRetry" disabled="@IsRetrying">
+                @if (IsRetrying)
+                {
+                    <span class="loading-spinner">⭮</span>
+                }
+                else
+                {
+                    <span>🔄</span>
+                }
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOffline { get; set; }
+    [Parameter] public bool IsVisible { get; set; } = true;
+    [Parameter] public string OfflineMessage { get; set; } = "API ei vastaa";
+    [Parameter] public EventCallback OnRetry { get; set; }
+    [Parameter] public bool IsRetrying { get; set; }
+}

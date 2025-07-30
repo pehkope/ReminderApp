@@ -1,0 +1,16 @@
+@* Päivän viesti ReminderAppista (kl 8, 12, 16, 21) *@
+<div class="notification-wrapper">
+    <div class="bell-icon @(IsNewMessage ? "animated-bell" : "")">
+        <i class="fas fa-bell"></i>
+    </div>
+    <div class="notification-bubble">
+        <div class="notification-title">@MessageTimestamp</div>
+        <p>@Message</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public required string Message { get; set; }
+    [Parameter] public required string MessageTimestamp { get; set; }
+    [Parameter] public bool IsNewMessage { get; set; } = false;
+}
