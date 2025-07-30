@@ -1,0 +1,204 @@
+@using ReminderTabletAndroid.Models
+@using ReminderTabletAndroid.Services
+@implements IDisposable
+
+<div class="mobile-container @GetViewCssClass()">
+    <!-- Header Section -->
+    <DateTimeWeather CurrentTime="@CurrentTime" 
+                     TimeOfDayText="@GetTimeOfDayText()" 
+                     Weather="@ApiResponse?.Weather" />
+
+    <!-- Content Area -->
+    <div class="content-area">
+        @* Viestikenttä näkyy vain kun on oikea viesti *@
+        @if (!string.IsNullOrEmpty(GetContextualMessage()))
+        {
+            <MessageNotification Message="@GetContextualMessage()" 
+                               MessageTimestamp="@GetMessageTimestamp()" 
+                               IsNewMessage="@IsNewMessage" />
+        }
+
+        @* Tehtäväkentät erillisessä komponentissa *@
+        <TaskField 
+            Tasks="GetFilteredTasks()" 
+            TimeOfDayText="@GetTimeOfDayText()" 
+            DefaultActivityText="@GetActivitySuggestion()"
+            OnTaskAcknowledge="HandleTaskAcknowledge" />
+
+        @* Tärkeä viesti (jos on) *@
+        <ImportantBanner ImportantMessage="@ApiResponse?.ImportantMessage" />
+        
+        @* Päivän valokuva *@
+        <DailyPhoto ApiPhotoUrl="@ApiResponse?.DailyPhotoUrl"
+                   ApiPhotoCaption="@ApiResponse?.DailyPhotoCaption"
+                   OnPhotoClick="OnPhotoClickHandler" />
+        
+        @* Footer toiminnot *@
+        <ActionFooter OnNavigateToWeekly="OnNavigateToWeekly"
+                     OnNavigateToContacts="OnNavigateToContacts"
+                     OnStartExercise="OnStartExercise" />
+    </div>
+</div>
+
+<ImageModal IsVisible="@showImageModal" 
+            ImageSrc="@modalImageSrc" 
+            ImageAlt="@modalImageAlt"
+            ImageTitle="Päivän kuvamuisto"
+            ImageCaption="@modalImageCaption"
+            OnClose="CloseImageModal" />
+
+@code {
+    [Parameter] public required ViewMode TimeOfDay { get; set; }
+    [Parameter] public required DateTime CurrentTime { get; set; }
+    [Parameter] public ReminderApiResponse? ApiResponse { get; set; }
+    [Parameter] public EventCallback<TaskAckRequest> OnAcknowledgeTask { get; set; }
+    [Parameter] public EventCallback OnNavigateToWeekly { get; set; }
+    [Parameter] public EventCallback OnNavigateToContacts { get; set; }
+    [Parameter] public EventCallback OnStartExercise { get; set; }
+    [Parameter] public bool IsNewMessage { get; set; } = false;
+
+    public enum ViewMode
+    {
+        Morning,     // 08:00-11:00
+        Day,         // 11:00-16:00
+        Evening,     // 16:00-21:00
+        Night        // 21:00+
+    }
+
+    public class TaskAckRequest
+    {
+        public string TaskType { get; set; } = "";
+        public string TimeOfDay { get; set; } = "";
+    }
+
+    // Image modal state
+    private bool showImageModal = false;
+    private string modalImageSrc = "";
+    private string modalImageAlt = "";
+    private string modalImageCaption = "";
+
+    private string GetViewCssClass()
+    {
+        return TimeOfDay switch
+        {
+            ViewMode.Morning => "morning-view",
+            ViewMode.Day => "day-view", 
+            ViewMode.Evening => "evening-view",
+            ViewMode.Night => "night-view",
+            _ => "morning-view"
+        };
+    }
+
+    private string GetTimeOfDayText()
+    {
+        return TimeOfDay switch
+        {
+            ViewMode.Morning => "AAMU",
+            ViewMode.Day => "PÄIVÄ",
+            ViewMode.Evening => "ILTA", 
+            ViewMode.Night => "YÖ",
+            _ => "AAMU"
+        };
+    }
+
+    private string GetMessageTimestamp()
+    {
+        return TimeOfDay switch
+        {
+            ViewMode.Morning => "Viesti saapui 08:00",
+            ViewMode.Day => "Viesti saapui 12:00", 
+            ViewMode.Evening => "Viesti saapui 16:00",
+            ViewMode.Night => "Viesti saapui 21:00",
+            _ => "Viesti saapui juuri"
+        };
+    }
+
+    private string GetContextualMessage()
+    {
+        var message = ApiResponse?.LatestReminder;
+        
+        // Suodatetaan pois ei-toivotut viestit
+        if (!string.IsNullOrEmpty(message))
+        {
+            // Estä "Tervetuloa!" ja muut ei-toivotut viestit
+            if (message.Contains("Tervetuloa") || 
+                message.Contains("Welcome") || 
+                message.Contains("tervetuloa"))
+            {
+                return string.Empty;
+            }
+            
+            return message;
+        }
+
+        return string.Empty;
+    }
+
+    private string GetActivitySuggestion()
+    {
+        var weather = ApiResponse?.Weather?.Description ?? "";
+        
+        return TimeOfDay switch
+        {
+            ViewMode.Morning => $"Aamun lehden lukemista tai pieni ulkoilukierros. {weather}",
+            ViewMode.Day => $"Ihanaa päiväsaikaa - ehkä ulkoilua tai käsitöitä? {weather}",
+            ViewMode.Evening => $"Aivojumppa yhdessä tai rauhallista television katselua.",
+            ViewMode.Night => $"Rentoutumista ja hyvän yön valmistelua.",
+            _ => $"Nauti tästä hetkestä! {weather}"
+        };
+    }
+
+    private IEnumerable<DailyTask> GetFilteredTasks()
+    {
+        if (ApiResponse?.DailyTasks == null) return [];
+        
+        // Filter tasks based on time of day
+        return ApiResponse.DailyTasks.Where(task => IsTaskRelevantForTime(task));
+    }
+
+    private async Task OnPhotoClickHandler(DailyPhoto.PhotoClickArgs args)
+    {
+        OpenImageModal(args.ImageUrl, args.Caption);
+    }
+
+    private void OpenImageModal(string imageSrc, string caption)
+    {
+        modalImageSrc = imageSrc;
+        modalImageAlt = caption;
+        modalImageCaption = caption;
+        showImageModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseImageModal()
+    {
+        showImageModal = false;
+        StateHasChanged();
+    }
+
+    private bool IsTaskRelevantForTime(DailyTask task)
+    {
+        var taskType = task.Type.ToUpper();
+        
+        return TimeOfDay switch
+        {
+            ViewMode.Morning => taskType.Contains("RUOKA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("AAMU"),
+            ViewMode.Day => taskType.Contains("LOUNAS") || taskType.Contains("PÄIVÄ") || taskType.Contains("RUOKA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("ASIAT") || (!taskType.Contains("ILTA") && !taskType.Contains("YÖ")),
+            ViewMode.Evening => taskType.Contains("RUOKA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("LIIKUNTA") || taskType.Contains("ILTA") || taskType.Contains("PÄIVÄLLINEN"),
+            ViewMode.Night => taskType.Contains("ILTAPALA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("YÖ"),
+            _ => true
+        };
+    }
+    
+    private async Task HandleTaskAcknowledge(DailyTask task)
+    {
+        await OnAcknowledgeTask.InvokeAsync(new TaskAckRequest { TaskType = task.Type, TimeOfDay = GetTimeOfDayText() });
+    }
+
+    // PARAS KÄYTÄNTÖ: IDisposable pattern
+    public void Dispose()
+    {
+        // Tulevaisuudessa: unsubscribe events, cancel timers, dispose resources
+        // Esim: timer?.Dispose();
+    }
+}

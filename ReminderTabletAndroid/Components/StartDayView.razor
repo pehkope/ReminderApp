@@ -1,0 +1,109 @@
+@using ReminderTabletAndroid.Models
+
+<div class="start-day-view">
+    <div class="greeting-container">
+        <h1 class="greeting-title">Rakas äiti, huomenta!</h1>
+        <p class="greeting-subtitle">Tässä on kuvamuisto päivääsi</p>
+    </div>
+
+    <div class="daily-photo-container">
+        @if (!string.IsNullOrEmpty(ApiResponse?.DailyPhotoUrl))
+        {
+            <div class="photo-clickable" @onclick="() => OpenImageModal(ApiResponse.DailyPhotoUrl, ApiResponse.DailyPhotoCaption ?? string.Empty)">
+                <img src="@ApiResponse.DailyPhotoUrl" alt="@ApiResponse.DailyPhotoCaption" class="daily-photo" />
+                <div class="photo-overlay">
+                    <span class="zoom-icon">🔍</span>
+                    <span class="zoom-text">Suurenna</span>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(ApiResponse.DailyPhotoCaption))
+            {
+                <p class="photo-caption">@ApiResponse.DailyPhotoCaption</p>
+            }
+        }
+        else
+        {
+            <div class="photo-placeholder">
+                <span class="icon">🌅</span>
+                <p>Päivän kuvamuisto</p>
+            </div>
+        }
+    </div>
+
+<ImageModal IsVisible="@showImageModal" 
+            ImageSrc="@modalImageSrc" 
+            ImageAlt="@modalImageAlt"
+            ImageTitle="Päivän kuvamuisto"
+            ImageCaption="@modalImageCaption"
+            OnClose="CloseImageModal" />
+
+    <div class="weather-container">
+        @if (ApiResponse?.Weather != null)
+        {
+            <div class="weather-info">
+                <span class="weather-icon">@GetWeatherIcon(ApiResponse.Weather.Description)</span>
+                <div class="weather-text">
+                    <span class="weather-description">@ApiResponse.Weather.Description</span>
+                    <span class="weather-temp">@ApiResponse.Weather.Temperature</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="weather-info">
+                <span class="weather-icon">☀️</span>
+                <div class="weather-text">
+                    <span class="weather-description">Kaunis päivä edessä</span>
+                    <span class="weather-temp">Nauti!</span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="start-day-action">
+        <button class="start-day-button" @onclick="() => OnStartDayClicked.InvokeAsync()">
+            <span class="play-icon">▶️</span>
+            <span class="button-text">Aloita päivä</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ReminderApiResponse? ApiResponse { get; set; }
+    [Parameter] public EventCallback OnStartDayClicked { get; set; }
+
+    // Image modal state
+    private bool showImageModal = false;
+    private string modalImageSrc = "";
+    private string modalImageAlt = "";
+    private string modalImageCaption = "";
+
+    private void OpenImageModal(string imageSrc, string caption)
+    {
+        modalImageSrc = imageSrc;
+        modalImageAlt = caption;
+        modalImageCaption = caption;
+        showImageModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseImageModal()
+    {
+        showImageModal = false;
+        StateHasChanged();
+    }
+
+    private string GetWeatherIcon(string? description)
+    {
+        if (string.IsNullOrEmpty(description)) return "☀️";
+        
+        var desc = description.ToLower();
+        if (desc.Contains("aurinko") || desc.Contains("kirkas")) return "☀️";
+        if (desc.Contains("pilvi")) return "☁️";
+        if (desc.Contains("sade")) return "🌧️";
+        if (desc.Contains("lumi")) return "❄️";
+        if (desc.Contains("usva") || desc.Contains("sumu")) return "🌫️";
+        
+        return "🌤️";
+    }
+}

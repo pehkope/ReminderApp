@@ -1,0 +1,27 @@
+@* Footer toiminnot *@
+<div class="footer-bar">
+    <div class="footer-action" @onclick="() => OnNavigateToWeekly.InvokeAsync()">
+        <div class="action-icon-wrapper calendar">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <span>Päivän ohjelma</span>
+    </div>
+    <div class="footer-action" @onclick="() => OnNavigateToContacts.InvokeAsync()">
+        <div class="action-icon-wrapper phone">
+            <i class="fas fa-phone"></i>
+        </div>
+        <span>Soita perhe</span>
+    </div>
+    <div class="footer-action" @onclick="() => OnStartExercise.InvokeAsync()">
+        <div class="action-icon-wrapper brain">
+            <i class="fas fa-running"></i>
+        </div>
+        <span>Aloita jumppa</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnNavigateToWeekly { get; set; }
+    [Parameter] public EventCallback OnNavigateToContacts { get; set; }
+    [Parameter] public EventCallback OnStartExercise { get; set; }
+}
