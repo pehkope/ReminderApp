@@ -315,10 +315,7 @@ function createJsonResponse(data) {
   const output = JSON.stringify(data, null, 2);
   return ContentService
     .createTextOutput(output)
-    .setMimeType(ContentService.MimeType.JSON)
-    .withHeaders({
-      "Access-Control-Allow-Origin": "*"
-    });
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ===================================================================================
