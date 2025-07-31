@@ -244,35 +244,8 @@
          // Navigation methods moved to async versions below
 
     // Legacy method - keeping for backward compatibility
-    private async Task AcknowledgeTask(string taskType, string timeOfDay)
-    {
-        try
-        {
-            // Send POST to Google Apps Script to acknowledge task
-            var postData = new { 
-                clientID = "mom", 
-                taskType = taskType, 
-                timeOfDay = timeOfDay,
-                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-            };
-            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec";
-            
-            var response = await Http.PostAsJsonAsync(apiUrl, postData);
-            if (response.IsSuccessStatusCode)
-            {
-                statusMessage = $"✅ {taskType} kuitattu!";
-                await LoadData(); // Reload to show updated acknowledgment status
-            }
-            else
-            {
-                statusMessage = $"❌ Kuittaus epäonnistui: {response.StatusCode}";
-            }
-        }
-        catch (Exception ex)
-        {
-            statusMessage = $"❌ Kuittausvirhe: {ex.Message}";
-        }
-    }
+    // Vanha kuittausmetodi poistettu selkeyden vuoksi.
+    // Uusi metodi on OnAcknowledgeTaskHandler.
 
     // Legacy methods - keeping for backward compatibility
     private string GetTaskIcon(string taskType)
@@ -368,30 +341,38 @@
     {
         try
         {
-            // Send POST to Google Apps Script to acknowledge task
-            var postData = new { 
-                clientID = "mom", 
-                taskType = request.TaskType, 
-                timeOfDay = request.TimeOfDay,
-                timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-            };
-            var apiUrl = "https://script.google.com/macros/s/AKfycbxGJ5yZpl8CHHYUx4ONjviW1-q0ybnXFb8fsq67949cheoYZNcqzzcOZybXNN6OLjCZHQ/exec";
+            statusMessage = $"Kuittaan {request.TaskType}...";
             
-                         var response = await Http.PostAsJsonAsync(apiUrl, postData);
-                         if (response.IsSuccessStatusCode)
-             {
-                 statusMessage = $"✅ {request.TaskType} kuitattu - viesti lähetetty perheelle!";
-                 await LoadData(); // Reload to show updated acknowledgment status
-                 await OnTaskAcknowledged(); // Play completion sound
-             }
+            // Build the new URL with GET parameters
+            var baseUrl = "https://script.google.com/macros/s/AKfycbxB-NtR60ViKr2_TizHjNBEJnvOp_9J453m3usAHsMaGCEbfoKwpIc0T3FSlsD8hyMcqw/exec"; // <-- LIITÄ UUSI GOOGLE APPS SCRIPT URL TÄHÄN
+            var fullUrl = $"{baseUrl}?action=acknowledge&clientID=mom&taskType={request.TaskType}&timeOfDay={request.TimeOfDay}";
+
+            Console.WriteLine($"Sending acknowledgment GET request to: {fullUrl}");
+
+            var response = await Http.GetAsync(fullUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Acknowledgment response: {responseContent}");
+
+                statusMessage = $"✅ {request.TaskType} kuitattu! Ilmoitus lähetetty perheelle.";
+                await OnTaskAcknowledged(); // Play completion sound
+                
+                // Reload data after a short delay to ensure sheet has updated
+                await Task.Delay(1000); 
+                await LoadData();
+            }
             else
             {
                 statusMessage = $"❌ Kuittaus epäonnistui: {response.StatusCode}";
+                Console.WriteLine($"Error response: {await response.Content.ReadAsStringAsync()}");
             }
         }
         catch (Exception ex)
         {
             statusMessage = $"❌ Kuittausvirhe: {ex.Message}";
+            Console.WriteLine($"Exception during acknowledgment: {ex}");
         }
     }
 
