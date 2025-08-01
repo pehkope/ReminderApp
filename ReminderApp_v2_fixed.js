@@ -60,6 +60,16 @@ function doGet(e) {
   try {
     console.log("doGet called with parameters:", e ? JSON.stringify(e.parameter || {}, null, 2) : "no parameters");
     
+    // API Key authentication
+    const apiKey = e && e.parameter && e.parameter.apiKey;
+    if (!validateApiKey_(apiKey)) {
+      console.error("❌ Invalid or missing API key:", apiKey);
+      return ContentService.createTextOutput(JSON.stringify({
+        error: "Unauthorized - Invalid API key",
+        status: "UNAUTHORIZED"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
     // Check if this is an acknowledgment request
     if (e && e.parameter && e.parameter.action === 'acknowledge') {
       return handleAcknowledgementAction_(e);
@@ -1000,4 +1010,52 @@ function testTelegramMessage() {
   } else {
     console.log("❌ Failed to send Telegram test message");
   }
+}
+
+// ===================================================================================
+//  SECURITY FUNCTIONS
+// ===================================================================================
+
+/**
+ * Validate API key for secure access
+ */
+function validateApiKey_(apiKey) {
+  if (!apiKey) {
+    console.log("🔐 No API key provided");
+    return false;
+  }
+  
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const validApiKeys = scriptProperties.getProperty("VALID_API_KEYS");
+  
+  if (!validApiKeys) {
+    console.log("🔐 No valid API keys configured in script properties");
+    return false;
+  }
+  
+  const validKeysList = validApiKeys.split(",").map(key => key.trim());
+  const isValid = validKeysList.includes(apiKey);
+  
+  console.log(`🔐 API key validation: ${isValid ? "✅ VALID" : "❌ INVALID"}`);
+  return isValid;
+}
+
+/**
+ * Setup function to configure valid API keys
+ * Run this once to set up API keys in Script Properties
+ */
+function setupApiKeys() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  
+  // Development and production API keys
+  const apiKeys = [
+    "dev-key-123",              // Development key
+    "prod-key-2024-secure",     // Production key
+    "emergency-key-backup"      // Emergency backup key
+  ];
+  
+  scriptProperties.setProperty("VALID_API_KEYS", apiKeys.join(","));
+  
+  console.log("✅ API keys configured successfully");
+  console.log("Valid API keys:", apiKeys);
 }

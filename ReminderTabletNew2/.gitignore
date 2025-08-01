@@ -1,0 +1,31 @@
+# Build outputs
+bin/
+obj/
+dist/
+publish/
+
+# Development settings (contains API keys)
+wwwroot/appsettings.json
+wwwroot/appsettings.Development.json
+
+# Production settings (contains real API keys)
+wwwroot/appsettings.Production.json
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (if any)
+node_modules/
+
+# PWA files that are auto-generated
+wwwroot/service-worker-assets.js
+
+# Logs
+*.log
