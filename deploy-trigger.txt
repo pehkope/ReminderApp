@@ -1,0 +1,4 @@
+Azure Static Web Apps deployment token configured.
+Ready to deploy Multi-Client PWA to production!
+GitHub secret name fixed to match workflow.
+Timestamp: 2024-01-15 19:35
