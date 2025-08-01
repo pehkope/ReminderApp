@@ -165,11 +165,7 @@
             else
             {
                 Console.WriteLine("=== NO DAILYTASKS FOUND ===");
-                
-                // TEMPORARY: Add test tasks if none exist
-                apiResponse.DailyTasks = TestDataService.GetDefaultTasks();
-                
-                Console.WriteLine("Added temporary test tasks");
+                Console.WriteLine("No tasks found from API - this is normal after acknowledgment");
             }
 
             // ALWAYS check and add missing data regardless of tasks
@@ -344,7 +340,7 @@
             statusMessage = $"Kuittaan {request.TaskType}...";
             
             // Build the new URL with GET parameters
-            var baseUrl = "https://script.google.com/macros/s/AKfycbxB-NtR60ViKr2_TizHjNBEJnvOp_9J453m3usAHsMaGCEbfoKwpIc0T3FSlsD8hyMcqw/exec"; // <-- LIITÄ UUSI GOOGLE APPS SCRIPT URL TÄHÄN
+            var baseUrl = "https://script.google.com/macros/s/AKfycbzYRHhP5_QDk3itk0SLTg0vaX5URp8WddZM05RPntv2SzZbjMDISP3yq4aFGGuTOVw5yw/exec"; // KORJATTU isAckedToday
             var fullUrl = $"{baseUrl}?action=acknowledge&clientID=mom&taskType={request.TaskType}&timeOfDay={request.TimeOfDay}";
 
             Console.WriteLine($"Sending acknowledgment GET request to: {fullUrl}");
