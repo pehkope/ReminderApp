@@ -20,6 +20,17 @@ jobs:
           submodules: true
           lfs: false
           
+      - name: Debug - Check if secret exists
+        run: |
+          if [ -z "${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}" ]; then
+            echo "❌ AZURE_STATIC_WEB_APPS_API_TOKEN is empty or missing"
+            exit 1
+          else
+            echo "✅ AZURE_STATIC_WEB_APPS_API_TOKEN is present (length: ${#AZURE_STATIC_WEB_APPS_API_TOKEN})"
+          fi
+        env:
+          AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
