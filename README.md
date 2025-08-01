@@ -10,7 +10,7 @@
 - 🆘 **Hätäpainike** - turvallisuus
 - 📱 **PWA-tuki** - asennus tablettiin
 - 🌤️ **Säätiedot** - älykäs päivän suunnittelu
-- 📸 **Päivän kuva** - muistoja ja iloa
+- 📸 **Päivän kuva** - muistoja ja iloa kaikille
 
 ## 🎨 Alzheimer-ystävällinen suunnittelu
 
