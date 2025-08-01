@@ -6,24 +6,28 @@ namespace ReminderTabletNew2.Services;
 public class ApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiUrl = "https://script.google.com/macros/s/AKfycbwwHZ3mPQZCWmN39d2y5advn7YWez6kBpOjg8x0oHN2wNTXqz0hYMql1ylrs4fUXu7V7A/exec";
+    private readonly ApiSettings _apiSettings;
 
-    public ApiService(HttpClient httpClient)
+    public ApiService(HttpClient httpClient, AppConfig config)
     {
         _httpClient = httpClient;
+        _apiSettings = config.ApiSettings;
     }
 
-    public async Task<ApiResult<ReminderApiResponse>> GetDataAsync(string clientId = "mom", int maxRetries = 3)
+    public async Task<ApiResult<ReminderApiResponse>> GetDataAsync(string? clientId = null, int? maxRetries = null)
     {
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        var actualClientId = clientId ?? _apiSettings.DefaultClientId;
+        var actualMaxRetries = maxRetries ?? _apiSettings.MaxRetries;
+        
+        for (int attempt = 1; attempt <= actualMaxRetries; attempt++)
         {
             try
             {
-                Console.WriteLine($"API kutsu yritys {attempt}/{maxRetries}");
+                Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
                 
-                var url = $"{_apiUrl}?clientID={clientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                var url = $"{_apiSettings.BaseUrl}?clientID={actualClientId}&apiKey={_apiSettings.ApiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15s timeout per attempt
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_apiSettings.TimeoutSeconds));
                 var response = await _httpClient.GetFromJsonAsync<ReminderApiResponse>(url, cts.Token);
                 
                 if (response != null)
@@ -36,31 +40,31 @@ public class ApiService
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException || ex.CancellationToken.IsCancellationRequested)
             {
-                Console.WriteLine($"⏰ Timeout yritys {attempt}/{maxRetries}");
-                if (attempt == maxRetries)
+                Console.WriteLine($"⏰ Timeout yritys {attempt}/{actualMaxRetries}");
+                if (attempt == actualMaxRetries)
                 {
                     return ApiResult<ReminderApiResponse>.Failure("API_TIMEOUT", "API vastaa liian hitaasti");
                 }
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"🌐 HTTP virhe yritys {attempt}/{maxRetries}: {ex.Message}");
-                if (attempt == maxRetries)
+                Console.WriteLine($"🌐 HTTP virhe yritys {attempt}/{actualMaxRetries}: {ex.Message}");
+                if (attempt == actualMaxRetries)
                 {
                     return ApiResult<ReminderApiResponse>.Failure("NETWORK_ERROR", $"Verkkoyhteys ongelma: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Yleinen virhe yritys {attempt}/{maxRetries}: {ex.Message}");
-                if (attempt == maxRetries)
+                Console.WriteLine($"❌ Yleinen virhe yritys {attempt}/{actualMaxRetries}: {ex.Message}");
+                if (attempt == actualMaxRetries)
                 {
                     return ApiResult<ReminderApiResponse>.Failure("GENERAL_ERROR", ex.Message);
                 }
             }
 
             // Wait before retry (exponential backoff)
-            if (attempt < maxRetries)
+            if (attempt < actualMaxRetries)
             {
                 var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt)); // 2s, 4s, 8s...
                 Console.WriteLine($"⏳ Odotetaan {delay.TotalSeconds}s ennen uutta yritystä...");
