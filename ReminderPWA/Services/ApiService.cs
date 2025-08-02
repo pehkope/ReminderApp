@@ -29,13 +29,19 @@ public class ApiService
                     ? $"{_apiSettings.BaseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
                     : $"{_apiSettings.BaseUrl}?clientID={actualClientId}&apiKey={_apiSettings.ApiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 
+                Console.WriteLine($"🌐 Kutsutaan API URL: {url}");
+                
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_apiSettings.TimeoutSeconds));
                 
                 // First get the raw response to check for errors
                 var httpResponse = await _httpClient.GetAsync(url, cts.Token);
+                Console.WriteLine($"🔍 HTTP Status: {httpResponse.StatusCode}");
+                Console.WriteLine($"🔍 HTTP Headers: {string.Join(", ", httpResponse.Headers.Select(h => $"{h.Key}={string.Join(",", h.Value)}"))}");
+                
                 var responseText = await httpResponse.Content.ReadAsStringAsync();
                 
-                Console.WriteLine($"📋 API vastaus: {responseText.Substring(0, Math.Min(200, responseText.Length))}...");
+                Console.WriteLine($"📋 API vastaus pituus: {responseText.Length} merkkiä");
+                Console.WriteLine($"📋 API vastaus alku: {responseText.Substring(0, Math.Min(500, responseText.Length))}...");
                 
                 // Check for HTML response (wrong endpoint)
                 if (responseText.TrimStart().StartsWith("<!DOCTYPE html>") || responseText.TrimStart().StartsWith("<html"))
