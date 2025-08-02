@@ -210,7 +210,10 @@
             offlineMessage = result.ErrorCode switch
             {
                 "API_TIMEOUT" => "API vastaa hitaasti",
-                "NETWORK_ERROR" => "Verkkoyhteys ongelma", 
+                "NETWORK_ERROR" => "Verkkoyhteys ongelma",
+                "UNAUTHORIZED" => "API-avain virheellinen", 
+                "JSON_ERROR" => "API vastaus virheellinen",
+                "EMPTY_RESPONSE" => "API palautti tyhjän vastauksen",
                 _ => result.ErrorMessage
             };
             statusMessage = "📱 Offline-tila - käytetään testidata";

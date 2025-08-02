@@ -25,16 +25,53 @@ public class ApiService
             {
                 Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
                 
-                var url = $"{_apiSettings.BaseUrl}?clientID={actualClientId}&apiKey={_apiSettings.ApiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                var url = string.IsNullOrEmpty(_apiSettings.ApiKey) 
+                    ? $"{_apiSettings.BaseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
+                    : $"{_apiSettings.BaseUrl}?clientID={actualClientId}&apiKey={_apiSettings.ApiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_apiSettings.TimeoutSeconds));
-                var response = await _httpClient.GetFromJsonAsync<ReminderApiResponse>(url, cts.Token);
                 
-                if (response != null)
+                // First get the raw response to check for errors
+                var httpResponse = await _httpClient.GetAsync(url, cts.Token);
+                var responseText = await httpResponse.Content.ReadAsStringAsync();
+                
+                Console.WriteLine($"📋 API vastaus: {responseText.Substring(0, Math.Min(200, responseText.Length))}...");
+                
+                // Check for common error responses
+                if (responseText.Contains("Unauthorized") || responseText.Contains("UNAUTHORIZED"))
                 {
-                    Console.WriteLine("✅ API kutsu onnistui");
-                    return ApiResult<ReminderApiResponse>.Success(response);
+                    Console.WriteLine("🔒 API key virhe");
+                    return ApiResult<ReminderApiResponse>.Failure("UNAUTHORIZED", "API-avain virheellinen");
                 }
+                
+                if (responseText.Contains("error") || responseText.Contains("Error"))
+                {
+                    Console.WriteLine("❌ API virheviesti");
+                    return ApiResult<ReminderApiResponse>.Failure("API_ERROR", $"API virhe: {responseText}");
+                }
+                
+                // Try to parse as JSON
+                try 
+                {
+                    var response = System.Text.Json.JsonSerializer.Deserialize<ReminderApiResponse>(responseText);
+                    if (response != null)
+                    {
+                        Console.WriteLine("✅ API kutsu onnistui");
+                        return ApiResult<ReminderApiResponse>.Success(response);
+                    }
+                }
+                            catch (System.Text.Json.JsonException jsonEx)
+            {
+                Console.WriteLine($"🔧 JSON parsing virhe: {jsonEx.Message}");
+                
+                // Handle specific JSON errors
+                if (jsonEx.Message.Contains("ExpectedStartOfValueNotFound"))
+                {
+                    return ApiResult<ReminderApiResponse>.Failure("EMPTY_RESPONSE", "API palautti tyhjän vastauksen");
+                }
+                
+                return ApiResult<ReminderApiResponse>.Failure("JSON_ERROR", $"Virheellinen JSON vastaus: {jsonEx.Message}");
+            }
                 
                 Console.WriteLine("⚠️ API palautti null");
             }
