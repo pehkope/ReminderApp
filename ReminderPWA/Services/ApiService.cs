@@ -40,11 +40,8 @@ public class ApiService
                     ? $"{baseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
                     : $"{baseUrl}?clientID={actualClientId}&apiKey={apiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 
-                // Use CORS proxy for Azure deployment, direct URL for local development  
-                var isLocalhost = _httpClient.BaseAddress?.Host.Contains("localhost") == true;
-                var url = isLocalhost 
-                    ? targetUrl 
-                    : $"https://cors-anywhere.herokuapp.com/{targetUrl}";
+                // Direct API call - let's try without CORS proxy
+                var url = targetUrl;
                 
                 Console.WriteLine($"🌐 Target URL: {targetUrl}");
                 Console.WriteLine($"🌐 Request URL: {url}");
