@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using ReminderTabletNew2.Models;
 
 namespace ReminderTabletNew2.Services;
@@ -11,6 +11,7 @@ public class ApiService
     public ApiService(HttpClient httpClient, AppConfig config)
     {
         _httpClient = httpClient;
+        //
         _apiSettings = config.ApiSettings;
     }
 
