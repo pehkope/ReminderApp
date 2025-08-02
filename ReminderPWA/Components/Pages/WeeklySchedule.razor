@@ -171,10 +171,10 @@
             var hour = taskTime.Hour;
             return timeOfDay switch
             {
-                "AAMU" => hour >= 8 && hour < 11,
+                "AAMU" => hour >= 6 && hour < 11,
                 "PÄIVÄ" => hour >= 11 && hour < 16,
                 "ILTA" => hour >= 16 && hour < 21,
-                "YÖ" => hour >= 21 || hour < 8,
+                "YÖ" => hour >= 21 || hour < 6,
                 _ => false
             };
         }
