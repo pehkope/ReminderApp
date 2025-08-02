@@ -25,11 +25,19 @@ public class ApiService
             {
                 Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
                 
-                var url = string.IsNullOrEmpty(_apiSettings.ApiKey) 
+                // Build the Google Apps Script URL
+                var targetUrl = string.IsNullOrEmpty(_apiSettings.ApiKey) 
                     ? $"{_apiSettings.BaseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
                     : $"{_apiSettings.BaseUrl}?clientID={actualClientId}&apiKey={_apiSettings.ApiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 
-                Console.WriteLine($"🌐 Kutsutaan API URL: {url}");
+                // Use CORS proxy for Azure deployment, direct URL for local development  
+                var isLocalhost = _httpClient.BaseAddress?.Host.Contains("localhost") == true;
+                var url = isLocalhost 
+                    ? targetUrl 
+                    : $"https://api.allorigins.win/raw?url={Uri.EscapeDataString(targetUrl)}";
+                
+                Console.WriteLine($"🌐 Target URL: {targetUrl}");
+                Console.WriteLine($"🌐 Request URL: {url}");
                 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_apiSettings.TimeoutSeconds));
                 
