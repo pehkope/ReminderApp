@@ -24,6 +24,8 @@ public class ApiService
             try
             {
                 Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
+                Console.WriteLine($"🔧 BaseUrl: '{_apiSettings.BaseUrl}'");
+                Console.WriteLine($"🔧 ApiKey: '{_apiSettings.ApiKey}'");
                 
                 // Build the Google Apps Script URL
                 var targetUrl = string.IsNullOrEmpty(_apiSettings.ApiKey) 
@@ -34,7 +36,7 @@ public class ApiService
                 var isLocalhost = _httpClient.BaseAddress?.Host.Contains("localhost") == true;
                 var url = isLocalhost 
                     ? targetUrl 
-                    : $"https://api.allorigins.win/raw?url={Uri.EscapeDataString(targetUrl)}";
+                    : $"https://cors-anywhere.herokuapp.com/{targetUrl}";
                 
                 Console.WriteLine($"🌐 Target URL: {targetUrl}");
                 Console.WriteLine($"🌐 Request URL: {url}");
