@@ -102,7 +102,7 @@ public class ApiService
                 return ApiResult<ReminderApiResponse>.Failure("JSON_ERROR", $"Virheellinen JSON vastaus: {jsonEx.Message}");
             }
                 
-                Console.WriteLine("⚠️ API palautti null");
+                Console.WriteLine("⚠️ API palautti null datan");
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException || ex.CancellationToken.IsCancellationRequested)
             {
