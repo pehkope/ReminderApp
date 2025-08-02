@@ -27,10 +27,18 @@ public class ApiService
                 Console.WriteLine($"🔧 BaseUrl: '{_apiSettings.BaseUrl}'");
                 Console.WriteLine($"🔧 ApiKey: '{_apiSettings.ApiKey}'");
                 
+                // Fallback for Azure deployment if config loading fails
+                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbxvxJ1nLLAWV5PJyfXRHy3jHQb1Bt-v9A73ONFyV5U9HVGckDt3g1qOf679bR7afwc4Ew/exec" : _apiSettings.BaseUrl;
+                    
+                var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
+                
+                Console.WriteLine($"🔧 Using BaseUrl: '{baseUrl}'");
+                Console.WriteLine($"🔧 Using ApiKey: '{apiKey}'");
+                
                 // Build the Google Apps Script URL
-                var targetUrl = string.IsNullOrEmpty(_apiSettings.ApiKey) 
-                    ? $"{_apiSettings.BaseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
-                    : $"{_apiSettings.BaseUrl}?clientID={actualClientId}&apiKey={_apiSettings.ApiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                var targetUrl = string.IsNullOrEmpty(apiKey) 
+                    ? $"{baseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
+                    : $"{baseUrl}?clientID={actualClientId}&apiKey={apiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 
                 // Use CORS proxy for Azure deployment, direct URL for local development  
                 var isLocalhost = _httpClient.BaseAddress?.Host.Contains("localhost") == true;
