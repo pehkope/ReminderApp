@@ -30,13 +30,13 @@ jobs:
         dotnet-version: '9.0.x'
         
     - name: Restore dependencies
-      run: dotnet restore ReminderTabletNew2/ReminderTabletNew2.csproj
+      run: dotnet restore ReminderPWA/ReminderTabletNew2.csproj
       
     - name: Build
-      run: dotnet build ReminderTabletNew2/ReminderTabletNew2.csproj --no-restore -c Release
+      run: dotnet build ReminderPWA/ReminderTabletNew2.csproj --no-restore -c Release
       
     - name: Publish
-      run: dotnet publish ReminderTabletNew2/ReminderTabletNew2.csproj -c Release -o release --nologo
+      run: dotnet publish ReminderPWA/ReminderTabletNew2.csproj -c Release -o release --nologo
       
     - name: Change base-tag in index.html
       run: |
