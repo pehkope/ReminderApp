@@ -37,6 +37,13 @@ public class ApiService
                 
                 Console.WriteLine($"📋 API vastaus: {responseText.Substring(0, Math.Min(200, responseText.Length))}...");
                 
+                // Check for HTML response (wrong endpoint)
+                if (responseText.TrimStart().StartsWith("<!DOCTYPE html>") || responseText.TrimStart().StartsWith("<html"))
+                {
+                    Console.WriteLine("🌐 API palautti HTML-sivun JSON:n sijaan");
+                    return ApiResult<ReminderApiResponse>.Failure("HTML_RESPONSE", "API URL on väärä - palauttaa HTML-sivun");
+                }
+                
                 // Check for common error responses
                 if (responseText.Contains("Unauthorized") || responseText.Contains("UNAUTHORIZED"))
                 {
