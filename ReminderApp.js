@@ -464,8 +464,9 @@ function handleDataFetchAction_(e) {
     
     if (settings.usePhotos) {
       try {
-        dailyPhotoUrl = getDailyPhotoUrl_();
-        dailyPhotoCaption = getDailyPhotoCaption_();
+        const dailyPhoto = getDailyPhoto_(sheet, clientID);
+        dailyPhotoUrl = dailyPhoto.url;
+        dailyPhotoCaption = dailyPhoto.caption;
       } catch (photoError) {
         console.warn("Photo service unavailable:", photoError.toString());
         dailyPhotoCaption = "Kuvat eivät ole käytettävissä tällä hetkellä";
@@ -732,11 +733,17 @@ function getClientSettings_(sheet, clientID) {
     
     for (let i = 1; i < data.length; i++) {
       const configClientID = String(data[i][0]).trim().toLowerCase();
+      console.log(`🔍 Checking config row ${i}: "${configClientID}" vs "${clientID.toLowerCase()}"`);
+      console.log(`📊 usePhotos value: "${data[i][9]}" (column J)`);
       
       if (configClientID === clientID.toLowerCase()) {
+        const usePhotosValue = data[i][9];
+        const usePhotosResult = usePhotosValue === true || String(usePhotosValue).toLowerCase() === 'true' || String(usePhotosValue).toLowerCase() === 'yes';
+        console.log(`✅ Found matching client! usePhotos: ${usePhotosValue} → ${usePhotosResult}`);
+        
         return {
           useTelegram: data[i][5] === true || String(data[i][5]).toLowerCase() === 'true',
-          usePhotos: data[i][6] === true || String(data[i][6]).toLowerCase() === 'true'
+          usePhotos: usePhotosResult
         };
       }
     }
@@ -1306,6 +1313,58 @@ function testImportantMessage() {
 }
 
 /**
+ * Get rotating daily photo for client
+ */
+function getDailyPhoto_(sheet, clientID) {
+  try {
+    const photosSheet = sheet.getSheetByName("Photos");
+    if (!photosSheet) {
+      console.log("No Photos sheet found");
+      return {
+        url: "",
+        caption: "Kuvat eivät ole vielä käytössä"
+      };
+    }
+    
+    const data = photosSheet.getDataRange().getValues();
+    const photos = [];
+    
+    // Collect photos for this client
+    for (let i = 1; i < data.length; i++) {
+      const photoClientID = String(data[i][0]).trim().toLowerCase();
+      const url = String(data[i][1]).trim();
+      const caption = String(data[i][2]).trim();
+      
+      if (photoClientID === clientID.toLowerCase() && url) {
+        photos.push({ url, caption });
+      }
+    }
+    
+    if (photos.length === 0) {
+      return {
+        url: "",
+        caption: "Ei kuvia saatavilla"
+      };
+    }
+    
+    // Rotate based on day of year for consistency
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+    const photoIndex = dayOfYear % photos.length;
+    
+    console.log(`📸 Selected photo ${photoIndex + 1}/${photos.length} for day ${dayOfYear}`);
+    return photos[photoIndex];
+    
+  } catch (error) {
+    console.error("Error getting daily photo:", error);
+    return {
+      url: "",
+      caption: "Virhe kuvan haussa"
+    };
+  }
+}
+
+/**
  * Add test photo to Photos sheet
  */
 function addTestPhoto() {
@@ -1332,22 +1391,58 @@ function addTestPhoto() {
       console.log("✅ Created new 'Photos' sheet");
     }
     
-    // Add test photo
-    const testPhoto = [
-      "mom", 
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=300&fit=crop", 
-      "Onnellinen perhe kotona 💕"
+    // Add multiple test photos for rotation
+    const testPhotos = [
+      ["mom", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=300&fit=crop", "Onnellinen perhe kotona 💕"],
+      ["mom", "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop", "Kaunis luontokuva 🌸"],
+      ["mom", "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop", "Rauhallinen maisema 🏔️"],
+      ["mom", "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop", "Iloisia hetkiä 😊"],
+      ["mom", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop", "Mukava sää ulkona ☀️"]
     ];
     
-    // Find next empty row
-    const lastRow = photosSheet.getLastRow();
-    photosSheet.getRange(lastRow + 1, 1, 1, 3).setValues([testPhoto]);
+    // Find next empty row and add all photos
+    let lastRow = photosSheet.getLastRow();
     
-    console.log("✅ Test photo added to Photos sheet");
-    console.log(`📸 URL: ${testPhoto[1]}`);
-    console.log(`📝 Caption: ${testPhoto[2]}`);
+    for (const photo of testPhotos) {
+      lastRow++;
+      photosSheet.getRange(lastRow, 1, 1, 3).setValues([photo]);
+      console.log(`✅ Added photo: ${photo[2]}`);
+    }
+    
+    console.log(`✅ ${testPhotos.length} test photos added to Photos sheet`);
     
   } catch (error) {
     console.error("❌ Error adding test photo:", error);
+  }
+}
+
+/**
+ * Test config settings for debugging
+ */
+function testConfig() {
+  try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const sheetId = scriptProperties.getProperty("SHEET_ID");
+    
+    if (!sheetId) {
+      console.error("❌ SHEET_ID not configured");
+      return;
+    }
+    
+    console.log(`📊 Testing config for SHEET_ID: ${sheetId}`);
+    
+    const sheet = SpreadsheetApp.openById(sheetId);
+    const settings = getClientSettings_(sheet, "mom");
+    
+    console.log("✅ Settings for mom:", JSON.stringify(settings, null, 2));
+    
+    // Also test photo function
+    if (settings.usePhotos) {
+      const photo = getDailyPhoto_(sheet, "mom");
+      console.log("📸 Daily photo:", JSON.stringify(photo, null, 2));
+    }
+    
+  } catch (error) {
+    console.error("❌ Error testing config:", error);
   }
 }
