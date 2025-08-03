@@ -1,0 +1,69 @@
+@using ReminderTabletNew2.Models
+@inject IJSRuntime JSRuntime
+
+<div class="drive-photo-gallery">
+    @if (Photos?.Any() == true)
+    {
+        <div class="gallery-header">
+            <h3>📸 @Title</h3>
+        </div>
+        
+        <div class="photos-container">
+            @foreach (var photo in Photos.Take(MaxPhotos))
+            {
+                <div class="photo-item" @onclick="() => OpenPhotoModal(photo)">
+                    <div class="photo-wrapper">
+                        <img src="@photo.Url" 
+                             alt="@photo.Description" 
+                             class="photo-image"
+                             loading="lazy" />
+                        <div class="photo-overlay">
+                            <div class="photo-info">
+                                <span class="photo-date">@photo.Date.ToString("dd.MM.yyyy")</span>
+                                <span class="photo-description">@photo.Description</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        @if (Photos.Count > MaxPhotos)
+        {
+            <div class="more-photos">
+                <button class="btn-more" @onclick="ShowMorePhotos">
+                    Näytä lisää kuvia (@(Photos.Count - MaxPhotos) kpl)
+                </button>
+            </div>
+        }
+    }
+    else if (ShowPlaceholder)
+    {
+        <div class="no-photos">
+            <div class="placeholder-icon">📷</div>
+            <p>Ei kuvia vielä saatavilla</p>
+            <small>Perheenjäsenet voivat lisätä kuvia Google Drive:en</small>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<DrivePhoto> Photos { get; set; } = new();
+    [Parameter] public string Title { get; set; } = "Kuvat";
+    [Parameter] public int MaxPhotos { get; set; } = 3;
+    [Parameter] public bool ShowPlaceholder { get; set; } = true;
+    [Parameter] public EventCallback<DrivePhoto> OnPhotoSelected { get; set; }
+
+    private async Task OpenPhotoModal(DrivePhoto photo)
+    {
+        await OnPhotoSelected.InvokeAsync(photo);
+        // Avaa kuva modal-ikkunassa
+        await JSRuntime.InvokeVoidAsync("openImageModal", photo.Url, photo.Description);
+    }
+
+    private void ShowMorePhotos()
+    {
+        MaxPhotos = Math.Min(MaxPhotos + 6, Photos.Count);
+        StateHasChanged();
+    }
+}

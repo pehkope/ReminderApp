@@ -1,10 +1,11 @@
-using ReminderTabletNew2.Models;
+﻿using ReminderTabletNew2.Models;
 
 namespace ReminderTabletNew2.Services;
 
 /// <summary>
 /// Hallinnoi asiakaskohtaisia konfiguraatioita
 /// Helpottaa uusien asiakkaiden lisäämistä
+/// ...
 /// </summary>
 public class ClientConfigService
 {
