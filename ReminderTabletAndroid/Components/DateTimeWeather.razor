@@ -55,13 +55,18 @@
         if (string.IsNullOrEmpty(description)) return "🌤️";
         
         var desc = description.ToLower();
+        
+        // Paremmat ja värikkäämmät ikonit
         if (desc.Contains("aurinko") || desc.Contains("kirkas") || desc.Contains("selkeä")) return "☀️";
-        if (desc.Contains("pilvi") || desc.Contains("pilvinen")) return "☁️";
-        if (desc.Contains("sade") || desc.Contains("sateinen")) return "🌧️";
-        if (desc.Contains("lumi") || desc.Contains("luminen")) return "❄️";
+        if (desc.Contains("loistava") || desc.Contains("upea")) return "🌞";
+        if (desc.Contains("pilvi") || desc.Contains("pilvinen")) return "⛅";
+        if (desc.Contains("sade") || desc.Contains("sateinen")) return "🌦️";
+        if (desc.Contains("lumi") || desc.Contains("luminen")) return "🌨️";
         if (desc.Contains("usva") || desc.Contains("sumu")) return "🌫️";
         if (desc.Contains("myrsky") || desc.Contains("ukkonen")) return "⛈️";
-        if (desc.Contains("tuuli") || desc.Contains("tuulinen")) return "💨";
+        if (desc.Contains("tuuli") || desc.Contains("tuulinen")) return "🌬️";
+        if (desc.Contains("kylmä") || desc.Contains("pakkanen")) return "🥶";
+        if (desc.Contains("kuuma") || desc.Contains("helle")) return "🔥";
         
         return "🌤️";
     }

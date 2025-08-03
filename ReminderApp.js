@@ -912,16 +912,33 @@ function parseEventDate_(dateInput) {
  * Format message with timing information
  */
 function formatImportantMessage_(messageObj) {
-  const { message, daysUntilEvent, isToday, isPast } = messageObj;
+  const { message, daysUntilEvent, isToday, isPast, eventDate } = messageObj;
+  
+  // Format date as Finnish: d.m.yyyy h:mm
+  const formatFinnishDateTime = (date) => {
+    try {
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "";
+    }
+  };
+  
+  const formattedDate = formatFinnishDateTime(eventDate);
   
   if (isToday) {
-    return `🔔 TÄNÄÄN: ${message}`;
+    return `🔔 TÄNÄÄN: ${message} ${formattedDate}`;
   } else if (isPast) {
     return `📋 ${message} (oli ${Math.abs(daysUntilEvent)} päivää sitten)`;
   } else if (daysUntilEvent === 1) {
-    return `⚠️ HUOMENNA: ${message}`;
+    return `⚠️ HUOMENNA: ${message} ${formattedDate}`;
   } else {
-    return `📅 ${daysUntilEvent} PÄIVÄN PÄÄSTÄ: ${message}`;
+    return `📅 ${daysUntilEvent} PÄIVÄN PÄÄSTÄ: ${message} ${formattedDate}`;
   }
 }
 
