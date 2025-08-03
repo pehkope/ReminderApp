@@ -30,6 +30,12 @@ public class ReminderApiResponse
     [JsonPropertyName("dailyPhotoCaption")]
     public string DailyPhotoCaption { get; set; }
 
+    [JsonPropertyName("weeklyPhotos")]
+    public List<DrivePhoto> WeeklyPhotos { get; set; } = new();
+
+    [JsonPropertyName("profilePhoto")]
+    public DrivePhoto? ProfilePhoto { get; set; }
+
     [JsonPropertyName("exerciseVideoUrl")]
     public string ExerciseVideoUrl { get; set; }
 
@@ -47,6 +53,27 @@ public class ReminderApiResponse
 
     [JsonPropertyName("currentTimeOfDay")]
     public string CurrentTimeOfDay { get; set; } = "";
+}
+
+/// <summary>
+/// Google Drive kuva-objekti
+/// </summary>
+public class DrivePhoto
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("url")]
+    public string Url { get; set; } = "";
+
+    [JsonPropertyName("date")]
+    public DateTime Date { get; set; }
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = "";
+
+    [JsonPropertyName("fileId")]
+    public string FileId { get; set; } = "";
 }
 
 public class DailyTask
