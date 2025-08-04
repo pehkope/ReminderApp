@@ -1,9 +1,13 @@
-@if (!string.IsNullOrWhiteSpace(ImportantMessage))
-{
-    <div class="important-banner">
+<div class="important-banner">
+    @if (!string.IsNullOrWhiteSpace(ImportantMessage))
+    {
         @ImportantMessage
-    </div>
-}
+    }
+    else
+    {
+        <span>📅 Ei tärkeitä tapahtumia tänään - Mukava päivä!</span>
+    }
+</div>
 
 @code {
     [Parameter] public string? ImportantMessage { get; set; }
