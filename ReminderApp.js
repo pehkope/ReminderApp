@@ -818,6 +818,7 @@ function getImportantMessage_(sheet) {
       const priority = row[2] || 1;              // Column C: Priority (1=highest)
       const showDaysBefore = row[3] || 2;        // Column D: Days before to show (default 2)
       const showDaysAfter = row[4] || 0;         // Column E: Days after to show (default 0)
+      const eventTime = String(row[5] || "").trim(); // Column F: Time (optional)
       
       if (!eventDate || !message) {
         continue; // Skip invalid rows
@@ -834,9 +835,16 @@ function getImportantMessage_(sheet) {
       if (today >= startShowDate && today <= endShowDate) {
         const daysUntilEvent = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
         
+        // Create full datetime if time is provided
+        let fullEventDate = new Date(eventDate);
+        if (eventTime) {
+          const [hours, minutes] = eventTime.split(':').map(x => parseInt(x) || 0);
+          fullEventDate.setHours(hours, minutes, 0, 0);
+        }
+        
         activeMessages.push({
           message: message,
-          eventDate: eventDate,
+          eventDate: fullEventDate,
           priority: priority,
           daysUntilEvent: daysUntilEvent,
           isToday: daysUntilEvent === 0,
@@ -1239,7 +1247,7 @@ function createTestViestit() {
     viestiteSheet.clear();
     
     // Headers
-    const headers = [["Päivämäärä", "Viesti", "Prioriteetti", "Päiviä ennen", "Päiviä jälkeen", "Huomiot"]];
+    const headers = [["Päivämäärä", "Viesti", "Prioriteetti", "Päiviä ennen", "Päiviä jälkeen", "Kellonaika"]];
     
     // Create test dates
     const tomorrow = new Date();
@@ -1253,9 +1261,9 @@ function createTestViestit() {
     
     // Test data
     const testData = [
-      [tomorrow, "Lääkäri aika kello 14:00 - Muista lääkekortit", 1, 1, 0, "Näkyy huomenna"],
-      [dayAfter, "Perhe tulee käymään kello 16:00", 2, 2, 0, "Näkyy 2 päivää ennen"],
-      [nextWeek, "Hiusten leikkaus kello 10:00", 3, 3, 1, "Näkyy 3 päivää ennen"]
+      [tomorrow, "Lääkäri aika - Muista lääkekortit", 1, 1, 0, "14:00"],
+      [dayAfter, "Perhe tulee käymään", 2, 2, 0, "16:00"],
+      [nextWeek, "Hiusten leikkaus", 3, 3, 1, "10:00"]
     ];
     
     // Write all data
