@@ -792,6 +792,9 @@ function getLatestReminder_(sheet, clientID) {
  * Shows message 2 days before event, hides day after
  */
 function getImportantMessage_(sheet) {
+  // VÄLIAIKAINEN: Palautetaan tyhjä viesti testaamista varten
+  return "";
+  
   try {
     const messagesSheet = sheet.getSheetByName("Viestit");
     if (!messagesSheet) {
