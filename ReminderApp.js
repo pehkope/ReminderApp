@@ -844,10 +844,18 @@ function getImportantMessage_(sheet) {
         
         // Create full datetime if time is provided
         let fullEventDate = new Date(eventDate);
-        if (eventTime) {
-          const [hours, minutes] = eventTime.split(':').map(x => parseInt(x) || 0);
-          fullEventDate.setHours(hours, minutes, 0, 0);
+        if (eventTime && eventTime.includes(':')) {
+          try {
+            const [hours, minutes] = eventTime.split(':').map(x => parseInt(x) || 0);
+            if (!isNaN(hours) && !isNaN(minutes)) {
+              fullEventDate.setHours(hours, minutes, 0, 0);
+            }
+          } catch (timeError) {
+            console.error("Error parsing time:", eventTime, timeError);
+          }
         }
+        
+        console.log(`🕐 Event date: ${eventDate}, Time: ${eventTime}, Full: ${fullEventDate}`);
         
         activeMessages.push({
           message: message,
@@ -922,6 +930,7 @@ function parseEventDate_(dateInput) {
     
     // Normalize to start of day
     eventDate.setHours(0, 0, 0, 0);
+    console.log(`📅 Parsed event date: ${dateInput} → ${eventDate}`);
     return eventDate;
     
   } catch (error) {
