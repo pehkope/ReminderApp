@@ -792,9 +792,6 @@ function getLatestReminder_(sheet, clientID) {
  * Shows message 2 days before event, hides day after
  */
 function getImportantMessage_(sheet) {
-  // VÄLIAIKAINEN: Palautetaan tyhjä viesti testaamista varten
-  return "";
-  
   try {
     const messagesSheet = sheet.getSheetByName("Viestit");
     if (!messagesSheet) {
@@ -845,17 +842,27 @@ function getImportantMessage_(sheet) {
       
       if (shouldShow) {
         
-        // Create full datetime if time is provided
+        // Create full datetime with SUOMI timezone
         let fullEventDate = new Date(eventDate);
+        
+        // Aseta Suomi-aika (UTC+2/UTC+3 riippuen kesäajasta)
+        // Luodaan uusi Date-objekti Suomi-ajassa
+        const finnishDate = new Date(eventDate.getTime());
+        
         if (eventTime && eventTime.includes(':')) {
           try {
             const [hours, minutes] = eventTime.split(':').map(x => parseInt(x) || 0);
             if (!isNaN(hours) && !isNaN(minutes)) {
-              fullEventDate.setHours(hours, minutes, 0, 0);
+              // Aseta Suomi-aika
+              finnishDate.setHours(hours, minutes, 0, 0);
+              fullEventDate = finnishDate;
             }
           } catch (timeError) {
             console.error("Error parsing time:", eventTime, timeError);
           }
+        } else {
+          // Jos ei kellonaikaa, käytä päivämäärää Suomi-ajassa
+          fullEventDate = finnishDate;
         }
         
         console.log(`🕐 Event date: ${eventDate}, Time: ${eventTime}, Full: ${fullEventDate}`);
@@ -931,8 +938,7 @@ function parseEventDate_(dateInput) {
       return null;
     }
     
-    // Normalize to start of day
-    eventDate.setHours(0, 0, 0, 0);
+    // KORJATTU: Ei nollata kellonaikaa, säilytetään alkuperäinen
     console.log(`📅 Parsed event date: ${dateInput} → ${eventDate}`);
     return eventDate;
     
@@ -1281,19 +1287,16 @@ function createTestViestit() {
     
     // Clear existing content
     viestiteSheet.clear();
-    
+  
     // Headers
     const headers = [["Päivämäärä", "Viesti", "Prioriteetti", "Päiviä ennen", "Päiviä jälkeen", "Kellonaika"]];
     
-    // Create test dates
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Create test dates - KORJATTU: Käytetään tarkkoja päivämääriä
+    const tomorrow = new Date(2025, 7, 5); // 5.8.2025 (month is 0-indexed)
+    const dayAfter = new Date(2025, 7, 6); // 6.8.2025
+    const nextWeek = new Date(2025, 7, 11); // 11.8.2025
     
-    const dayAfter = new Date();
-    dayAfter.setDate(dayAfter.getDate() + 2);
-    
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
+    console.log(`📅 Creating test dates: Tomorrow=${tomorrow}, DayAfter=${dayAfter}, NextWeek=${nextWeek}`);
     
     // Test data
     const testData = [
