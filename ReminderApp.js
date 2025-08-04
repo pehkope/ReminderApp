@@ -831,9 +831,16 @@ function getImportantMessage_(sheet) {
       const endShowDate = new Date(eventDate);
       endShowDate.setDate(eventDate.getDate() + showDaysAfter);
       
-      // Check if today is within the show range
-      if (today >= startShowDate && today <= endShowDate) {
-        const daysUntilEvent = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+      // Calculate days until event first
+      const daysUntilEvent = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+      
+      // Check if today is within the show range OR it's evening before the event
+      const now = new Date();
+      const isEveningBefore = (now.getHours() >= 18) && (daysUntilEvent === 1);
+      
+      const shouldShow = (today >= startShowDate && today <= endShowDate) || isEveningBefore;
+      
+      if (shouldShow) {
         
         // Create full datetime if time is provided
         let fullEventDate = new Date(eventDate);
@@ -932,11 +939,22 @@ function formatImportantMessage_(messageObj) {
   // Format date as Finnish: d.m.yyyy h:mm
   const formatFinnishDateTime = (date) => {
     try {
+      if (!date || isNaN(date.getTime())) {
+        console.error("Invalid date object:", date);
+        return "";
+      }
+      
       const day = date.getDate();
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      // If time is 00:00, just show date
+      if (hours === "00" && minutes === "00") {
+        return `${day}.${month}.${year}`;
+      }
+      
       return `${day}.${month}.${year} ${hours}:${minutes}`;
     } catch (error) {
       console.error("Date formatting error:", error);
@@ -951,7 +969,13 @@ function formatImportantMessage_(messageObj) {
   } else if (isPast) {
     return `📋 ${message} (oli ${Math.abs(daysUntilEvent)} päivää sitten)`;
   } else if (daysUntilEvent === 1) {
-    return `⚠️ HUOMENNA: ${message} ${formattedDate}`;
+    // Check if it's evening - show different message
+    const now = new Date();
+    if (now.getHours() >= 18) {
+      return `🌆 HUOMENNA ILTAAN: ${message} ${formattedDate}`;
+    } else {
+      return `⚠️ HUOMENNA: ${message} ${formattedDate}`;
+    }
   } else {
     return `📅 ${daysUntilEvent} PÄIVÄN PÄÄSTÄ: ${message} ${formattedDate}`;
   }
@@ -1452,5 +1476,40 @@ function testConfig() {
     
   } catch (error) {
     console.error("❌ Error testing config:", error);
+  }
+}
+
+/**
+ * Test evening before functionality
+ */
+function testEveningBefore() {
+  try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const sheetId = scriptProperties.getProperty("SHEET_ID");
+    
+    if (!sheetId) {
+      console.error("❌ SHEET_ID not configured");
+      return;
+    }
+    
+    const sheet = SpreadsheetApp.openById(sheetId);
+    
+    // Simulate evening time (18:00+)
+    const now = new Date();
+    console.log(`🕕 Current time: ${now.getHours()}:${now.getMinutes()}`);
+    console.log(`🌆 Is evening (>=18): ${now.getHours() >= 18}`);
+    
+    // Test important message
+    const importantMessage = getImportantMessage_(sheet);
+    console.log(`📅 Important message: "${importantMessage}"`);
+    
+    if (importantMessage) {
+      console.log("✅ Evening before functionality working!");
+    } else {
+      console.log("ℹ️ No messages to show in evening");
+    }
+    
+  } catch (error) {
+    console.error("❌ Error testing evening before:", error);
   }
 }
