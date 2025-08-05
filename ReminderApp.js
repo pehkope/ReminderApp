@@ -78,7 +78,7 @@ function doGet(e) {
     // Default: return tablet data
     return handleDataFetchAction_(e);
     
-  } catch (error) {
+} catch (error) {
     console.error("CRITICAL ERROR in doGet:", error.toString());
     console.error("Stack trace:", error.stack);
     
@@ -122,7 +122,7 @@ function handleAcknowledgementAction_(e) {
       
       // Send notifications (fire-and-forget)
       try {
-        sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timestamp);
+      sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timestamp);
         console.log("📤 Notification sending initiated");
       } catch (notifyError) {
         console.error("⚠️ Notification sending failed:", notifyError.toString());
@@ -136,7 +136,7 @@ function handleAcknowledgementAction_(e) {
       status: ackSuccess ? "OK" : "ERROR",
       message: ackSuccess ? "Acknowledgment recorded" : "Failed to record acknowledgment",
       clientID: clientID,
-      taskType: taskType,
+        taskType: taskType,
       timeOfDay: timeOfDay,
       timestamp: timestamp
     })).setMimeType(ContentService.MimeType.JSON);
@@ -165,7 +165,7 @@ function sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timesta
     if (!configSheet) {
       console.error("[NOTIFY] CRITICAL: Config sheet not found.");
       return;
-    }
+}
     console.log("[NOTIFY] Config sheet found.");
     
     let notificationRecipients = [];
@@ -186,12 +186,12 @@ function sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timesta
         });
         console.log(`[NOTIFY] Added recipient: ${name}, Phone: ${phone || 'N/A'}, Telegram: ${telegramChatID || 'N/A'}`);
       }
-    }
+}
     
     if (notificationRecipients.length === 0) {
         console.warn("[NOTIFY] WARNING: No recipients ('Tiitta' or 'Petri') found in Config sheet. Stopping.");
         return;
-    }
+}
     
     const timeStr = new Date(timestamp).toLocaleTimeString('fi-FI', { timeZone: 'Europe/Helsinki', hour: '2-digit', minute: '2-digit' });
     const taskEmoji = taskType.toLowerCase() === 'ruoka' ? '🍽️' : taskType.toLowerCase() === 'lääkkeet' ? '💊' : '✅';
@@ -213,27 +213,27 @@ function sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timesta
         if(success) {
             console.log(`[NOTIFY] SUCCESS: Telegram sent to ${recipient.name}.`);
             sent = true;
-        } else {
+} else {
             console.error(`[NOTIFY] FAILED: Telegram to ${recipient.name}.`);
-        }
-      } else {
+}
+} else {
         console.log(`[NOTIFY] SKIPPING Telegram for ${recipient.name}: Token or Chat ID missing.`);
-      }
+}
       
       if (!sent && twilioFromNumber && authToken && accountSid && recipient.phone) {
         console.log(`[NOTIFY] Attempting to send SMS to ${recipient.name} (Phone: ${recipient.phone})`);
         const success = sendSmsNotification_(message, recipient.phone, twilioFromNumber, accountSid, authToken, recipient.name);
         if(success) {
             console.log(`[NOTIFY] SUCCESS: SMS sent to ${recipient.name}.`);
-        } else {
+} else {
             console.error(`[NOTIFY] FAILED: SMS to ${recipient.name}.`);
-        }
-      } else if (!sent) {
+}
+} else if (!sent) {
           console.log(`[NOTIFY] SKIPPING SMS for ${recipient.name}: Twilio credentials or phone number missing.`);
-      }
-    }
+}
+}
     console.log("[NOTIFY] Notification process finished.");
-  } catch (error) {
+} catch (error) {
     console.error(`[NOTIFY] CRITICAL ERROR in sendAcknowledgmentNotifications: ${error.toString()}`);
   }
 }
@@ -277,12 +277,12 @@ function sendTelegramMessage_(token, chatId, message, sheet, clientID, usePhotos
     
     if (response.getResponseCode() === 200) {
       console.log("✅ Telegram message sent successfully");
-      return true;
+    return true;
     } else {
       console.log(`❌ Telegram API error: ${response.getResponseCode()}`);
       return false;
     }
-  } catch (error) {
+} catch (error) {
     console.error(`❌ Error sending Telegram: ${error.toString()}`);
     return false;
   }
@@ -315,7 +315,7 @@ function sendSmsNotification_(message, phoneNumber, fromNumber, accountSid, auth
     
     return sendSmsViaTwilio_(message, normalizedPhone, fromNumber, accountSid, authToken);
     
-  } catch (error) {
+} catch (error) {
     console.error(`❌ Error in SMS notification: ${error.toString()}`);
     return false;
   }
@@ -362,7 +362,7 @@ function sendSmsViaTwilio_(messageBody, to, from, accountSid, authToken) {
       return false;
     }
     
-  } catch (error) {
+} catch (error) {
     console.error(`❌ Error sending SMS: ${error.toString()}`);
     return false;
   }
@@ -494,7 +494,7 @@ function handleDataFetchAction_(e) {
     return ContentService.createTextOutput(JSON.stringify(response))
       .setMimeType(ContentService.MimeType.JSON);
       
-  } catch (error) {
+} catch (error) {
     console.error("ERROR in handleDataFetchAction_:", error.toString());
     console.error("Stack trace:", error.stack);
     
@@ -540,7 +540,7 @@ function acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, timestamp) {
     console.log("✅ Acknowledgment recorded successfully");
     return true;
     
-  } catch (error) {
+} catch (error) {
     console.error("Error recording acknowledgment:", error.toString());
     return false;
   }
@@ -621,10 +621,10 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     console.log(`Found ${tasks.length} tasks for ${clientID} at ${timeOfDay}`);
     return tasks;
     
-  } catch (error) {
+} catch (error) {
     console.error("Error getting daily tasks:", error.toString());
     return [];
-  }
+}
 }
 
 /**
@@ -641,12 +641,12 @@ function isTaskAckedToday_(sheet, taskType, timeOfDay, today) {
       const ackDate = String(data[i][4]).trim();
       
       if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && ackDate === today) {
-        return true;
-      }
-    }
+          return true;
+}
+}
     
     return false;
-  } catch (error) {
+} catch (error) {
     console.error("Error checking task acknowledgment:", error.toString());
     return false;
   }
@@ -708,7 +708,7 @@ function getContacts_(sheet) {
     }
     
     return contacts;
-  } catch (error) {
+} catch (error) {
     console.error("Error getting contacts:", error.toString());
     return [];
   }
@@ -749,7 +749,7 @@ function getClientSettings_(sheet, clientID) {
     }
     
     return defaultSettings;
-  } catch (error) {
+} catch (error) {
     console.error("Error getting client settings:", error.toString());
     return defaultSettings;
   }
@@ -781,7 +781,7 @@ function getLatestReminder_(sheet, clientID) {
     }
     
     return latestReminder;
-  } catch (error) {
+} catch (error) {
     console.error("Error getting latest reminder:", error.toString());
     return "Tervetuloa!";
   }
@@ -860,7 +860,7 @@ function getImportantMessage_(sheet) {
           } catch (timeError) {
             console.error("Error parsing time:", eventTime, timeError);
           }
-        } else {
+} else {
           // Jos ei kellonaikaa, käytä päivämäärää Suomi-ajassa
           fullEventDate = finnishDate;
         }
@@ -935,14 +935,14 @@ function parseEventDate_(dateInput) {
     // Validate the date
     if (isNaN(eventDate.getTime())) {
       console.log(`Invalid date format: ${dateStr}`);
-      return null;
+        return null;
     }
     
     // KORJATTU: Ei nollata kellonaikaa, säilytetään alkuperäinen
     console.log(`📅 Parsed event date: ${dateInput} → ${eventDate}`);
     return eventDate;
     
-  } catch (error) {
+} catch (error) {
     console.error(`Error parsing date: ${dateInput}`, error);
     return null;
   }
@@ -1097,7 +1097,7 @@ function getWeatherData_(weatherApiKey) {
     isVeryCold: true,
     isGoodForOutdoor: false,
     temp: 0
-  };
+};
   
   try {
     const response = UrlFetchApp.fetch(weatherUrl, { muteHttpExceptions: true });
@@ -1138,7 +1138,7 @@ function getWeatherData_(weatherApiKey) {
       };
     }
     return defaultResult;
-  } catch (e) {
+} catch (e) {
     console.error("Error fetching weather: " + e);
     return defaultResult;
   }
@@ -1204,7 +1204,7 @@ function testTelegramMessage() {
   
   if (success) {
     console.log("✅ Telegram test message sent successfully!");
-  } else {
+} else {
     console.log("❌ Failed to send Telegram test message");
   }
 }
@@ -1220,7 +1220,7 @@ function validateApiKey_(apiKey) {
   if (!apiKey) {
     console.log("🔐 No API key provided");
     return false;
-  }
+}
   
   const scriptProperties = PropertiesService.getScriptProperties();
   const validApiKeys = scriptProperties.getProperty("VALID_API_KEYS");
@@ -1266,12 +1266,12 @@ function setupApiKeys() {
  */
 function createTestViestit() {
   try {
-    const scriptProperties = PropertiesService.getScriptProperties();
+  const scriptProperties = PropertiesService.getScriptProperties();
     const sheetId = scriptProperties.getProperty("SHEET_ID");
     
     if (!sheetId) {
       console.error("❌ SHEET_ID not configured");
-      return;
+    return;
     }
     
     const sheet = SpreadsheetApp.openById(sheetId);
@@ -1350,11 +1350,11 @@ function testImportantMessage() {
     
     if (message) {
       console.log("✅ Message system working!");
-    } else {
+} else {
       console.log("ℹ️ No active messages for today");
-    }
+}
     
-  } catch (error) {
+} catch (error) {
     console.error("❌ Error testing important message:", error);
   }
 }
@@ -1458,7 +1458,7 @@ function addTestPhoto() {
     
     console.log(`✅ ${testPhotos.length} test photos added to Photos sheet`);
     
-  } catch (error) {
+} catch (error) {
     console.error("❌ Error adding test photo:", error);
   }
 }
@@ -1520,11 +1520,11 @@ function testEveningBefore() {
     
     if (importantMessage) {
       console.log("✅ Evening before functionality working!");
-    } else {
+} else {
       console.log("ℹ️ No messages to show in evening");
     }
     
-  } catch (error) {
+} catch (error) {
     console.error("❌ Error testing evening before:", error);
-  }
+}
 }
