@@ -1,4 +1,4 @@
-{
+﻿{
   "routes": [
     {
       "route": "/*",
@@ -15,8 +15,15 @@
     ".blat": "application/octet-stream",
     ".dat": "application/octet-stream"
   },
+
   "globalHeaders": {
-    "Cross-Origin-Embedder-Policy": "require-corp",
-    "Cross-Origin-Opener-Policy": "same-origin"
+    "Content-Security-Policy": "default-src 'self'; img-src 'self' https://drive.google.com https://*.onedrive.live.com;"
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/404.html"
+    }
   }
-} 
+}
+
+  
