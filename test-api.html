@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ReminderApp API Test</title>
+</head>
+<body>
+    <h1>ReminderApp API Testi</h1>
+    <button onclick="testAPI()">Testaa API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testataan...';
+            
+            try {
+                const url = 'https://script.google.com/macros/s/AKfycbzcLxIMo8DMldhRvaaRrYNXGFnh9U3TdIPDQJsVJotH4QrAF7A8StDS9c80ow6EeAhT/exec?apiKey=reminder-tablet-2024&user=mom&client=test';
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                resultDiv.innerHTML = 'Virhe: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
