@@ -16,7 +16,7 @@
                 {
                     <button class="ok-button" @onclick="() => OnTaskAcknowledge.InvokeAsync(task)">OK</button>
                 }
-                else if (task.IsAckedToday && !task.Type.ToUpper().Contains("ASIAT") && !task.Type.ToUpper().Contains("LIIKUNTA"))
+                else if (task.IsAckedToday && !task.Type.ToUpper().Contains("ASIAT") && !task.Type.ToUpper().Contains("LIIKUNTA") && !task.Type.ToUpper().Contains("PUUHAA"))
                 {
                     <span class="acked-indicator">✅ Kuitattu</span>
                 }
@@ -42,9 +42,9 @@
 
     private bool ShouldShowOkButton(DailyTask task)
     {
-        // ASIAT ja LIIKUNTA ei tarvitse kuittausta
+        // ASIAT, LIIKUNTA ja PUUHAA ei tarvitse kuittausta - vain ideoita/tekstiä
         var taskType = task.Type.ToUpper();
-        return !taskType.Contains("ASIAT") && !taskType.Contains("LIIKUNTA") && !task.IsAckedToday;
+        return !taskType.Contains("ASIAT") && !taskType.Contains("LIIKUNTA") && !taskType.Contains("PUUHAA") && !task.IsAckedToday;
     }
 
     private string GetTaskIconClass(string taskType)
