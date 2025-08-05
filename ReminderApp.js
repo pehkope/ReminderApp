@@ -106,9 +106,10 @@ function handleAcknowledgementAction_(e) {
     const clientID = (e.parameter && e.parameter.clientID) || 'mom';
     const taskType = (e.parameter && e.parameter.taskType) || '';
     const timeOfDay = (e.parameter && e.parameter.timeOfDay) || '';
+    const description = (e.parameter && e.parameter.description) || '';
     const timestamp = (e.parameter && e.parameter.timestamp) || new Date().toISOString();
     
-    console.log(`Processing acknowledgment: ${clientID} - ${taskType} (${timeOfDay}) at ${timestamp}`);
+    console.log(`Processing acknowledgment: ${clientID} - ${taskType} (${timeOfDay}) "${description}" at ${timestamp}`);
     
     if (!taskType || !timeOfDay) {
       console.error("Missing required parameters: taskType or timeOfDay");
@@ -119,7 +120,7 @@ function handleAcknowledgementAction_(e) {
     }
     
     // Record acknowledgment in Google Sheets
-    const ackSuccess = acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, timestamp);
+    const ackSuccess = acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, description, timestamp);
     
     if (ackSuccess) {
       console.log("✅ Acknowledgment recorded in Google Sheets");
@@ -517,9 +518,9 @@ function handleDataFetchAction_(e) {
 /**
  * Record task acknowledgment in Google Sheets
  */
-function acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, timestamp) {
+function acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, description, timestamp) {
   try {
-    console.log(`Recording acknowledgment: ${clientID} - ${taskType} (${timeOfDay}) at ${timestamp}`);
+    console.log(`Recording acknowledgment: ${clientID} - ${taskType} (${timeOfDay}) "${description}" at ${timestamp}`);
     
     const scriptProperties = PropertiesService.getScriptProperties();
     const sheetId = scriptProperties.getProperty(SHEET_ID_KEY);
@@ -529,18 +530,19 @@ function acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, timestamp) {
     
     const date = Utilities.formatDate(new Date(timestamp), HELSINKI_TIMEZONE, "yyyy-MM-dd");
     
-    // Check if already acknowledged today
-    if (isTaskAckedToday_(sheet, taskType, timeOfDay, date)) {
-      console.log(`Task ${taskType} (${timeOfDay}) already acknowledged today`);
+    // Check if this specific task (with description) is already acknowledged today
+    if (isTaskAckedToday_(sheet, taskType, timeOfDay, description, date)) {
+      console.log(`Task ${taskType} (${timeOfDay}) "${description}" already acknowledged today`);
       return false;
     }
     
-    // Add new acknowledgment
+    // Add new acknowledgment with description for unique identification
     ackSheet.appendRow([
       timestamp,
       clientID,
       taskType,
       timeOfDay,
+      description,
       date
     ]);
     
@@ -602,7 +604,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     // 1. RUOKA tehtävät Ruoka-ajat sheetistä  
     const foodReminders = getFoodReminders_(sheet, clientID, timeOfDay, currentHour);
     foodReminders.forEach(reminder => {
-      const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, today);
+      const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, reminder.replace("🍽️ ", ""), today);
       tasks.push({
         type: "RUOKA",
         description: reminder.replace("🍽️ ", ""), // Poista emoji jos on
@@ -615,7 +617,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     // 2. LÄÄKKEET tehtävät Lääkkeet sheetistä
     const medicineReminders = getMedicineReminders_(sheet, clientID, timeOfDay, currentHour);
     medicineReminders.forEach(reminder => {
-      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, today);
+      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, reminder.replace("💊 ", ""), today);
       tasks.push({
         type: "LÄÄKKEET", 
         description: reminder.replace("💊 ", ""), // Poista emoji jos on
@@ -652,7 +654,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
         const taskDescription = String(data[i][3]).trim();
         
         if (taskClient === clientID.toLowerCase() && taskTimeOfDay === timeOfDay) {
-          const isAcked = isTaskAckedToday_(sheet, taskType, timeOfDay, today);
+          const isAcked = isTaskAckedToday_(sheet, taskType, timeOfDay, taskDescription, today);
           
           tasks.push({
             type: taskType,
@@ -677,7 +679,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
 /**
  * Check if a task has been acknowledged today
  */
-function isTaskAckedToday_(sheet, taskType, timeOfDay, today) {
+function isTaskAckedToday_(sheet, taskType, timeOfDay, description, today) {
   try {
     const ackSheet = getOrCreateSheet_(sheet, SHEET_NAMES.KUITTAUKSET);
     const data = ackSheet.getDataRange().getValues();
@@ -685,15 +687,19 @@ function isTaskAckedToday_(sheet, taskType, timeOfDay, today) {
     for (let i = 1; i < data.length; i++) {
       const ackTaskType = String(data[i][2]).trim();
       const ackTimeOfDay = String(data[i][3]).trim();
-      const ackDate = String(data[i][4]).trim();
+      const ackDescription = String(data[i][4] || '').trim(); // New description column
+      const ackDate = String(data[i][5] || data[i][4]).trim(); // Date moved to column 5, fallback to old position
       
-      if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && ackDate === today) {
-          return true;
-}
-}
+      // Match by taskType, timeOfDay, description (if provided), and date
+      const descriptionMatches = !description || ackDescription === description;
+      
+      if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && descriptionMatches && ackDate === today) {
+        return true;
+      }
+    }
     
     return false;
-} catch (error) {
+  } catch (error) {
     console.error("Error checking task acknowledgment:", error.toString());
     return false;
   }

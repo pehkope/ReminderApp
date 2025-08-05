@@ -170,7 +170,7 @@ public class ApiResult<T>
         };
     }
 
-    public async Task<bool> AcknowledgeTaskAsync(string taskType, string timeOfDay)
+    public async Task<bool> AcknowledgeTaskAsync(string taskType, string timeOfDay, string description = "")
     {
         try
         {
@@ -180,8 +180,8 @@ public class ApiResult<T>
             var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
 
-            // Build acknowledgment URL
-            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&taskType={taskType}&timeOfDay={timeOfDay}";
+            // Build acknowledgment URL with description for unique identification
+            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&taskType={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}";
 
             _logger.LogInformation($"Sending acknowledgment request: {taskType} for {timeOfDay}");
 

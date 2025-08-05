@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Task State After Acknowledgment</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { margin: 5px; padding: 10px; font-size: 14px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+        .task { border: 1px solid #ddd; margin: 10px 0; padding: 10px; }
+        .acked { background-color: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Task State - Acknowledgment Test</h1>
+    
+    <button onclick="checkTaskStates()">📋 Check Current Task States</button>
+    <button onclick="acknowledgeRUOKA()">🍽️ Acknowledge RUOKA</button>
+    <button onclick="acknowledgeLÄÄKKEET()">💊 Acknowledge LÄÄKKEET</button>
+    <button onclick="checkTaskStatesAfter()">🔄 Refresh Task States</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_S1eB0Jr99IGBYxK4-zlS6yE8SAFs9YJ0E6b3h34rAhgVH8gjtGmGgFzjI3FPXI5bSQ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+        const CLIENT_ID = 'mom';
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${timestamp}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+
+        function displayTasks(tasks, title) {
+            log(`📊 ${title}:`, 'success');
+            
+            if (!tasks || tasks.length === 0) {
+                log('❌ No tasks found!', 'warning');
+                return;
+            }
+            
+            tasks.forEach((task, index) => {
+                const ackStatus = task.isAckedToday ? '✅ ACKNOWLEDGED' : '❌ NOT ACKNOWLEDGED';
+                const taskClass = task.isAckedToday ? 'task acked' : 'task';
+                
+                log(`<div class="${taskClass}">
+                    <strong>${index + 1}. ${task.type}</strong><br/>
+                    Description: "${task.description}"<br/>
+                    Time of Day: "${task.timeOfDay}"<br/>
+                    Status: ${ackStatus}<br/>
+                    ${task.acknowledgmentTimestamp ? `Acknowledged at: ${task.acknowledgmentTimestamp}` : 'No acknowledgment timestamp'}
+                </div>`);
+            });
+        }
+
+        async function checkTaskStates() {
+            log(`🔍 Checking current task states...`);
+            await fetchAndDisplayTasks('Current Tasks');
+        }
+
+        async function checkTaskStatesAfter() {
+            log(`🔄 Refreshing task states after acknowledgment...`);
+            await fetchAndDisplayTasks('Updated Tasks');
+        }
+
+        async function fetchAndDisplayTasks(title) {
+            try {
+                const response = await fetch(`${API_URL}?apiKey=${API_KEY}&clientID=${CLIENT_ID}`);
+                log(`📡 Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.dailyTasks) {
+                    displayTasks(data.dailyTasks, title);
+                } else {
+                    log(`⚠️ No dailyTasks in response for ${title}`, 'warning');
+                    log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error fetching tasks: ${error.message}`, 'error');
+                console.error('Fetch error:', error);
+            }
+        }
+
+        async function acknowledgeRUOKA() {
+            await acknowledgeTask('RUOKA', 'Ilta');
+        }
+
+        async function acknowledgeLÄÄKKEET() {
+            await acknowledgeTask('LÄÄKKEET', 'Ilta');
+        }
+
+        async function acknowledgeTask(taskType, timeOfDay) {
+            log(`🧪 Acknowledging ${taskType} for ${timeOfDay}...`);
+            
+            try {
+                const ackUrl = `${API_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=${CLIENT_ID}&taskType=${taskType}&timeOfDay=${timeOfDay}`;
+                log(`📡 Acknowledgment URL: ${ackUrl}`);
+                
+                const response = await fetch(ackUrl);
+                log(`📡 Acknowledgment response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                log(`✅ Acknowledgment response for ${taskType}:`, 'success');
+                log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+                // Wait a moment for the sheet to update, then refresh
+                setTimeout(() => {
+                    log(`🔄 Auto-refreshing tasks in 2 seconds...`);
+                    setTimeout(checkTaskStatesAfter, 2000);
+                }, 1000);
+                
+            } catch (error) {
+                log(`❌ Error acknowledging ${taskType}: ${error.message}`, 'error');
+                console.error('Acknowledgment error:', error);
+            }
+        }
+
+        // Auto-check tasks on page load
+        window.addEventListener('load', () => {
+            log(`🚀 Page loaded. Testing acknowledgment workflow...`);
+            checkTaskStates();
+        });
+    </script>
+</body>
+</html>

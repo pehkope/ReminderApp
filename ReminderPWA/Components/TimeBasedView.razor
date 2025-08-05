@@ -69,6 +69,7 @@
     {
         public string TaskType { get; set; } = "";
         public string TimeOfDay { get; set; } = "";
+        public string Description { get; set; } = "";
     }
 
     // Image modal state
@@ -208,7 +209,11 @@
     
     private async Task HandleTaskAcknowledge(DailyTask task)
     {
-        await OnAcknowledgeTask.InvokeAsync(new TaskAckRequest { TaskType = task.Type, TimeOfDay = GetTimeOfDayText() });
+        await OnAcknowledgeTask.InvokeAsync(new TaskAckRequest { 
+            TaskType = task.Type, 
+            TimeOfDay = GetTimeOfDayText(),
+            Description = task.Description ?? ""
+        });
     }
 
     // PARAS KÄYTÄNTÖ: IDisposable pattern
