@@ -4,13 +4,13 @@
     background-color: #FFC107;
     color: #000;
     text-align: center;
-    padding: 12px 15px;
-    margin: 15px 0; /* Normaali marginaali ylös ja alas */
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 12px; /* PIENENNETTY: 12px->8px, 15px->12px */
+    margin: 8px 0; /* PIENENNETTY: 15px->8px marginaali */
+    font-size: 0.95rem; /* PIENENNETTY: 1.1rem->0.95rem */
+    font-weight: 500; /* PIENENNETTY: 600->500 */
+    border-radius: 6px; /* PIENENNETTY: 8px->6px */
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3); /* PIENENNETTY varjo */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* PIENENNETTY: 2px->1px */
     animation: pulseImportant 2s ease-in-out infinite alternate;
 }
 
