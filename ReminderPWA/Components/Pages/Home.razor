@@ -347,19 +347,11 @@
         {
             statusMessage = $"Kuittaan {request.TaskType}...";
             
-            // Build the new URL with GET parameters
-            var baseUrl = "https://script.google.com/macros/s/AKfycbzYRHhP5_QDk3itk0SLTg0vaX5URp8WddZM05RPntv2SzZbjMDISP3yq4aFGGuTOVw5yw/exec"; // KORJATTU isAckedToday
-            var fullUrl = $"{baseUrl}?action=acknowledge&clientID=mom&taskType={request.TaskType}&timeOfDay={request.TimeOfDay}";
+            // Use ApiService for acknowledgment to ensure consistent URL and API key
+            var success = await ApiService.AcknowledgeTaskAsync(request.TaskType, request.TimeOfDay);
 
-            Console.WriteLine($"Sending acknowledgment GET request to: {fullUrl}");
-
-            var response = await Http.GetAsync(fullUrl);
-
-            if (response.IsSuccessStatusCode)
+            if (success)
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Acknowledgment response: {responseContent}");
-
                 statusMessage = $"✅ {request.TaskType} kuitattu! Ilmoitus lähetetty perheelle.";
                 await OnTaskAcknowledged(); // Play completion sound
                 
@@ -369,8 +361,8 @@
             }
             else
             {
-                statusMessage = $"❌ Kuittaus epäonnistui: {response.StatusCode}";
-                Console.WriteLine($"Error response: {await response.Content.ReadAsStringAsync()}");
+                statusMessage = $"❌ Kuittaus epäonnistui";
+                Console.WriteLine($"Acknowledgment failed for {request.TaskType}");
             }
         }
         catch (Exception ex)
