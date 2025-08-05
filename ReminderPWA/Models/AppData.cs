@@ -98,6 +98,12 @@ public class DailyTask
 
     [JsonPropertyName("isAckedToday")]
     public bool IsAckedToday { get; set; }
+
+    [JsonPropertyName("timeOfDay")]
+    public string TimeOfDay { get; set; } = "";
+
+    [JsonPropertyName("acknowledgmentTimestamp")]
+    public string? AcknowledgmentTimestamp { get; set; }
 }
 
 public class Settings

@@ -178,6 +178,22 @@
 
     private bool IsTaskRelevantForTime(DailyTask task)
     {
+        // Ensisijaisesti käytetään task.TimeOfDay API:sta
+        if (!string.IsNullOrEmpty(task.TimeOfDay))
+        {
+            var taskTimeOfDay = task.TimeOfDay.ToUpper();
+            
+            return TimeOfDay switch
+            {
+                ViewMode.Morning => taskTimeOfDay == "AAMU",
+                ViewMode.Day => taskTimeOfDay == "PÄIVÄ", 
+                ViewMode.Evening => taskTimeOfDay == "ILTA",
+                ViewMode.Night => taskTimeOfDay == "YÖ",
+                _ => true
+            };
+        }
+        
+        // Fallback: käytetään task.Type:a (vanha logiikka)
         var taskType = task.Type.ToUpper();
         
         return TimeOfDay switch

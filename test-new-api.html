@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ReminderApp API Test - New Deployment</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 ReminderApp API Test - NEW DEPLOYMENT</h1>
+    <p><strong>New API URL:</strong> https://script.google.com/macros/s/AKfycby_S1eB0Jr99IGBYxK4-zlS6yE8SAFs9YJ0E6b3h34rAhgVH8gjtGmGgFzjI3FPXI5bSQ/exec</p>
+    
+    <button onclick="testNewDeployment()">🚀 Test New Deployment</button>
+    <button onclick="testViestinJako()">📝 Test Viestien jako (dash splitting)</button>
+    <button onclick="testPhotos()">📸 Test Photos</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_S1eB0Jr99IGBYxK4-zlS6yE8SAFs9YJ0E6b3h34rAhgVH8gjtGmGgFzjI3FPXI5bSQ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+
+        function addResult(message, isSuccess = true) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${isSuccess ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function testNewDeployment() {
+            addResult('🧪 Testing new deployment...', true);
+            
+            try {
+                const url = `${API_URL}?apiKey=${API_KEY}&clientID=mom`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    addResult('✅ NEW DEPLOYMENT WORKS!', true);
+                    addResult(`📊 Got ${data.dailyTasks?.length || 0} tasks`, true);
+                    addResult(`📱 Important message: "${data.importantMessage}"`, true);
+                    addResult(`📸 Photo URL: ${data.dailyPhotoUrl || 'No photo'}`, true);
+                    addResult(`🌤️ Weather: ${data.weather?.description || 'No weather'}`, true);
+                } else {
+                    addResult(`❌ API Error: ${data.error || 'Unknown error'}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Connection Error: ${error.message}`, false);
+            }
+        }
+
+        async function testViestinJako() {
+            addResult('📝 Testing viestien jako (message-activity splitting)...', true);
+            
+            try {
+                const url = `${API_URL}?apiKey=${API_KEY}&clientID=mom`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    const tasks = data.dailyTasks || [];
+                    const puuhaaTask = tasks.find(task => task.type === 'PUUHAA');
+                    
+                    if (puuhaaTask) {
+                        addResult(`✅ PUUHAA field found: "${puuhaaTask.description}"`, true);
+                        addResult('🎯 Viestien jako toimii!', true);
+                    } else {
+                        addResult('ℹ️ No PUUHAA task found (maybe RUOKA/LÄÄKKEET tasks present)', true);
+                    }
+                    
+                    addResult(`📋 Total tasks: ${tasks.length}`, true);
+                    tasks.forEach(task => {
+                        addResult(`  - ${task.type}: "${task.description}"`, true);
+                    });
+                } else {
+                    addResult(`❌ API Error: ${data.error}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+            }
+        }
+
+        async function testPhotos() {
+            addResult('📸 Testing photo functionality...', true);
+            
+            try {
+                const url = `${API_URL}?apiKey=${API_KEY}&clientID=mom`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    if (data.dailyPhotoUrl) {
+                        addResult(`✅ Photo URL: ${data.dailyPhotoUrl}`, true);
+                        addResult(`📝 Caption: ${data.dailyPhotoCaption}`, true);
+                    } else {
+                        addResult('ℹ️ No photo configured (this is normal)', true);
+                    }
+                    
+                    addResult(`⚙️ usePhotos setting: ${data.settings?.usePhotos}`, true);
+                } else {
+                    addResult(`❌ API Error: ${data.error}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+            }
+        }
+
+        // Auto-test on load
+        window.onload = () => {
+            addResult('🌟 Ready to test NEW deployment!', true);
+        };
+    </script>
+</body>
+</html>
