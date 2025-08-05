@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Frontend Rendering</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+        .debug-section { margin: 20px 0; border: 2px solid #007bff; padding: 15px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Frontend Rendering</h1>
+    
+    <div class="debug-section">
+        <h3>🕒 Current Time Analysis</h3>
+        <div id="timeAnalysis"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>📋 Task Filtering Simulation</h3>
+        <div id="taskFiltering"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>⚡ Real API Test</h3>
+        <button onclick="testRealAPI()">🧪 Test Real API & Filtering</button>
+        <div id="realApiResults"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_S1eB0Jr99IGBYxK4-zlS6yE8SAFs9YJ0E6b3h34rAhgVH8gjtGmGgFzjI3FPXI5bSQ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+
+        // ViewMode enum (copy from C#)
+        const ViewMode = {
+            Morning: 0,    // 06:00-11:00
+            Day: 1,        // 11:00-16:00
+            Evening: 2,    // 16:00-21:00
+            Night: 3       // 21:00-06:00
+        };
+
+        function addResult(containerId, message, type = 'success') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            container.appendChild(div);
+        }
+
+        // Simulate C# ViewMode logic
+        function getCurrentViewMode() {
+            const now = new Date();
+            const hour = now.getHours();
+            
+            if (hour >= 6 && hour < 11) return ViewMode.Morning;
+            if (hour >= 11 && hour < 16) return ViewMode.Day;
+            if (hour >= 16 && hour < 21) return ViewMode.Evening;
+            return ViewMode.Night;
+        }
+
+        function getViewModeName(mode) {
+            const names = ['Morning', 'Day', 'Evening', 'Night'];
+            return names[mode] || 'Unknown';
+        }
+
+        function getTimeOfDayText(mode) {
+            switch(mode) {
+                case ViewMode.Morning: return 'AAMU';
+                case ViewMode.Day: return 'PÄIVÄ';
+                case ViewMode.Evening: return 'ILTA';
+                case ViewMode.Night: return 'YÖ';
+                default: return 'UNKNOWN';
+            }
+        }
+
+        // Simulate C# IsTaskRelevantForTime logic
+        function isTaskRelevantForTime(task, currentViewMode) {
+            // Primary: use task.timeOfDay from API
+            if (task.timeOfDay && task.timeOfDay.trim() !== '') {
+                const taskTimeOfDay = task.timeOfDay.toUpperCase();
+                
+                switch(currentViewMode) {
+                    case ViewMode.Morning: return taskTimeOfDay === 'AAMU';
+                    case ViewMode.Day: return taskTimeOfDay === 'PÄIVÄ';
+                    case ViewMode.Evening: return taskTimeOfDay === 'ILTA';
+                    case ViewMode.Night: return taskTimeOfDay === 'YÖ';
+                    default: return true;
+                }
+            }
+            
+            // Fallback: use task.type (old logic)
+            const taskType = task.type.toUpperCase();
+            
+            switch(currentViewMode) {
+                case ViewMode.Morning: 
+                    return taskType.includes('RUOKA') || taskType.includes('LÄÄKKEET') || taskType.includes('AAMU');
+                case ViewMode.Day: 
+                    return taskType.includes('LOUNAS') || taskType.includes('PÄIVÄ') || taskType.includes('RUOKA') || 
+                           taskType.includes('LÄÄKKEET') || taskType.includes('ASIAT') || 
+                           (!taskType.includes('ILTA') && !taskType.includes('YÖ'));
+                case ViewMode.Evening: 
+                    return taskType.includes('RUOKA') || taskType.includes('LÄÄKKEET') || taskType.includes('PUUHAA') || 
+                           taskType.includes('ILTA') || taskType.includes('PÄIVÄLLINEN');
+                case ViewMode.Night: 
+                    return taskType.includes('ILTAPALA') || taskType.includes('LÄÄKKEET') || taskType.includes('YÖ');
+                default: 
+                    return true;
+            }
+        }
+
+        function analyzeCurrentTime() {
+            const now = new Date();
+            const hour = now.getHours();
+            const currentMode = getCurrentViewMode();
+            
+            addResult('timeAnalysis', `🕐 Current time: ${now.toLocaleTimeString()}`, 'success');
+            addResult('timeAnalysis', `⏰ Hour: ${hour}`, 'success');
+            addResult('timeAnalysis', `📊 ViewMode: ${getViewModeName(currentMode)} (${currentMode})`, 'success');
+            addResult('timeAnalysis', `🏷️ TimeOfDayText: "${getTimeOfDayText(currentMode)}"`, 'success');
+            
+            // Show what should be visible
+            addResult('timeAnalysis', `✅ Should show tasks with timeOfDay: "${getTimeOfDayText(currentMode)}"`, 'success');
+        }
+
+        function simulateTaskFiltering() {
+            const testTasks = [
+                { type: 'RUOKA', description: 'päivällinen 16:00', timeOfDay: 'Ilta' },
+                { type: 'LÄÄKKEET', description: 'päivän lääke 19:00', timeOfDay: 'Ilta' },
+                { type: 'LÄÄKKEET', description: 'illan lääke 19:00', timeOfDay: 'Ilta' }
+            ];
+            
+            const currentMode = getCurrentViewMode();
+            
+            addResult('taskFiltering', `🧪 Testing with ViewMode: ${getViewModeName(currentMode)}`, 'success');
+            
+            testTasks.forEach((task, index) => {
+                const shouldShow = isTaskRelevantForTime(task, currentMode);
+                const status = shouldShow ? '✅ SHOW' : '❌ HIDE';
+                const color = shouldShow ? 'success' : 'error';
+                
+                addResult('taskFiltering', 
+                    `${index + 1}. ${task.type} (timeOfDay: "${task.timeOfDay}") → ${status}`, 
+                    color);
+            });
+        }
+
+        async function testRealAPI() {
+            try {
+                addResult('realApiResults', '🧪 Testing real API...', 'success');
+                
+                const url = `${API_URL}?apiKey=${API_KEY}&clientID=mom`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status !== 'OK') {
+                    addResult('realApiResults', `❌ API Error: ${data.error}`, 'error');
+                    return;
+                }
+                
+                const tasks = data.dailyTasks || [];
+                const currentMode = getCurrentViewMode();
+                
+                addResult('realApiResults', `📊 Got ${tasks.length} tasks from API`, 'success');
+                addResult('realApiResults', `🕐 Current ViewMode: ${getViewModeName(currentMode)}`, 'success');
+                
+                if (tasks.length === 0) {
+                    addResult('realApiResults', '⚠️ No tasks returned from API!', 'warning');
+                    return;
+                }
+                
+                let visibleCount = 0;
+                
+                tasks.forEach((task, index) => {
+                    const shouldShow = isTaskRelevantForTime(task, currentMode);
+                    const status = shouldShow ? '✅ VISIBLE' : '❌ HIDDEN';
+                    const color = shouldShow ? 'success' : 'error';
+                    
+                    if (shouldShow) visibleCount++;
+                    
+                    addResult('realApiResults', 
+                        `${index + 1}. ${task.type}: "${task.description}" (timeOfDay: "${task.timeOfDay}") → ${status}`, 
+                        color);
+                });
+                
+                addResult('realApiResults', `📈 Summary: ${visibleCount}/${tasks.length} tasks should be visible`, 
+                    visibleCount > 0 ? 'success' : 'error');
+                
+                if (visibleCount === 0) {
+                    addResult('realApiResults', '🚨 PROBLEM: No tasks are visible in current time!', 'error');
+                    addResult('realApiResults', `💡 Current time expects: "${getTimeOfDayText(currentMode)}"`, 'warning');
+                    addResult('realApiResults', `💡 API tasks have: ${tasks.map(t => `"${t.timeOfDay}"`).join(', ')}`, 'warning');
+                }
+                
+            } catch (error) {
+                addResult('realApiResults', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run analysis on load
+        window.onload = () => {
+            analyzeCurrentTime();
+            simulateTaskFiltering();
+            testRealAPI();
+        };
+    </script>
+</body>
+</html>

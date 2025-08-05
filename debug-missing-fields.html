@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug: Missing RUOKA/LÄÄKKEET/PUUHAA fields</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+        button { margin: 5px; padding: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug: Miksi ei näy RUOKA/LÄÄKKEET/PUUHAA kentät?</h1>
+    
+    <button onclick="debugAPI()">🐛 Debug API Response</button>
+    <button onclick="debugTasks()">📋 Debug Daily Tasks</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_S1eB0Jr99IGBYxK4-zlS6yE8SAFs9YJ0E6b3h34rAhgVH8gjtGmGgFzjI3FPXI5bSQ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+
+        function addResult(message, type = 'success') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function debugAPI() {
+            addResult('🔍 Debugging API response...', 'success');
+            
+            try {
+                const url = `${API_URL}?apiKey=${API_KEY}&clientID=mom`;
+                addResult(`📞 Calling: ${url}`, 'success');
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                addResult(`📡 Response status: ${response.status}`, 'success');
+                addResult(`📊 API status: ${data.status}`, data.status === 'OK' ? 'success' : 'error');
+                
+                if (data.error) {
+                    addResult(`❌ API Error: ${data.error}`, 'error');
+                    return;
+                }
+                
+                // Show full response
+                addResult('📋 Full API Response:', 'success');
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(data, null, 2);
+                document.getElementById('results').appendChild(pre);
+                
+            } catch (error) {
+                addResult(`❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function debugTasks() {
+            addResult('📋 Debugging Daily Tasks specifically...', 'success');
+            
+            try {
+                const url = `${API_URL}?apiKey=${API_KEY}&clientID=mom`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status !== 'OK') {
+                    addResult(`❌ API Error: ${data.error}`, 'error');
+                    return;
+                }
+                
+                const tasks = data.dailyTasks || [];
+                addResult(`📊 Total dailyTasks found: ${tasks.length}`, tasks.length > 0 ? 'success' : 'warning');
+                
+                if (tasks.length === 0) {
+                    addResult('⚠️ NO DAILY TASKS FOUND! This explains why fields are missing.', 'error');
+                    addResult('🔧 Possible causes:', 'warning');
+                    addResult('  1. Google Sheets missing "Ruoka-ajat" tab', 'warning');
+                    addResult('  2. Google Sheets missing "Lääkkeet" tab', 'warning');
+                    addResult('  3. Wrong clientID in sheets (should be "mom")', 'warning');
+                    addResult('  4. Wrong time period (should have AAMU/PÄIVÄ/ILTA)', 'warning');
+                    
+                    // Show current time info
+                    const now = new Date();
+                    const hour = now.getHours();
+                    let timeOfDay = 'UNKNOWN';
+                    if (hour >= 6 && hour < 12) timeOfDay = 'AAMU';
+                    else if (hour >= 12 && hour < 18) timeOfDay = 'PÄIVÄ';
+                    else timeOfDay = 'ILTA';
+                    
+                    addResult(`🕐 Current time: ${hour}:${now.getMinutes().toString().padStart(2, '0')} (${timeOfDay})`, 'success');
+                    
+                } else {
+                    addResult('✅ Daily tasks found! Details:', 'success');
+                    tasks.forEach((task, index) => {
+                        addResult(`  ${index + 1}. ${task.type}: "${task.description}" (${task.timeOfDay}) - Acked: ${task.isAckedToday}`, 'success');
+                    });
+                    
+                    // Check task types
+                    const ruokaCount = tasks.filter(t => t.type === 'RUOKA').length;
+                    const laakkeetCount = tasks.filter(t => t.type === 'LÄÄKKEET').length; 
+                    const puuhaaCount = tasks.filter(t => t.type === 'PUUHAA').length;
+                    
+                    addResult(`📊 Task breakdown: RUOKA=${ruokaCount}, LÄÄKKEET=${laakkeetCount}, PUUHAA=${puuhaaCount}`, 'success');
+                    
+                    if (ruokaCount === 0 && laakkeetCount === 0) {
+                        addResult('⚠️ No RUOKA or LÄÄKKEET tasks - check Google Sheets data!', 'warning');
+                    }
+                }
+                
+            } catch (error) {
+                addResult(`❌ Debug Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run debug on load
+        window.onload = () => {
+            addResult('🐛 Ready to debug missing fields!', 'success');
+            debugAPI();
+        };
+    </script>
+</body>
+</html>

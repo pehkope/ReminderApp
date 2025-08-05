@@ -23,7 +23,7 @@ const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01/Accounts";
 const SHEET_NAMES = {
   CONFIG: "Config", // ✅ Säilytetään (tekninen nimi)
   KUITTAUKSET: "Kuittaukset", // ✅ Suomenkielinen kuittausten hallinta
-  VIESTIT: "Viestit", // ✅ Suomenkielinen viestien hallinta  
+  VIESTIT: "Messages", // 🔄 Käytetään olemassa olevaa Messages tabia  
   KUVAT: "Kuvat", // 🔄 Suomennettu Photos → Kuvat
   TAPAAMISET: "Tapaamiset", // 🔄 Suomennettu Appointments → Tapaamiset
   RUOKA_AJAT: "Ruoka-ajat", // 🆕 Ruokamuistutukset
@@ -1956,9 +1956,12 @@ function getPhotoRotationSettings_(sheet, clientID) {
       const configClientID = String(data[i][0]).trim().toLowerCase();
       
       if (configClientID === clientID.toLowerCase()) {
+        const intervalValue = data[i][7];
+        const randomizeValue = data[i][8];
+        
         return {
-          rotationInterval: data[i][7] || "daily", // Column H: daily, weekly, monthly
-          randomize: data[i][8] === true || String(data[i][8]).toLowerCase() === 'true'
+          rotationInterval: intervalValue ? String(intervalValue).trim() : "daily", // Column H: daily, weekly, monthly
+          randomize: randomizeValue === true || String(randomizeValue).toLowerCase() === 'true'
         };
       }
     }
@@ -1977,7 +1980,12 @@ function calculatePhotoIndex_(photoCount, rotationSettings) {
   const now = new Date();
   let intervalValue;
   
-  switch (rotationSettings.rotationInterval.toLowerCase()) {
+  // Ensure rotationInterval is a valid string
+  const rotationInterval = (rotationSettings && rotationSettings.rotationInterval) 
+    ? String(rotationSettings.rotationInterval).toLowerCase() 
+    : "daily";
+  
+  switch (rotationInterval) {
     case "hourly":
       // Change every hour
       intervalValue = Math.floor(now.getTime() / (1000 * 60 * 60));
@@ -2013,7 +2021,8 @@ function calculatePhotoIndex_(photoCount, rotationSettings) {
   }
   
   // Apply randomization if enabled
-  if (rotationSettings.randomize) {
+  const randomize = rotationSettings && rotationSettings.randomize;
+  if (randomize) {
     return deterministicRandom_(intervalValue, photoCount);
   }
   
