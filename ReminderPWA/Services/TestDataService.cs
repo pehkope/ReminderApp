@@ -28,6 +28,13 @@ namespace ReminderTabletNew2.Services
                     Description = "Kävely meren rannalla tai teatteri-iltapäivä", 
                     RequiresAck = false, 
                     IsAckedToday = false 
+                },
+                new DailyTask 
+                { 
+                    Type = "PUUHAA", 
+                    Description = "Aamun lehden lukemista", 
+                    RequiresAck = false, 
+                    IsAckedToday = false 
                 }
             };
         }
