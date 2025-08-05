@@ -91,7 +91,8 @@ namespace ReminderTabletNew2.Services
 
         public static string GetDefaultPhotoCaption()
         {
-            return GetWeeklyPhotoCaption();
+            // KORJATTU: Kuvateksti tulee Google Sheets:stä, ei kovakoodattuna
+            return "";
         }
 
         public static string GetDefaultExerciseVideoUrl()
