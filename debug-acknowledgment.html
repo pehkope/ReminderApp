@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Acknowledgment API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 10px; font-size: 14px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Acknowledgment API</h1>
+    
+    <button onclick="testAcknowledgment('RUOKA')">🍽️ Test RUOKA Acknowledgment</button>
+    <button onclick="testAcknowledgment('LÄÄKKEET')">💊 Test LÄÄKKEET Acknowledgment</button>
+    <button onclick="checkAcknowledgments()">📋 Check Current Acknowledgments</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_S1eB0Jr99IGBYxK4-zlS6yE8SAFs9YJ0E6b3h34rAhgVH8gjtGmGgFzjI3FPXI5bSQ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+        const CLIENT_ID = 'mom';
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${timestamp}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+
+        async function testAcknowledgment(taskType) {
+            log(`🧪 Testing ${taskType} acknowledgment...`);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'acknowledgment',
+                        apiKey: API_KEY,
+                        clientID: CLIENT_ID,
+                        taskType: taskType,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                log(`📡 Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                log(`✅ Acknowledgment response for ${taskType}:`, 'success');
+                log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+            } catch (error) {
+                log(`❌ Error acknowledging ${taskType}: ${error.message}`, 'error');
+                console.error('Acknowledgment error:', error);
+            }
+        }
+
+        async function checkAcknowledgments() {
+            log(`🔍 Checking current acknowledgments...`);
+            
+            try {
+                const response = await fetch(`${API_URL}?apiKey=${API_KEY}&clientID=${CLIENT_ID}`);
+                log(`📡 Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.dailyTasks && data.dailyTasks.length > 0) {
+                    log(`📋 Current daily tasks:`, 'success');
+                    data.dailyTasks.forEach((task, index) => {
+                        const ackStatus = task.isAckedToday ? '✅ ACKNOWLEDGED' : '❌ NOT ACKNOWLEDGED';
+                        log(`${index + 1}. ${task.type}: "${task.description}" - ${ackStatus}`);
+                        if (task.acknowledgmentTimestamp) {
+                            log(`   Acknowledged at: ${task.acknowledgmentTimestamp}`);
+                        }
+                    });
+                } else {
+                    log(`⚠️ No daily tasks found`, 'warning');
+                }
+                
+            } catch (error) {
+                log(`❌ Error checking acknowledgments: ${error.message}`, 'error');
+                console.error('Check error:', error);
+            }
+        }
+
+        // Auto-check acknowledgments on page load
+        window.addEventListener('load', () => {
+            log(`🚀 Page loaded. API URL: ${API_URL}`);
+            checkAcknowledgments();
+        });
+    </script>
+</body>
+</html>
