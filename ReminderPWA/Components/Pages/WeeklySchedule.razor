@@ -136,15 +136,17 @@
         apiResponse.DailyTasks = new List<DailyTask>
         {
             new DailyTask { Date = "Tänään", Time = "08:30", Type = "AAMUPALA", Message = "Kumpaakin 1 kpl", RequiresAck = true },
-            new DailyTask { Date = "Tänään", Time = "09:00", Type = "LÄÄKKEET", Message = "Aamun lehden lukemista", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "09:00", Type = "LÄÄKKEET", Message = "Muista ottaa aamun lääke", RequiresAck = true },
             new DailyTask { Date = "Tänään", Time = "12:00", Type = "LOUNAS", Message = "Ainakin kunnon välipala", RequiresAck = true },
-            new DailyTask { Date = "Tänään", Time = "13:30", Type = "LIIKUNTA", Message = "Kävelylenkki lähellä tai kaupungilla", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "12:30", Type = "LÄÄKKEET", Message = "Vitamiini D 1 kapseli", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "13:30", Type = "PUUHAA", Message = "Kävelylenkki lähellä tai kaupungilla", RequiresAck = false },
             new DailyTask { Date = "Tänään", Time = "15:00", Type = "ASIAT", Message = "Käy kaupassa ja osta mitä puuttuu", RequiresAck = false },
             new DailyTask { Date = "Tänään", Time = "17:30", Type = "PÄIVÄLLINEN", Message = "Lämmin ruoka", RequiresAck = true },
-            new DailyTask { Date = "Tänään", Time = "19:00", Type = "LIIKUNTA", Message = "Pieni iltakävely jos sää sallii", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "18:00", Type = "LÄÄKKEET", Message = "Magnesium 2 tablettia", RequiresAck = true },
+            new DailyTask { Date = "Tänään", Time = "19:00", Type = "PUUHAA", Message = "Pieni iltakävely jos sää sallii", RequiresAck = false },
             new DailyTask { Date = "Tänään", Time = "20:30", Type = "PUUHAA", Message = "Miten olisi aivojumppa yhdessä?", RequiresAck = true },
             new DailyTask { Date = "Tänään", Time = "22:00", Type = "ILTAPALA", Message = "Esim. rahkaa tai jugurttia", RequiresAck = true },
-            new DailyTask { Date = "Tänään", Time = "22:30", Type = "LÄÄKKEET", Message = "Silmätipat silmiin", RequiresAck = true }
+            new DailyTask { Date = "Tänään", Time = "22:30", Type = "LÄÄKKEET", Message = "Muista ottaa illan lääke", RequiresAck = true }
         };
 
         apiResponse.ImportantMessage = "13.20 Hammaslääkäri Lauttasaaren terveysasemalla";
@@ -183,8 +185,8 @@
         return timeOfDay switch
         {
             "AAMU" => task.Type.Contains("AAMUPALA") || task.Type.Contains("LÄÄKKEET") && task.Time.Contains("0"),
-            "PÄIVÄ" => task.Type.Contains("LOUNAS") || task.Type.Contains("LIIKUNTA") || task.Type.Contains("ASIAT"),
-            "ILTA" => task.Type.Contains("PÄIVÄLLINEN") || task.Type.Contains("LIIKUNTA") || task.Type.Contains("PUUHAA"),
+            "PÄIVÄ" => task.Type.Contains("LOUNAS") || task.Type.Contains("PUUHAA") || task.Type.Contains("ASIAT"),
+            "ILTA" => task.Type.Contains("PÄIVÄLLINEN") || task.Type.Contains("PUUHAA"),
             "YÖ" => task.Type.Contains("ILTAPALA") || task.Type.Contains("LÄÄKKEET") && task.Time.Contains("2"),
             _ => false
         };
@@ -199,9 +201,8 @@
             var type when type.Contains("PÄIVÄLLINEN") => "🍽️",
             var type when type.Contains("ILTAPALA") => "🍽️",
             var type when type.Contains("LÄÄKKEET") => "💊",
-            var type when type.Contains("LIIKUNTA") => "🏃‍♀️",
+            var type when type.Contains("PUUHAA") => "☀️",
             var type when type.Contains("ASIAT") => "📋",
-            var type when type.Contains("PUUHAA") => "🧠",
             _ => "📝"
         };
     }
@@ -212,9 +213,8 @@
         {
             var type when type.Contains("AAMUPALA") || type.Contains("LOUNAS") || type.Contains("PÄIVÄLLINEN") || type.Contains("ILTAPALA") => "food-task",
             var type when type.Contains("LÄÄKKEET") => "medicine-task",
-            var type when type.Contains("LIIKUNTA") => "activity-task",
+            var type when type.Contains("PUUHAA") => "activity-task",
             var type when type.Contains("ASIAT") => "general-task",
-            var type when type.Contains("PUUHAA") => "brain-task",
             _ => "general-task"
         };
     }
