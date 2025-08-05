@@ -56,21 +56,8 @@ namespace ReminderTabletNew2.Services
         
         public static string GetDefaultPhotoUrl()
         {
-            // VÄLIAIKAINEN: Dynaaminen viikottainen kuva
-            // Backend hallinnoi lopullisessa versiossa
-            var weekNumber = GetCurrentWeekNumber();
-            
-            // Simuloidaan viikottaista vaihtumista
-            var weeklyImages = new[]
-            {
-                "https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c?w=800&h=600&fit=crop&crop=faces", // Viikko 1: Perhe
-                "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop&crop=faces", // Viikko 2: Lapset  
-                "https://images.unsplash.com/photo-1475503572774-15a45e5d60b9?w=800&h=600&fit=crop&crop=faces", // Viikko 3: Isovanhemmat
-                "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&h=600&fit=crop&crop=faces"  // Viikko 4: Koti
-            };
-            
-            var imageIndex = (weekNumber - 1) % weeklyImages.Length;
-            return weeklyImages[imageIndex];
+            // KORJATTU: Ei näytetä placeholder kuvia - odotellaan API:sta tulevaa kuvaa
+            return "";
         }
         
         public static int GetCurrentWeekNumber()
