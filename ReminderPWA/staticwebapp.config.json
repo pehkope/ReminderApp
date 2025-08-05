@@ -17,7 +17,7 @@
   },
 
   "globalHeaders": {
-    "Content-Security-Policy": "default-src 'self'; img-src 'self' https://drive.google.com https://*.onedrive.live.com;"
+    "Content-Security-Policy": "default-src 'self'; img-src 'self' https://drive.google.com https://drive.usercontent.google.com https://*.onedrive.live.com https://valofuturefi-my.sharepoint.com;"
   },
   "responseOverrides": {
     "404": {
