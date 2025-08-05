@@ -197,6 +197,13 @@
             //     apiResponse.DailyPhotoCaption = TestDataService.GetDefaultPhotoCaption();
             //     Console.WriteLine("Added test photo data");
             // }
+
+            // KORJAUS: Lisää puuttuvat tehtävätyypit jos API ei palauta niitä
+            if (apiResponse.DailyTasks?.Any() != true)
+            {
+                apiResponse.DailyTasks = TestDataService.GetDefaultTasks();
+                Console.WriteLine("Added default tasks (RUOKA, LÄÄKKEET, PUUHAA) - API didn't provide any");
+            }
             }
             else
             {

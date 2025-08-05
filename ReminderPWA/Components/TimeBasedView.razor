@@ -184,7 +184,7 @@
         {
             ViewMode.Morning => taskType.Contains("RUOKA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("AAMU"),
             ViewMode.Day => taskType.Contains("LOUNAS") || taskType.Contains("PÄIVÄ") || taskType.Contains("RUOKA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("ASIAT") || (!taskType.Contains("ILTA") && !taskType.Contains("YÖ")),
-            ViewMode.Evening => taskType.Contains("RUOKA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("LIIKUNTA") || taskType.Contains("ILTA") || taskType.Contains("PÄIVÄLLINEN"),
+            ViewMode.Evening => taskType.Contains("RUOKA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("PUUHAA") || taskType.Contains("ILTA") || taskType.Contains("PÄIVÄLLINEN"),
             ViewMode.Night => taskType.Contains("ILTAPALA") || taskType.Contains("LÄÄKKEET") || taskType.Contains("YÖ"),
             _ => true
         };

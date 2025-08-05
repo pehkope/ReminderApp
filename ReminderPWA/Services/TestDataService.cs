@@ -24,15 +24,8 @@ namespace ReminderTabletNew2.Services
                 },
                 new DailyTask 
                 { 
-                    Type = "LIIKUNTA", 
-                    Description = "Kävely meren rannalla tai teatteri-iltapäivä", 
-                    RequiresAck = false, 
-                    IsAckedToday = false 
-                },
-                new DailyTask 
-                { 
                     Type = "PUUHAA", 
-                    Description = "Aamun lehden lukemista", 
+                    Description = "Kävely meren rannalla, teatteri-iltapäivä tai aamun lehden lukemista", 
                     RequiresAck = false, 
                     IsAckedToday = false 
                 }

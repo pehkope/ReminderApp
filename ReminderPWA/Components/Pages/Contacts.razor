@@ -17,9 +17,21 @@
             @foreach (var contact in apiResponse.Contacts)
             {
                 <div class="contact-item">
+                    @if (!string.IsNullOrEmpty(contact.PhotoUrl))
+                    {
+                        <div class="contact-photo">
+                            <img src="@contact.PhotoUrl" alt="@contact.Name" 
+                                 @onload="@(() => Console.WriteLine($"Contact photo loaded: {contact.Name}"))"
+                                 @onerror="@(() => Console.WriteLine($"Contact photo failed: {contact.Name}"))" />
+                        </div>
+                    }
                     <div class="contact-info">
                         <div class="name">@contact.Name</div>
                         <div class="phone">📱 @contact.Phone</div>
+                        @if (!string.IsNullOrEmpty(contact.Relationship))
+                        {
+                            <div class="relationship">@contact.Relationship</div>
+                        }
                     </div>
                     <button class="call-button" @onclick="() => CallContact(contact)">
                         📞 Soita

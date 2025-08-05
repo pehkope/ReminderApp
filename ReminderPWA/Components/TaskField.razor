@@ -10,13 +10,13 @@
             <div class="task-item @GetTaskCssClass(task.Type) @(task.IsAckedToday ? "completed" : "")">
                 <div class="task-details">
                     <i class="task-icon @GetTaskIconClass(task.Type)"></i>
-                    <span class="task-text">@task.Type.ToUpper(): @task.Description</span>
+                    <span class="task-text">@task.Type.ToUpper(): @(task.Description ?? task.Message)</span>
                 </div>
                 @if (ShouldShowOkButton(task))
                 {
                     <button class="ok-button" @onclick="() => OnTaskAcknowledge.InvokeAsync(task)">OK</button>
                 }
-                else if (task.IsAckedToday && !task.Type.ToUpper().Contains("ASIAT") && !task.Type.ToUpper().Contains("LIIKUNTA") && !task.Type.ToUpper().Contains("PUUHAA"))
+                else if (task.IsAckedToday && !task.Type.ToUpper().Contains("ASIAT") && !task.Type.ToUpper().Contains("PUUHAA"))
                 {
                     <span class="acked-indicator">✅ Kuitattu</span>
                 }
@@ -42,9 +42,9 @@
 
     private bool ShouldShowOkButton(DailyTask task)
     {
-        // ASIAT, LIIKUNTA ja PUUHAA ei tarvitse kuittausta - vain ideoita/tekstiä
+        // ASIAT ja PUUHAA ei tarvitse kuittausta - vain ideoita/tekstiä
         var taskType = task.Type.ToUpper();
-        return !taskType.Contains("ASIAT") && !taskType.Contains("LIIKUNTA") && !taskType.Contains("PUUHAA") && !task.IsAckedToday;
+        return !taskType.Contains("ASIAT") && !taskType.Contains("PUUHAA") && !task.IsAckedToday;
     }
 
     private string GetTaskIconClass(string taskType)
@@ -53,7 +53,6 @@
         {
             "RUOKA" => "fas fa-utensils",
             "LÄÄKKEET" => "fas fa-pills",
-            "LIIKUNTA" => "fas fa-star",
             "PUUHAA" => "fas fa-sun",
             _ when taskType.ToUpper().Contains("ASIAT") => "fas fa-clipboard-list",
             _ => "fas fa-tasks"
@@ -66,7 +65,7 @@
         
         if (type.Contains("RUOKA")) return "food-task";
         if (type.Contains("LÄÄKKEET")) return "medicine-task";
-        if (type.Contains("LIIKUNTA") || type.Contains("PUUHAA")) return "activity-task";
+        if (type.Contains("PUUHAA")) return "activity-task";
         if (type.Contains("ASIAT")) return "general-task";
         
         return "general-task";

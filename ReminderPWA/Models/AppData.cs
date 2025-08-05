@@ -147,6 +147,12 @@ public class Contact
     [JsonPropertyName("phone")]
     [JsonConverter(typeof(FlexibleStringConverter))]
     public string Phone { get; set; } = "";
+
+    [JsonPropertyName("photoUrl")]
+    public string PhotoUrl { get; set; } = "";
+
+    [JsonPropertyName("relationship")]
+    public string Relationship { get; set; } = "";
 }
 
 public class FlexibleStringConverter : JsonConverter<string>
