@@ -435,15 +435,18 @@ function handleDataFetchAction_(e) {
     console.log(`Processing request for clientID: ${clientID}`);
     
     const scriptProperties = PropertiesService.getScriptProperties();
-    const sheetId = scriptProperties.getProperty(SHEET_ID_KEY);
+    
+    // Try client-specific Sheet ID first, fallback to default
+    let sheetId = getClientSheetId_(clientID, scriptProperties);
     
     if (!sheetId) {
-      console.error("CRITICAL: Google Sheet ID not configured in Script Properties");
+      console.error(`CRITICAL: Google Sheet ID not configured for client: ${clientID}`);
       return ContentService.createTextOutput(JSON.stringify({
-        error: "Sheet ID not configured",
+        error: `Sheet ID not configured for client: ${clientID}`,
         clientID: clientID,
         timestamp: new Date().toISOString(),
-        status: "ERROR"
+        status: "ERROR",
+        suggestion: `Add SHEET_ID_${clientID.toLowerCase()} to Script Properties`
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -624,10 +627,13 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     
     // 3. PUUHAA tehtävät (vain jos ei ole kuittauskelpoisia ruoka/lääke tehtäviä)
     if (tasks.length === 0) {
-      // Lisää PUUHAA aktiviteetti fallback:ina
+      // Hae PUUHAA aktiviteetti viestistä tai sääperusteisesti
+      const activityFromMessage = getActivityFromMessage_(sheet);
+      const activity = activityFromMessage || getWeatherBasedActivity_() || "Mukava hetki yhdessä";
+      
       tasks.push({
         type: "PUUHAA",
-        description: getWeatherBasedActivity_() || "Mukava hetki yhdessä",
+        description: activity,
         timeOfDay: timeOfDay,
         isAckedToday: false, // PUUHAA ei kuitata
         acknowledgmentTimestamp: null
@@ -931,29 +937,17 @@ function getMedicineReminders_(sheet, clientID, timeOfDay, currentHour) {
     const reminders = [];
     
     for (let i = 1; i < data.length; i++) {
-      const reminderClientID = String(data[i][0]).trim().toLowerCase();
-      const medicineTime = String(data[i][1]).trim(); // AAMU/PÄIVÄ/ILTA/YÖ
-      const medicineName = String(data[i][2]).trim();
-      const dosage = String(data[i][3]).trim();
-      const specificTime = String(data[i][4]).trim(); // klo 8:00
-      const medicineType = String(data[i][5] || "LÄÄKE").trim().toUpperCase(); // LÄÄKE/RAVINTOLISÄ
+      const reminderClientID = String(data[i][0]).trim().toLowerCase(); // A: ClientID
+      const medicineTime = String(data[i][1]).trim(); // B: Aika (AAMU/PÄIVÄ/ILTA/YÖ)
+      const specificTime = String(data[i][2]).trim(); // C: Kellonaika (klo 8:00)
+      const medicineDescription = String(data[i][3]).trim(); // D: Lääke (yleisnimi)
       
       if (reminderClientID === clientID.toLowerCase() && 
           medicineTime.toUpperCase() === timeOfDay.toUpperCase()) {
         
-        let reminder;
-        
-        if (medicineType === "RAVINTOLISÄ" || medicineType === "VITAMIINI" || medicineType === "LISÄRAVINNE") {
-          // Ravintolisät saa mainita - eivät ole lääkedirektiivin alaisia
-          reminder = `💊 ${medicineName}`;
-          if (dosage) reminder += ` ${dosage}`;
-          if (specificTime) reminder += ` ${specificTime}`;
-        } else {
-          // Viralliset lääkkeet: LÄÄKEDIREKTIIVIN VAATIMUS - vain aikaperusteinen viesti
-          const timeBasedMessage = getTimeBasedMedicineMessage_(medicineTime);
-          reminder = `💊 ${timeBasedMessage}`;
-          if (specificTime) reminder += ` ${specificTime}`;
-        }
+        // LÄÄKEDIREKTIIVIN MUKAISUUS: Käytetään vain yleisiä kuvauksia
+        let reminder = `💊 ${medicineDescription || 'Muista ottaa lääke'}`;
+        if (specificTime) reminder += ` ${specificTime}`;
         
         reminders.push(reminder);
       }
@@ -1360,6 +1354,9 @@ function parseEventDate_(dateInput) {
 function formatImportantMessage_(messageObj) {
   const { message, daysUntilEvent, isToday, isPast, eventDate } = messageObj;
   
+  // Split message at dash to separate main message from activity
+  const { mainMessage } = splitMessageAndActivity_(message);
+  
   // Format date as Finnish: d.m.yyyy h:mm
   const formatFinnishDateTime = (date) => {
     try {
@@ -1389,19 +1386,19 @@ function formatImportantMessage_(messageObj) {
   const formattedDate = formatFinnishDateTime(eventDate);
   
   if (isToday) {
-    return `🔔 TÄNÄÄN: ${message} ${formattedDate}`;
+    return `🔔 TÄNÄÄN: ${mainMessage} ${formattedDate}`;
   } else if (isPast) {
-    return `📋 ${message} (oli ${Math.abs(daysUntilEvent)} päivää sitten)`;
+    return `📋 ${mainMessage} (oli ${Math.abs(daysUntilEvent)} päivää sitten)`;
   } else if (daysUntilEvent === 1) {
     // Check if it's evening - show different message
     const now = new Date();
     if (now.getHours() >= 18) {
-      return `🌆 HUOMENNA ILTAAN: ${message} ${formattedDate}`;
+      return `🌆 HUOMENNA ILTAAN: ${mainMessage} ${formattedDate}`;
     } else {
-      return `⚠️ HUOMENNA: ${message} ${formattedDate}`;
+      return `⚠️ HUOMENNA: ${mainMessage} ${formattedDate}`;
     }
   } else {
-    return `📅 ${daysUntilEvent} PÄIVÄN PÄÄSTÄ: ${message} ${formattedDate}`;
+    return `📅 ${daysUntilEvent} PÄIVÄN PÄÄSTÄ: ${mainMessage} ${formattedDate}`;
   }
 }
 
@@ -2133,5 +2130,164 @@ function getGooglePhotosImage_(folderId, clientID, rotationSettings) {
   } catch (error) {
     console.error("Error getting Google Drive image:", error);
     return { url: "", caption: "Google Drive virhe" };
+  }
+}
+
+// ===================================================================================
+//  CLIENT-SPECIFIC SHEET MANAGEMENT
+// ===================================================================================
+
+/**
+ * Get Sheet ID for specific client, with fallback to default
+ */
+function getClientSheetId_(clientID, scriptProperties = null) {
+  if (!scriptProperties) {
+    scriptProperties = PropertiesService.getScriptProperties();
+  }
+  
+  // Try client-specific Sheet ID first
+  const clientSheetIdKey = `SHEET_ID_${clientID.toLowerCase()}`;
+  let sheetId = scriptProperties.getProperty(clientSheetIdKey);
+  
+  if (sheetId) {
+    console.log(`Using client-specific Sheet ID for ${clientID}: ${clientSheetIdKey}`);
+    return sheetId;
+  }
+  
+  // Fallback to default Sheet ID
+  sheetId = scriptProperties.getProperty(SHEET_ID_KEY);
+  if (sheetId) {
+    console.log(`Using default Sheet ID for ${clientID}: ${SHEET_ID_KEY}`);
+    return sheetId;
+  }
+  
+  console.error(`No Sheet ID found for client: ${clientID}`);
+  return null;
+}
+
+/**
+ * Set up client-specific Sheet ID
+ */
+function setupClientSheet(clientID, sheetId) {
+  try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const clientSheetIdKey = `SHEET_ID_${clientID.toLowerCase()}`;
+    
+    scriptProperties.setProperty(clientSheetIdKey, sheetId);
+    
+    console.log(`✅ Client Sheet ID configured: ${clientSheetIdKey} = ${sheetId}`);
+    return true;
+    
+  } catch (error) {
+    console.error(`❌ Error setting up client sheet for ${clientID}:`, error);
+    return false;
+  }
+}
+
+/**
+ * List all configured client sheets
+ */
+function listClientSheets() {
+  try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const allProperties = scriptProperties.getProperties();
+    const clientSheets = {};
+    
+    Object.keys(allProperties).forEach(key => {
+      if (key.startsWith('SHEET_ID_')) {
+        const clientID = key.replace('SHEET_ID_', '');
+        clientSheets[clientID] = allProperties[key];
+      }
+    });
+    
+    console.log('📊 Configured client sheets:', clientSheets);
+    return clientSheets;
+    
+  } catch (error) {
+    console.error('Error listing client sheets:', error);
+    return {};
+  }
+}
+
+// ===================================================================================
+//  MESSAGE AND ACTIVITY SPLITTING FUNCTIONS
+// ===================================================================================
+
+/**
+ * Split message at dash to separate main message from activity
+ */
+function splitMessageAndActivity_(message) {
+  if (!message || typeof message !== 'string') {
+    return { mainMessage: '', activity: '' };
+  }
+  
+  // Look for dash separator (different types of dashes)
+  const dashRegex = /\s*[-–—]\s*/;
+  const parts = message.split(dashRegex);
+  
+  if (parts.length >= 2) {
+    return {
+      mainMessage: parts[0].trim(),
+      activity: parts.slice(1).join(' - ').trim()
+    };
+  }
+  
+  // No dash found, return whole message as main message
+  return {
+    mainMessage: message.trim(),
+    activity: ''
+  };
+}
+
+/**
+ * Get activity from current important message
+ */
+function getActivityFromMessage_(sheet) {
+  try {
+    const messagesSheet = sheet.getSheetByName(SHEET_NAMES.VIESTIT);
+    if (!messagesSheet) {
+      return null;
+    }
+    
+    const data = messagesSheet.getDataRange().getValues();
+    if (data.length <= 1) {
+      return null;
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Find active messages (same logic as getImportantMessage_ but return activity)
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const eventDate = parseEventDate_(row[0]);
+      const message = String(row[1]).trim();
+      const showDaysBefore = row[3] || 2;
+      const showDaysAfter = row[4] || 0;
+      
+      if (!eventDate || !message) {
+        continue;
+      }
+      
+      const startShowDate = new Date(eventDate);
+      startShowDate.setDate(eventDate.getDate() - showDaysBefore);
+      
+      const endShowDate = new Date(eventDate);
+      endShowDate.setDate(eventDate.getDate() + showDaysAfter);
+      
+      if (today >= startShowDate && today <= endShowDate) {
+        const { activity } = splitMessageAndActivity_(message);
+        if (activity) {
+          console.log(`📋 Activity from message: "${activity}"`);
+          return activity;
+        }
+      }
+    }
+    
+    return null;
+    
+  } catch (error) {
+    console.error("Error getting activity from message:", error);
+    return null;
   }
 }
