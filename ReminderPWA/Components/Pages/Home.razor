@@ -190,13 +190,13 @@
                 Console.WriteLine("Added test exercise video URL");
             }
             
-            // Add test photo if none exists
-            if (string.IsNullOrEmpty(apiResponse.DailyPhotoUrl))
-            {
-                apiResponse.DailyPhotoUrl = TestDataService.GetDefaultPhotoUrl();
-                apiResponse.DailyPhotoCaption = TestDataService.GetDefaultPhotoCaption();
-                Console.WriteLine("Added test photo data");
-            }
+            // KORJATTU: Ei lisätä placeholder kuvia - käytetään vain API:sta tulevia kuvia
+            // if (string.IsNullOrEmpty(apiResponse.DailyPhotoUrl))
+            // {
+            //     apiResponse.DailyPhotoUrl = TestDataService.GetDefaultPhotoUrl();
+            //     apiResponse.DailyPhotoCaption = TestDataService.GetDefaultPhotoCaption();
+            //     Console.WriteLine("Added test photo data");
+            // }
             }
             else
             {
