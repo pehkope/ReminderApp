@@ -1134,8 +1134,8 @@ function testContextualReminder() {
       console.log("Sääaktiviteetti:", weatherActivity);
       console.log("Aika-muistutukset:", timeReminders);
       
-      const fullMessage = [greeting, weatherActivity, timeReminders]
-        .filter(part => part && part.trim())
+      const fullMessage = [greeting, weatherActivity, ...(Array.isArray(timeReminders) ? timeReminders : [timeReminders])]
+        .filter(part => part && String(part).trim())
         .join("\n");
       
       console.log("KOKO VIESTI:\n" + fullMessage);
