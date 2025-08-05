@@ -21,9 +21,13 @@ const WEATHER_API_BASE = "https://api.openweathermap.org/data/2.5/weather";
 const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01/Accounts";
 
 const SHEET_NAMES = {
-  DAILY_TASKS: "Päivittäiset tehtävät",
-  CONFIG: "Config",
-  ACKNOWLEDGMENTS: "Acknowledgments"
+  CONFIG: "Config", // ✅ Säilytetään (tekninen nimi)
+  KUITTAUKSET: "Kuittaukset", // ✅ Suomenkielinen kuittausten hallinta
+  VIESTIT: "Viestit", // ✅ Suomenkielinen viestien hallinta  
+  KUVAT: "Kuvat", // 🔄 Suomennettu Photos → Kuvat
+  TAPAAMISET: "Tapaamiset", // 🔄 Suomennettu Appointments → Tapaamiset
+  RUOKA_AJAT: "Ruoka-ajat", // 🆕 Ruokamuistutukset
+  LÄÄKKEET: "Lääkkeet" // 🆕 Lääkemuistutukset
 };
 
 const TASK_TYPES = {
@@ -161,7 +165,7 @@ function sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timesta
     const sheetId = scriptProperties.getProperty(SHEET_ID_KEY);
     const sheet = SpreadsheetApp.openById(sheetId);
     
-    const configSheet = sheet.getSheetByName("Config");
+    const configSheet = sheet.getSheetByName(SHEET_NAMES.CONFIG);
     if (!configSheet) {
       console.error("[NOTIFY] CRITICAL: Config sheet not found.");
       return;
@@ -518,7 +522,7 @@ function acknowledgeWeeklyTask_(clientID, taskType, timeOfDay, timestamp) {
     const sheetId = scriptProperties.getProperty(SHEET_ID_KEY);
     const sheet = SpreadsheetApp.openById(sheetId);
     
-    const ackSheet = getOrCreateSheet_(sheet, "Acknowledgments");
+    const ackSheet = getOrCreateSheet_(sheet, SHEET_NAMES.KUITTAUKSET);
     
     const date = Utilities.formatDate(new Date(timestamp), HELSINKI_TIMEZONE, "yyyy-MM-dd");
     
@@ -559,8 +563,8 @@ function getOrCreateSheet_(spreadsheet, sheetName) {
     console.log(`Creating new sheet: ${sheetName}`);
     sheet = spreadsheet.insertSheet(sheetName);
     
-    if (sheetName === "Acknowledgments") {
-      sheet.getRange(1, 1, 1, 5).setValues([["Timestamp", "ClientID", "TaskType", "TimeOfDay", "Date"]]);
+    if (sheetName === SHEET_NAMES.KUITTAUKSET) {
+      sheet.getRange(1, 1, 1, 5).setValues([["Aikaleima", "AsiakasTunniste", "TehtäväTyyppi", "VuorokaudenAika", "Päivämäärä"]]);
     }
   }
   return sheet;
@@ -588,43 +592,80 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
   try {
     console.log(`Getting daily tasks for ${clientID} at ${timeOfDay}`);
     
-    const tasksSheet = sheet.getSheetByName(SHEET_NAMES.DAILY_TASKS);
-    if (!tasksSheet) {
-      console.warn("Päivittäiset tehtävät sheet not found");
-      return [];
+    const tasks = [];
+    const today = Utilities.formatDate(new Date(), HELSINKI_TIMEZONE, "yyyy-MM-dd");
+    const currentHour = new Date().getHours();
+    
+    // 1. RUOKA tehtävät Ruoka-ajat sheetistä  
+    const foodReminders = getFoodReminders_(sheet, clientID, timeOfDay, currentHour);
+    foodReminders.forEach(reminder => {
+      const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, today);
+      tasks.push({
+        type: "RUOKA",
+        description: reminder.replace("🍽️ ", ""), // Poista emoji jos on
+        timeOfDay: timeOfDay,
+        isAckedToday: isAcked,
+        acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "RUOKA", timeOfDay, today) : null
+      });
+    });
+    
+    // 2. LÄÄKKEET tehtävät Lääkkeet sheetistä
+    const medicineReminders = getMedicineReminders_(sheet, clientID, timeOfDay, currentHour);
+    medicineReminders.forEach(reminder => {
+      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, today);
+      tasks.push({
+        type: "LÄÄKKEET", 
+        description: reminder.replace("💊 ", ""), // Poista emoji jos on
+        timeOfDay: timeOfDay,
+        isAckedToday: isAcked,
+        acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
+      });
+    });
+    
+    // 3. PUUHAA tehtävät (vain jos ei ole kuittauskelpoisia ruoka/lääke tehtäviä)
+    if (tasks.length === 0) {
+      // Lisää PUUHAA aktiviteetti fallback:ina
+      tasks.push({
+        type: "PUUHAA",
+        description: getWeatherBasedActivity_() || "Mukava hetki yhdessä",
+        timeOfDay: timeOfDay,
+        isAckedToday: false, // PUUHAA ei kuitata
+        acknowledgmentTimestamp: null
+      });
     }
     
-    const today = Utilities.formatDate(new Date(), HELSINKI_TIMEZONE, "yyyy-MM-dd");
-    
-    const data = tasksSheet.getDataRange().getValues();
-    const tasks = [];
-    
-    for (let i = 1; i < data.length; i++) {
-      const taskClient = String(data[i][0]).trim().toLowerCase();
-      const taskType = String(data[i][1]).trim();
-      const taskTimeOfDay = String(data[i][2]).trim();
-      const taskDescription = String(data[i][3]).trim();
+    // 4. Perinteiset "Päivittäiset tehtävät" sheetistä (jos on)
+    const tasksSheet = sheet.getSheetByName(SHEET_NAMES.DAILY_TASKS);
+    if (tasksSheet) {
+      const data = tasksSheet.getDataRange().getValues();
       
-      if (taskClient === clientID.toLowerCase() && taskTimeOfDay === timeOfDay) {
-        const isAcked = isTaskAckedToday_(sheet, taskType, timeOfDay, today);
+      for (let i = 1; i < data.length; i++) {
+        const taskClient = String(data[i][0]).trim().toLowerCase();
+        const taskType = String(data[i][1]).trim();
+        const taskTimeOfDay = String(data[i][2]).trim();
+        const taskDescription = String(data[i][3]).trim();
         
-        tasks.push({
-          type: taskType,
-          description: taskDescription,
-          timeOfDay: taskTimeOfDay,
-          isAckedToday: isAcked,
-          acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, taskType, timeOfDay, today) : null
-        });
+        if (taskClient === clientID.toLowerCase() && taskTimeOfDay === timeOfDay) {
+          const isAcked = isTaskAckedToday_(sheet, taskType, timeOfDay, today);
+          
+          tasks.push({
+            type: taskType,
+            description: taskDescription,
+            timeOfDay: taskTimeOfDay,
+            isAckedToday: isAcked,
+            acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, taskType, timeOfDay, today) : null
+          });
+        }
       }
     }
     
-    console.log(`Found ${tasks.length} tasks for ${clientID} at ${timeOfDay}`);
+    console.log(`Found ${tasks.length} tasks for ${clientID} at ${timeOfDay}:`, tasks.map(t => t.type).join(", "));
     return tasks;
     
-} catch (error) {
+  } catch (error) {
     console.error("Error getting daily tasks:", error.toString());
     return [];
-}
+  }
 }
 
 /**
@@ -632,7 +673,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
  */
 function isTaskAckedToday_(sheet, taskType, timeOfDay, today) {
   try {
-    const ackSheet = getOrCreateSheet_(sheet, "Acknowledgments");
+    const ackSheet = getOrCreateSheet_(sheet, SHEET_NAMES.KUITTAUKSET);
     const data = ackSheet.getDataRange().getValues();
     
     for (let i = 1; i < data.length; i++) {
@@ -657,7 +698,7 @@ function isTaskAckedToday_(sheet, taskType, timeOfDay, today) {
  */
 function getTaskAckTimestamp_(sheet, taskType, timeOfDay, today) {
   try {
-    const ackSheet = getOrCreateSheet_(sheet, "Acknowledgments");
+    const ackSheet = getOrCreateSheet_(sheet, SHEET_NAMES.KUITTAUKSET);
     const data = ackSheet.getDataRange().getValues();
     
     for (let i = 1; i < data.length; i++) {
@@ -756,34 +797,399 @@ function getClientSettings_(sheet, clientID) {
 }
 
 /**
- * Get latest reminder for client
+ * Get smart contextual reminder message with weather-based activities
+ * Combines greeting + weather-based PUUHAA (NO medicine - those are in SEURAAVAKSI tasks)
  */
 function getLatestReminder_(sheet, clientID) {
   try {
-    const remindersSheet = sheet.getSheetByName("Muistutukset");
-    if (!remindersSheet) {
-      return "Tervetuloa!";
+    // 1. Get time-based greeting
+    const greeting = getTimeBasedGreeting_();
+    
+    // 2. Get weather info for activity suggestions
+    const weatherApiKey = PropertiesService.getScriptProperties().getProperty(WEATHER_API_KEY_KEY);
+    const weather = weatherApiKey ? getWeatherData_(weatherApiKey) : null;
+    const weatherActivity = getWeatherBasedActivity_(weather);
+    
+    // 3. Combine greeting + weather activity ONLY
+    // NOTE: Food and medicine reminders are handled in SEURAAVAKSI tasks, not here
+    let message = greeting;
+    
+    if (weatherActivity) {
+      message += "\n" + weatherActivity;
     }
     
-    const data = remindersSheet.getDataRange().getValues();
-    let latestReminder = "Tervetuloa!";
-    let latestDate = new Date(0);
+    console.log("Generated contextual reminder (greeting + weather):", message);
+    return message;
+    
+  } catch (error) {
+    console.error("Error generating contextual reminder:", error.toString());
+    return "Hyvää päivää kultaseni! 💕";
+  }
+}
+
+/**
+ * Get time-based greeting with emojis
+ */
+function getTimeBasedGreeting_() {
+  const now = new Date();
+  const hour = now.getHours();
+  
+  if (hour >= 6 && hour < 10) {
+    return "🌅 Hyvää huomenta kultaseni! ☀️💕";
+  } else if (hour >= 10 && hour < 15) {
+    return "☀️ Mukavaa päivää rakas! 🌸✨";
+  } else if (hour >= 15 && hour < 19) {
+    return "🌅 Hyvää iltapäivää! 🌻💝";
+  } else {
+    return "🌙 Hyvää iltaa kultaseni! 🌙💜";
+  }
+}
+
+/**
+ * Get weather-based activity suggestion
+ */
+function getWeatherBasedActivity_(weather) {
+  if (!weather || !weather.description) {
+    return "🚶‍♀️ Ehkä mukava kävely tai kirjan lukemista";
+  }
+  
+  const desc = weather.description.toLowerCase();
+  const temp = weather.temperature ? parseInt(weather.temperature) : 15;
+  
+  // Good weather activities (outdoor)
+  if ((desc.includes("aurinko") || desc.includes("kirkas") || desc.includes("selkeä")) && temp > 10) {
+    return "🌞 Upea sää! Mukava kävely ulkona tai puutarhassa puuhailua";
+  }
+  
+  if (!desc.includes("sade") && !desc.includes("lumi") && temp > 5) {
+    return "🚶‍♀️ Hyvä päivä kävelylle tai terassilla oleiluun";
+  }
+  
+  // Bad weather activities (indoor)
+  if (desc.includes("sade") || desc.includes("lumi") || desc.includes("myrsky")) {
+    return "🏠 Säässä parasta olla sisällä - ehkä lukemista, musiikkia tai käsitöitä";
+  }
+  
+  if (temp < 0) {
+    return "❄️ Kylmä päivä! Lämmintä teetä ja mukavaa sisäpuuhaa";
+  }
+  
+  // Default neutral activity
+  return "📚 Mukavaa ajanvietettä - vaikka lehden lukemista tai musiikinkuuntelua";
+}
+
+/**
+ * Get current time-based food/medicine reminders from Google Sheets
+ */
+function getCurrentTimeReminders_(sheet, clientID) {
+  const now = new Date();
+  const hour = now.getHours();
+  const reminders = [];
+  
+  // Get current time period
+  const currentTimeOfDay = getTimeOfDay_(now);
+  
+  try {
+    // Get medicine reminders from Sheets
+    const medicineReminders = getMedicineReminders_(sheet, clientID, currentTimeOfDay, hour);
+    
+    // Get food reminders from Sheets  
+    const foodReminders = getFoodReminders_(sheet, clientID, currentTimeOfDay, hour);
+    
+    // Combine all reminders
+    if (foodReminders.length > 0) {
+      reminders.push(...foodReminders);
+    }
+    
+    if (medicineReminders.length > 0) {
+      reminders.push(...medicineReminders);
+    }
+    
+  } catch (error) {
+    console.error("Error getting reminders from sheets:", error.toString());
+    
+    // Fallback to hardcoded reminders if sheets fail
+    const fallbackReminders = getFallbackTimeReminders_(hour);
+    reminders.push(...fallbackReminders);
+  }
+  
+  return reminders.join("\n");
+}
+
+/**
+ * Get medicine reminders from Google Sheets based on time
+ */
+function getMedicineReminders_(sheet, clientID, timeOfDay, currentHour) {
+  try {
+    const medicineSheet = sheet.getSheetByName(SHEET_NAMES.LÄÄKKEET);
+    if (!medicineSheet) {
+      console.log("No 'Lääkkeet' sheet found - using fallback");
+      return getFallbackMedicineReminders_(currentHour);
+    }
+    
+    const data = medicineSheet.getDataRange().getValues();
+    const reminders = [];
     
     for (let i = 1; i < data.length; i++) {
       const reminderClientID = String(data[i][0]).trim().toLowerCase();
-      const reminderText = String(data[i][1]).trim();
-      const reminderDate = new Date(data[i][2]);
+      const medicineTime = String(data[i][1]).trim(); // AAMU/PÄIVÄ/ILTA/YÖ
+      const medicineName = String(data[i][2]).trim();
+      const dosage = String(data[i][3]).trim();
+      const specificTime = String(data[i][4]).trim(); // klo 8:00
+      const medicineType = String(data[i][5] || "LÄÄKE").trim().toUpperCase(); // LÄÄKE/RAVINTOLISÄ
       
-      if (reminderClientID === clientID.toLowerCase() && reminderDate > latestDate) {
-        latestReminder = reminderText;
-        latestDate = reminderDate;
+      if (reminderClientID === clientID.toLowerCase() && 
+          medicineTime.toUpperCase() === timeOfDay.toUpperCase()) {
+        
+        let reminder;
+        
+        if (medicineType === "RAVINTOLISÄ" || medicineType === "VITAMIINI" || medicineType === "LISÄRAVINNE") {
+          // Ravintolisät saa mainita - eivät ole lääkedirektiivin alaisia
+          reminder = `💊 ${medicineName}`;
+          if (dosage) reminder += ` ${dosage}`;
+          if (specificTime) reminder += ` ${specificTime}`;
+        } else {
+          // Viralliset lääkkeet: LÄÄKEDIREKTIIVIN VAATIMUS - vain aikaperusteinen viesti
+          const timeBasedMessage = getTimeBasedMedicineMessage_(medicineTime);
+          reminder = `💊 ${timeBasedMessage}`;
+          if (specificTime) reminder += ` ${specificTime}`;
+        }
+        
+        reminders.push(reminder);
       }
     }
     
-    return latestReminder;
-} catch (error) {
-    console.error("Error getting latest reminder:", error.toString());
-    return "Tervetuloa!";
+    return reminders;
+    
+  } catch (error) {
+    console.error("Error getting medicine reminders:", error.toString());
+    return getFallbackMedicineReminders_(currentHour);
+  }
+}
+
+/**
+ * Get food reminders from Google Sheets based on time
+ */
+function getFoodReminders_(sheet, clientID, timeOfDay, currentHour) {
+  try {
+    const foodSheet = sheet.getSheetByName(SHEET_NAMES.RUOKA_AJAT);
+    if (!foodSheet) {
+      console.log("No 'Ruoka-ajat' sheet found - using fallback");
+      return getFallbackFoodReminders_(currentHour);
+    }
+    
+    const data = foodSheet.getDataRange().getValues();
+    const reminders = [];
+    
+    for (let i = 1; i < data.length; i++) {
+      const reminderClientID = String(data[i][0]).trim().toLowerCase();
+      const mealTime = String(data[i][1]).trim(); // AAMU/PÄIVÄ/ILTA/YÖ
+      const mealType = String(data[i][2]).trim(); // Aamupala/Lounas/Päivällinen/Iltapala
+      const suggestion = String(data[i][3]).trim(); // Vapaa teksti
+      const specificTime = String(data[i][4]).trim(); // klo 12:00
+      
+      if (reminderClientID === clientID.toLowerCase() && 
+          mealTime.toUpperCase() === timeOfDay.toUpperCase()) {
+        
+        let reminder = getFoodEmoji_(mealType) + " " + mealType;
+        if (suggestion) reminder += ` - ${suggestion}`;
+        if (specificTime) reminder += ` ${specificTime}`;
+        
+        reminders.push(reminder);
+      }
+    }
+    
+    return reminders;
+    
+  } catch (error) {
+    console.error("Error getting food reminders:", error.toString());
+    return getFallbackFoodReminders_(currentHour);
+  }
+}
+
+/**
+ * Get time-based medicine message (lääkedirektiivin mukainen)
+ */
+function getTimeBasedMedicineMessage_(timeOfDay) {
+  switch (timeOfDay.toUpperCase()) {
+    case "AAMU":
+      return "Muista ottaa aamun lääke";
+    case "PÄIVÄ":
+      return "Muista ottaa päivän lääke";
+    case "ILTA":
+      return "Muista ottaa illan lääke";
+    case "YÖ":
+      return "Muista ottaa illan lääke";
+    default:
+      return "Muista ottaa lääke";
+  }
+}
+
+/**
+ * Get appropriate food emoji based on meal type
+ */
+function getFoodEmoji_(mealType) {
+  const type = mealType.toUpperCase();
+  if (type.includes("AAMUPALA")) return "🍳";
+  if (type.includes("LOUNAS")) return "🍽️";
+  if (type.includes("PÄIVÄLLINEN")) return "🍽️";
+  if (type.includes("ILTAPALA")) return "🍽️";
+  return "🍽️";
+}
+
+/**
+ * Fallback medicine reminders if sheets not available
+ * Support for morning, midday, and evening medicines
+ */
+function getFallbackMedicineReminders_(hour) {
+  const reminders = [];
+  
+  // LÄÄKEDIREKTIIVIN VAATIMUS: Ei saa mainita lääkkeiden nimiä, vain yleinen muistutus
+  
+  // Morning medicines (6-10)
+  if (hour >= 6 && hour < 10) {
+    reminders.push("💊 Muista ottaa aamun lääke");
+  }
+  // Midday medicines (10-15) - less common but possible
+  else if (hour >= 10 && hour < 15) {
+    // Only show if it's lunch time and someone might need medicine with food
+    if (hour >= 11 && hour <= 14) {
+      reminders.push("💊 Muista ottaa päivän lääke (jos määrätty)");
+    }
+  }
+  // Afternoon medicines (15-19) - rare but possible
+  else if (hour >= 15 && hour < 19) {
+    // Only show if it's late afternoon
+    if (hour >= 17 && hour <= 18) {
+      reminders.push("💊 Muista ottaa illan lääke (jos määrätty)");
+    }
+  }
+  // Evening medicines (19-6) - most common after morning
+  else if (hour >= 19 && hour <= 21) {
+    reminders.push("💊 Muista ottaa illan lääke");
+  }
+  
+  return reminders;
+}
+
+/**
+ * Fallback food reminders if sheets not available  
+ */
+function getFallbackFoodReminders_(hour) {
+  if (hour >= 6 && hour < 10) {
+    return ["🍳 Muista hyvä aamupala ja ☕"];
+  } else if (hour >= 11 && hour <= 13) {
+    return ["🍽️ Lounas olisi hyvä ottaa pian"];
+  } else if (hour >= 16 && hour <= 18) {
+    return ["🍽️ Päivällinen kohta valmiina?"];
+  } else if (hour >= 19 && hour <= 21) {
+    return ["🍽️ Iltapala jos tekee mieli"];
+  }
+  return [];
+}
+
+/**
+ * Combined fallback reminders
+ */
+function getFallbackTimeReminders_(hour) {
+  const food = getFallbackFoodReminders_(hour);
+  const medicine = getFallbackMedicineReminders_(hour);
+  return [...food, ...medicine];
+}
+
+/**
+ * TEST FUNCTION: Generate sample contextual reminder
+ */
+function testContextualReminder() {
+  try {
+    console.log("=== TESTING CONTEXTUAL REMINDER ===");
+    
+    // Simulate different times of day - test all medicine times
+    const testTimes = [
+      { hour: 8, name: "AAMU" },
+      { hour: 12, name: "PÄIVÄ (lounasaika)" }, 
+      { hour: 17, name: "ILTA (iltapäivä)" },
+      { hour: 21, name: "YÖ (iltalääkkeet)" }
+    ];
+    
+    testTimes.forEach(time => {
+      console.log(`\n--- ${time.name} (${time.hour}:00) ---`);
+      
+      // Mock current time
+      const originalNow = Date.now;
+      Date.now = () => {
+        const mockDate = new Date();
+        mockDate.setHours(time.hour, 0, 0, 0);
+        return mockDate.getTime();
+      };
+      
+      const greeting = getTimeBasedGreeting_();
+      const weatherActivity = getWeatherBasedActivity_({
+        description: time.hour < 16 ? "aurinkoinen" : "sateinen",
+        temperature: "15°C"
+      });
+      const timeReminders = getFallbackTimeReminders_(time.hour);
+      
+      console.log("Tervehdys:", greeting);
+      console.log("Sääaktiviteetti:", weatherActivity);
+      console.log("Aika-muistutukset:", timeReminders);
+      
+      const fullMessage = [greeting, weatherActivity, timeReminders]
+        .filter(part => part && part.trim())
+        .join("\n");
+      
+      console.log("KOKO VIESTI:\n" + fullMessage);
+      
+      // Restore original Date.now
+      Date.now = originalNow;
+    });
+    
+    console.log("=== TEST COMPLETED ===");
+    return "Testit suoritettu onnistuneesti!";
+    
+  } catch (error) {
+    console.error("Test error:", error.toString());
+    return "Testi epäonnistui: " + error.toString();
+  }
+}
+
+/**
+ * TEST FUNCTION: Test medicine message generation
+ */
+function testMedicineMessages() {
+  try {
+    console.log("=== TESTING MEDICINE MESSAGES ===");
+    
+    const times = ["AAMU", "PÄIVÄ", "ILTA", "YÖ"];
+    
+    times.forEach(time => {
+      console.log(`\n--- ${time} ---`);
+      
+      // Test LÄÄKE type (ei näy nimeä)
+      const medicineMessage = getTimeBasedMedicineMessage_(time);
+      console.log(`LÄÄKE: ${medicineMessage}`);
+      
+      // Test RAVINTOLISÄ type (nimi näkyy)
+      const supplementExample = time === "AAMU" ? "Magnesium 2 tablettia" : 
+                               time === "PÄIVÄ" ? "Vitamiini D 1 kapseli" :
+                               time === "ILTA" ? "Omega-3 1 kapseli" :
+                               "Melatoniini 1 tabletti";
+      console.log(`RAVINTOLISÄ: 💊 ${supplementExample}`);
+    });
+    
+    console.log("\n=== FALLBACK MEDICINE TESTS ===");
+    const testHours = [8, 12, 17, 21];
+    testHours.forEach(hour => {
+      const fallbacks = getFallbackMedicineReminders_(hour);
+      console.log(`Klo ${hour}:00 → ${fallbacks.join(", ")}`);
+    });
+    
+    console.log("=== MEDICINE TESTS COMPLETED ===");
+    return "Lääketestit suoritettu onnistuneesti!";
+    
+  } catch (error) {
+    console.error("Medicine test error:", error.toString());
+    return "Lääketesti epäonnistui: " + error.toString();
   }
 }
 
@@ -793,7 +1199,7 @@ function getLatestReminder_(sheet, clientID) {
  */
 function getImportantMessage_(sheet) {
   try {
-    const messagesSheet = sheet.getSheetByName("Viestit");
+    const messagesSheet = sheet.getSheetByName(SHEET_NAMES.VIESTIT);
     if (!messagesSheet) {
       console.log("No 'Viestit' sheet found");
       return "";
@@ -1004,7 +1410,7 @@ function formatImportantMessage_(messageObj) {
  */
 function getUpcomingAppointments_(sheet, clientID) {
   try {
-    const appointmentsSheet = sheet.getSheetByName("Tapahtumat");
+    const appointmentsSheet = sheet.getSheetByName(SHEET_NAMES.TAPAAMISET);
     if (!appointmentsSheet) {
       return [];
     }
@@ -1277,9 +1683,9 @@ function createTestViestit() {
     const sheet = SpreadsheetApp.openById(sheetId);
     
     // Create or get Viestit sheet
-    let viestiteSheet = sheet.getSheetByName("Viestit");
+    let viestiteSheet = sheet.getSheetByName(SHEET_NAMES.VIESTIT);
     if (!viestiteSheet) {
-      viestiteSheet = sheet.insertSheet("Viestit");
+      viestiteSheet = sheet.insertSheet(SHEET_NAMES.VIESTIT);
       console.log("✅ Created new 'Viestit' sheet");
     } else {
       console.log("📋 Found existing 'Viestit' sheet");
@@ -1360,54 +1766,58 @@ function testImportantMessage() {
 }
 
 /**
- * Get rotating daily photo for client
+ * Enhanced photo selection with configurable rotation
  */
 function getDailyPhoto_(sheet, clientID) {
   try {
-    const photosSheet = sheet.getSheetByName("Photos");
-    if (!photosSheet) {
-      console.log("No Photos sheet found");
-      return {
-        url: "",
-        caption: "Kuvat eivät ole vielä käytössä"
-      };
-    }
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const albumId = scriptProperties.getProperty(GOOGLE_PHOTOS_ALBUM_ID_KEY);
     
-    const data = photosSheet.getDataRange().getValues();
-    const photos = [];
+    // Get rotation settings
+    const rotationSettings = getPhotoRotationSettings_(sheet, clientID);
     
-    // Collect photos for this client
-    for (let i = 1; i < data.length; i++) {
-      const photoClientID = String(data[i][0]).trim().toLowerCase();
-      const url = String(data[i][1]).trim();
-      const caption = String(data[i][2]).trim();
+    // Method 1: Try Google Photos (photos.google.com)
+    if (albumId && albumId !== "YOUR_GOOGLE_PHOTOS_ALBUM_ID_HERE") {
       
-      if (photoClientID === clientID.toLowerCase() && url) {
-        photos.push({ url, caption });
+      // Check if it's a Google Photos URL/ID
+      if (albumId.includes('photos.google.com') || albumId.includes('photos.app.goo.gl')) {
+        console.log("Attempting Google Photos integration...");
+        const googlePhoto = getGooglePhotosAlbumImage_(albumId, clientID, rotationSettings);
+        if (googlePhoto.url) {
+          return googlePhoto;
+        }
+        console.log("Google Photos failed, trying Google Drive method...");
+      }
+      
+      // Method 2: Try Google Drive folder (drive.google.com)
+      const drivePhoto = getGooglePhotosImage_(albumId, clientID, rotationSettings);
+      if (drivePhoto.url) {
+        console.log(`Using Google Drive for ${clientID}: ${drivePhoto.caption}`);
+        return drivePhoto;
       }
     }
     
-    if (photos.length === 0) {
-      return {
-        url: "",
-        caption: "Ei kuvia saatavilla"
-      };
-    }
+    // Method 3: Fallback to Google Sheets Photos tab
+    const photoSheet = sheet.getSheetByName("Photos");
+    if (!photoSheet) return {url: "", caption: "Ei kuvia saatavilla"};
     
-    // Rotate based on day of year for consistency
-    const today = new Date();
-    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-    const photoIndex = dayOfYear % photos.length;
+    const photos = photoSheet.getDataRange().getValues()
+                             .filter((row, index) => index > 0 && row[0] === clientID);
     
-    console.log(`📸 Selected photo ${photoIndex + 1}/${photos.length} for day ${dayOfYear}`);
-    return photos[photoIndex];
+    if (photos.length === 0) return {url: "", caption: "Ei kuvia saatavilla"};
+    
+    // Enhanced photo selection logic
+    const photoIndex = calculatePhotoIndex_(photos.length, rotationSettings);
+    
+    return {
+      url: photos[photoIndex][1],
+      caption: photos[photoIndex][2] || "Kuva äidille",
+      rotationInfo: `${rotationSettings.rotationInterval} rotation, photo ${photoIndex + 1}/${photos.length}`
+    };
     
   } catch (error) {
-    console.error("Error getting daily photo:", error);
-    return {
-      url: "",
-      caption: "Virhe kuvan haussa"
-    };
+    console.log('Error getting photo:', error.toString());
+    return {url: "", caption: "Kuvia ei voitu hakea"};
   }
 }
 
@@ -1427,9 +1837,9 @@ function addTestPhoto() {
     const sheet = SpreadsheetApp.openById(sheetId);
     
     // Create or get Photos sheet
-    let photosSheet = sheet.getSheetByName("Photos");
+    let photosSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT);
     if (!photosSheet) {
-      photosSheet = sheet.insertSheet("Photos");
+      photosSheet = sheet.insertSheet(SHEET_NAMES.KUVAT);
       
       // Add headers
       const headers = [["ClientID", "URL", "Caption"]];
@@ -1527,4 +1937,201 @@ function testEveningBefore() {
 } catch (error) {
     console.error("❌ Error testing evening before:", error);
 }
+}
+
+// ===================================================================================
+//  ENHANCED PHOTO ROTATION FUNCTIONS
+// ===================================================================================
+
+/**
+ * Get photo rotation settings for client
+ */
+function getPhotoRotationSettings_(sheet, clientID) {
+  try {
+    const configSheet = sheet.getSheetByName("Config");
+    if (!configSheet) {
+      return { rotationInterval: "daily", randomize: false };
+    }
+    
+    const data = configSheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      const configClientID = String(data[i][0]).trim().toLowerCase();
+      
+      if (configClientID === clientID.toLowerCase()) {
+        return {
+          rotationInterval: data[i][7] || "daily", // Column H: daily, weekly, monthly
+          randomize: data[i][8] === true || String(data[i][8]).toLowerCase() === 'true'
+        };
+      }
+    }
+    
+    return { rotationInterval: "daily", randomize: false };
+  } catch (error) {
+    console.error("Error getting photo rotation settings:", error);
+    return { rotationInterval: "daily", randomize: false };
+  }
+}
+
+/**
+ * Calculate photo index based on rotation settings
+ */
+function calculatePhotoIndex_(photoCount, rotationSettings) {
+  const now = new Date();
+  let intervalValue;
+  
+  switch (rotationSettings.rotationInterval.toLowerCase()) {
+    case "hourly":
+      // Change every hour
+      intervalValue = Math.floor(now.getTime() / (1000 * 60 * 60));
+      break;
+      
+    case "daily":
+      // Change every day (current implementation)
+      intervalValue = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+      break;
+      
+    case "weekly":
+      // Change every week (Monday = start of week)
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      const weekNumber = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24 * 7));
+      intervalValue = weekNumber;
+      break;
+      
+    case "monthly":
+      // Change every month
+      intervalValue = now.getMonth() + (now.getFullYear() * 12);
+      break;
+      
+    case "random_daily":
+      // Random photo each day, but same photo for entire day
+      const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+      // Use dayOfYear as seed for consistent daily randomness
+      intervalValue = deterministicRandom_(dayOfYear + now.getFullYear(), photoCount);
+      return intervalValue;
+      
+    default:
+      // Default to daily
+      intervalValue = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  }
+  
+  // Apply randomization if enabled
+  if (rotationSettings.randomize) {
+    return deterministicRandom_(intervalValue, photoCount);
+  }
+  
+  // Sequential rotation
+  return intervalValue % photoCount;
+}
+
+/**
+ * Deterministic random number generator for consistent daily randomness
+ */
+function deterministicRandom_(seed, max) {
+  // Simple linear congruential generator
+  const a = 1664525;
+  const c = 1013904223;
+  const m = Math.pow(2, 32);
+  
+  const random = ((a * seed + c) % m) / m;
+  return Math.floor(random * max);
+}
+
+/**
+ * Get photo metadata for debugging
+ */
+function getPhotoRotationDebugInfo_(clientID, sheet) {
+  try {
+    const rotationSettings = getPhotoRotationSettings_(sheet, clientID);
+    const photoSheet = sheet.getSheetByName("Photos");
+    
+    if (!photoSheet) {
+      return "No Photos sheet found";
+    }
+    
+    const photos = photoSheet.getDataRange().getValues()
+                             .filter((row, index) => index > 0 && row[0] === clientID);
+    
+    const photoIndex = calculatePhotoIndex_(photos.length, rotationSettings);
+    const now = new Date();
+    
+    return {
+      clientID: clientID,
+      totalPhotos: photos.length,
+      currentIndex: photoIndex,
+      currentPhoto: photos[photoIndex] ? photos[photoIndex][1] : "N/A",
+      rotationInterval: rotationSettings.rotationInterval,
+      randomize: rotationSettings.randomize,
+      nextChangeTime: getNextChangeTime_(rotationSettings.rotationInterval),
+      debugTime: now.toISOString()
+    };
+    
+  } catch (error) {
+    return `Debug error: ${error.toString()}`;
+  }
+}
+
+/**
+ * Calculate when photo will next change
+ */
+function getNextChangeTime_(interval) {
+  const now = new Date();
+  
+  switch (interval.toLowerCase()) {
+    case "hourly":
+      const nextHour = new Date(now);
+      nextHour.setHours(now.getHours() + 1, 0, 0, 0);
+      return nextHour.toISOString();
+      
+    case "daily":
+      const nextDay = new Date(now);
+      nextDay.setDate(now.getDate() + 1);
+      nextDay.setHours(0, 0, 0, 0);
+      return nextDay.toISOString();
+      
+    case "weekly":
+      const nextWeek = new Date(now);
+      const daysUntilMonday = (7 - now.getDay() + 1) % 7 || 7;
+      nextWeek.setDate(now.getDate() + daysUntilMonday);
+      nextWeek.setHours(0, 0, 0, 0);
+      return nextWeek.toISOString();
+      
+    case "monthly":
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      return nextMonth.toISOString();
+      
+    default:
+      return "Unknown interval";
+  }
+}
+
+// ===================================================================================
+//  GOOGLE DRIVE/PHOTOS INTEGRATION FUNCTIONS
+// ===================================================================================
+
+/**
+ * Get image from Google Photos album (fallback implementation)
+ */
+function getGooglePhotosAlbumImage_(albumId, clientID, rotationSettings) {
+  try {
+    console.log("getGooglePhotosAlbumImage_ - not yet implemented");
+    return { url: "", caption: "Google Photos integration not yet available" };
+  } catch (error) {
+    console.error("Error getting Google Photos album image:", error);
+    return { url: "", caption: "Google Photos virhe" };
+  }
+}
+
+/**
+ * Get image from Google Drive folder  
+ */
+function getGooglePhotosImage_(folderId, clientID, rotationSettings) {
+  try {
+    // Simple fallback for now
+    console.log(`getGooglePhotosImage_ called for folder: ${folderId}`);
+    return { url: "", caption: "Google Drive integration not yet configured" };
+  } catch (error) {
+    console.error("Error getting Google Drive image:", error);
+    return { url: "", caption: "Google Drive virhe" };
+  }
 }
