@@ -348,7 +348,7 @@
             statusMessage = $"Kuittaan {request.TaskType}...";
             
             // Use ApiService for acknowledgment to ensure consistent URL and API key
-            var success = await ApiService.AcknowledgeTaskAsync(request.TaskType, request.TimeOfDay);
+            var success = await ApiService.AcknowledgeTaskAsync(request.TaskType, request.TimeOfDay, request.Description);
 
             if (success)
             {
