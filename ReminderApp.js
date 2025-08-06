@@ -605,6 +605,8 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     const foodReminders = getFoodReminders_(sheet, clientID, timeOfDay, currentHour);
     foodReminders.forEach(reminder => {
       const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, reminder.replace("🍽️ ", ""), today);
+      console.log(`📋 Adding RUOKA task: "${reminder}" with timeOfDay: "${timeOfDay}"`);
+      
       tasks.push({
         type: "RUOKA",
         description: reminder.replace("🍽️ ", ""), // Poista emoji jos on
