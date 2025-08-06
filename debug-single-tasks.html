@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Testaa: Vain yksi tehtävä per tyyppi</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Testaa: Vain yksi tehtävä per tyyppi</h1>
+    
+    <button onclick="testSingleTasks()">🔍 TESTAA SINGLE TASKS</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testSingleTasks() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">🔍 Testataan että tulee vain yksi tehtävä per tyyppi...</div>';
+            
+            try {
+                const url = `https://script.google.com/macros/s/AKfycbxIXvVNq27JQ9ggKvxfeiTjX9LpBKZkdx1k9VHK62lXuiFgHVC6wZNAsMEzWw0nS_yXEg/exec?clientID=mom&apiKey=reminder-tablet-2024&_t=${Date.now()}`;
+                
+                console.log('🌐 URL:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('📄 Response:', data);
+                
+                if (data.status === 'OK' && data.dailyTasks) {
+                    const tasks = data.dailyTasks;
+                    
+                    // Laske tehtävät tyypeittäin
+                    const taskCounts = {};
+                    tasks.forEach(task => {
+                        taskCounts[task.type] = (taskCounts[task.type] || 0) + 1;
+                    });
+                    
+                    let html = '<div class="success">✅ API palauttaa tehtäviä:</div>';
+                    html += '<pre>' + JSON.stringify(data.dailyTasks, null, 2) + '</pre>';
+                    
+                    html += '<h3>📊 Tehtävien määrä tyypeittäin:</h3>';
+                    for (const [type, count] of Object.entries(taskCounts)) {
+                        const isOk = count === 1;
+                        const status = isOk ? '✅' : '❌';
+                        const cssClass = isOk ? 'success' : 'error';
+                        html += `<div class="${cssClass}">${status} ${type}: ${count} kpl ${isOk ? '(OIKEIN)' : '(LIIKAA!)'}</div>`;
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">❌ API virhe: ${JSON.stringify(data)}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `<div class="error">❌ Virhe: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

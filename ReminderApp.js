@@ -764,18 +764,17 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     const medicineReminders = getMedicineReminders_(sheet, clientID, timeOfDay, currentHour);
     
     if (medicineReminders.length > 0) {
-      // Löytyi muistutuksia sheet:stä  
-      medicineReminders.forEach(reminder => {
-        const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, reminder.replace("💊 ", ""), today);
-        console.log(`📋 Adding LÄÄKKEET task from sheet: "${reminder}" with timeOfDay: "${finalTimeOfDay}"`);
-        
-        tasks.push({
-          type: "LÄÄKKEET", 
-          description: reminder.replace("💊 ", ""), // Poista emoji jos on
-          timeOfDay: finalTimeOfDay,
-          isAckedToday: isAcked,
-          acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
-        });
+      // Löytyi muistutuksia sheet:stä - OTTA VAIN ENSIMMÄINEN
+      const firstReminder = medicineReminders[0]; // VAIN YKSI LÄÄKE
+      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, firstReminder.replace("💊 ", ""), today);
+      console.log(`📋 Adding SINGLE LÄÄKKEET task from sheet: "${firstReminder}" with timeOfDay: "${finalTimeOfDay}"`);
+      
+      tasks.push({
+        type: "LÄÄKKEET", 
+        description: firstReminder.replace("💊 ", ""), // Poista emoji jos on
+        timeOfDay: finalTimeOfDay,
+        isAckedToday: isAcked,
+        acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
       });
     } else {
       // Ei löytynyt muistutuksia sheet:stä, lisää default LÄÄKKEET tehtävä
@@ -1807,7 +1806,7 @@ function validateApiKey_(apiKey) {
   if (!apiKey) {
     console.log("🔐 No API key provided");
     return false;
-}
+  }
   
   const scriptProperties = PropertiesService.getScriptProperties();
   const validApiKeys = scriptProperties.getProperty("VALID_API_KEYS");
