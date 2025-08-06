@@ -355,9 +355,15 @@
                 statusMessage = $"✅ {request.TaskType} kuitattu! Ilmoitus lähetetty perheelle.";
                 await OnTaskAcknowledged(); // Play completion sound
                 
-                // Reload data after a short delay to ensure sheet has updated
-                await Task.Delay(1000); 
+                Console.WriteLine($"🔄 Waiting 3 seconds before reloading data for task: {request.TaskType} - {request.Description}");
+                
+                // Reload data after longer delay to ensure Google Sheets has updated
+                await Task.Delay(3000); 
+                
+                Console.WriteLine("🔄 Reloading data now...");
                 await LoadData();
+                
+                Console.WriteLine("🔄 Data reload completed");
             }
             else
             {
