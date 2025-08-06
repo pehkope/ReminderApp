@@ -140,6 +140,42 @@ public class ApiService
 
         return ApiResult<ReminderApiResponse>.Failure("MAX_RETRIES_EXCEEDED", "Kaikki yritykset epäonnistuivat");
     }
+
+    public async Task<bool> AcknowledgeTaskAsync(string taskType, string timeOfDay, string description = "")
+    {
+        try
+        {
+            // Fallback for Azure deployment if config loading fails
+            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzNI9Y9AaSSk5kXM2MoIxw9UBIaR-iSQfPfWI5u91rA40mnzGaqb7haY5jVaIr3yYpnDA/exec" : _apiSettings.BaseUrl;
+                
+            var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
+            var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
+
+            // Build acknowledgment URL with description for unique identification
+            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&taskType={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}";
+
+            Console.WriteLine($"Sending acknowledgment request: {taskType} for {timeOfDay}");
+
+            var response = await _httpClient.GetAsync(fullUrl);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Acknowledgment successful: {responseContent}");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Acknowledgment failed with status: {response.StatusCode}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error acknowledging task {taskType}: {ex.Message}");
+            return false;
+        }
+    }
 }
 
 public class ApiResult<T>
@@ -168,41 +204,5 @@ public class ApiResult<T>
             ErrorCode = errorCode,
             ErrorMessage = errorMessage
         };
-    }
-
-    public async Task<bool> AcknowledgeTaskAsync(string taskType, string timeOfDay, string description = "")
-    {
-        try
-        {
-            // Fallback for Azure deployment if config loading fails
-            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzNI9Y9AaSSk5kXM2MoIxw9UBIaR-iSQfPfWI5u91rA40mnzGaqb7haY5jVaIr3yYpnDA/exec" : _apiSettings.BaseUrl;
-                
-            var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
-            var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
-
-            // Build acknowledgment URL with description for unique identification
-            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&taskType={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}";
-
-            _logger.LogInformation($"Sending acknowledgment request: {taskType} for {timeOfDay}");
-
-            var response = await _httpClient.GetAsync(fullUrl);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation($"Acknowledgment successful: {responseContent}");
-                return true;
-            }
-            else
-            {
-                _logger.LogError($"Acknowledgment failed with status: {response.StatusCode}");
-                return false;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error acknowledging task {taskType}");
-            return false;
-        }
     }
 } 
