@@ -209,9 +209,11 @@
     
     private async Task HandleTaskAcknowledge(DailyTask task)
     {
+        Console.WriteLine($"🔧 Acknowledging task: {task.Type} - '{task.Description}' - TimeOfDay: '{task.TimeOfDay}'");
+        
         await OnAcknowledgeTask.InvokeAsync(new TaskAckRequest { 
             TaskType = task.Type, 
-            TimeOfDay = GetTimeOfDayText(),
+            TimeOfDay = task.TimeOfDay ?? GetTimeOfDayText(),
             Description = task.Description ?? ""
         });
     }

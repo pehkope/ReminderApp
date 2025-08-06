@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Acknowledgment State</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 10px; font-size: 14px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+        .task { border: 1px solid #ddd; margin: 10px 0; padding: 10px; }
+        .acked { background-color: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug: Kuittauksien tila Google Sheets:ssä</h1>
+    
+    <button onclick="checkAfterAcknowledgment()">📋 Tarkista tehtävien tila nyt</button>
+    <button onclick="acknowledgeRUOKA()">🍽️ Kuitaa RUOKA</button>
+    <button onclick="acknowledgeLÄÄKKEET()">💊 Kuitaa LÄÄKKEET</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzNI9Y9AaSSk5kXM2MoIxw9UBIaR-iSQfPfWI5u91rA40mnzGaqb7haY5jVaIr3yYpnDA/exec';
+        const API_KEY = 'reminder-tablet-2024';
+        const CLIENT_ID = 'mom';
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${timestamp}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+
+        function displayTasks(tasks, title) {
+            log(`📊 ${title}:`, 'success');
+            
+            if (!tasks || tasks.length === 0) {
+                log('❌ Ei tehtäviä!', 'warning');
+                return;
+            }
+            
+            tasks.forEach((task, index) => {
+                const ackStatus = task.isAckedToday ? '✅ KUITATTU' : '❌ EI KUITATTU';
+                const taskClass = task.isAckedToday ? 'task acked' : 'task';
+                
+                log(`<div class="${taskClass}">
+                    <strong>${index + 1}. ${task.type}</strong><br/>
+                    Kuvaus: "${task.description}"<br/>
+                    Aika: "${task.timeOfDay}"<br/>
+                    Status: ${ackStatus}<br/>
+                    ${task.acknowledgmentTimestamp ? `Kuitattu: ${task.acknowledgmentTimestamp}` : ''}
+                </div>`);
+            });
+        }
+
+        async function checkAfterAcknowledgment() {
+            log(`🔍 Tarkistetaan tehtävien tila API:sta...`);
+            await fetchAndDisplayTasks('Tehtävien tila nyt');
+        }
+
+        async function fetchAndDisplayTasks(title) {
+            try {
+                const response = await fetch(`${API_URL}?apiKey=${API_KEY}&clientID=${CLIENT_ID}`);
+                log(`📡 API vastaus: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.dailyTasks) {
+                    displayTasks(data.dailyTasks, title);
+                } else {
+                    log(`⚠️ Ei dailyTasks kenttää vastauksessa`, 'warning');
+                    log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                }
+                
+            } catch (error) {
+                log(`❌ Virhe API-kutsussa: ${error.message}`, 'error');
+            }
+        }
+
+        async function acknowledgeRUOKA() {
+            await acknowledgeTask('RUOKA', 'PÄIVÄ', 'päivällinen 16:00');
+        }
+
+        async function acknowledgeLÄÄKKEET() {
+            await acknowledgeTask('LÄÄKKEET', 'PÄIVÄ', 'päivän lääke 19:00');
+        }
+
+        async function acknowledgeTask(taskType, timeOfDay, description) {
+            log(`🧪 Kuitataan ${taskType}...`);
+            
+            try {
+                const ackUrl = `${API_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=${CLIENT_ID}&taskType=${taskType}&timeOfDay=${timeOfDay}&description=${encodeURIComponent(description)}`;
+                log(`📡 Kuittaus URL: ${ackUrl}`);
+                
+                const response = await fetch(ackUrl);
+                log(`📡 Kuittaus vastaus: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                log(`✅ Kuittaus vastaus:`, 'success');
+                log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+                // Odota 2 sekuntia ja tarkista tila
+                setTimeout(() => {
+                    log(`🔄 Tarkistetaan tila 2 sekunnin kuluttua...`);
+                    setTimeout(checkAfterAcknowledgment, 2000);
+                }, 1000);
+                
+            } catch (error) {
+                log(`❌ Virhe kuittauksessa: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-check tehtävien tila sivun latauksen jälkeen
+        window.addEventListener('load', () => {
+            log(`🚀 Sivu ladattu. Tarkistetaan tehtävien alkutila...`);
+            checkAfterAcknowledgment();
+        });
+    </script>
+</body>
+</html>
