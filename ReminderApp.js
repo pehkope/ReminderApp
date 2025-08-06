@@ -671,16 +671,15 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     // 3. PUUHAA tehtävät - lisätään aina
     // Hae PUUHAA aktiviteetti viestistä tai sääperusteisesti
     const activityFromMessage = getActivityFromMessage_(sheet);
-      const activity = activityFromMessage || getWeatherBasedActivity_() || "Mukava hetki yhdessä";
-      
-      tasks.push({
-        type: "PUUHAA",
-        description: activity,
-        timeOfDay: timeOfDay,
-        isAckedToday: false, // PUUHAA ei kuitata
-        acknowledgmentTimestamp: null
-      });
-    }
+    const activity = activityFromMessage || getWeatherBasedActivity_() || "Mukava hetki yhdessä";
+    
+    tasks.push({
+      type: "PUUHAA",
+      description: activity,
+      timeOfDay: timeOfDay,
+      isAckedToday: false, // PUUHAA ei kuitata
+      acknowledgmentTimestamp: null
+    });
     
     // 4. Perinteiset "Päivittäiset tehtävät" sheetistä (jos on)
     const tasksSheet = sheet.getSheetByName(SHEET_NAMES.DAILY_TASKS);
