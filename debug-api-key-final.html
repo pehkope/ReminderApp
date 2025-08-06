@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 DEBUG API KEY - FINAL TEST</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { background: #1976d2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #1565c0; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow: auto; max-height: 400px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG API KEY - FINAL</h1>
+    
+    <div id="status">Valmis testaamaan...</div>
+    
+    <button onclick="testWithApiKey()">✅ Testaa API key:llä</button>
+    <button onclick="testWithoutApiKey()">❌ Testaa ilman API keytä</button>
+    <button onclick="testDirectUrl()">🌐 Testaa suoraan URL</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'https://script.google.com/macros/s/AKfycbzJP1csalIG9qU_SvtDTgEMrli5dRPCtayEqPjWgKny-jVfxzDo145BH1X5jDR_LZJxdQ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+
+        function log(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = `result ${isError ? 'error' : 'success'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            document.getElementById('results').appendChild(div);
+            document.getElementById('status').textContent = message;
+        }
+
+        async function testWithApiKey() {
+            try {
+                log('🔑 Testaan API key:llä...');
+                
+                const url = `${API_BASE}?clientID=mom&apiKey=${API_KEY}&_t=${Date.now()}`;
+                log(`🌐 URL: ${url}`);
+                
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                log(`📥 Status: ${response.status}`);
+                log(`📄 Response: ${text.substring(0, 300)}...`);
+                
+                if (text.includes('undefined')) {
+                    log('❌ API key tulee undefined - frontend ongelma!', true);
+                } else if (text.includes('Invalid')) {
+                    log('❌ API key invalid - Google Apps Script Properties ongelma!', true);
+                } else {
+                    log('✅ API key toimii!');
+                }
+                
+            } catch (error) {
+                log(`❌ VIRHE: ${error.message}`, true);
+            }
+        }
+
+        async function testWithoutApiKey() {
+            try {
+                log('🚫 Testaan ilman API keytä...');
+                
+                const url = `${API_BASE}?clientID=mom&_t=${Date.now()}`;
+                log(`🌐 URL: ${url}`);
+                
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                log(`📥 Status: ${response.status}`);
+                log(`📄 Response: ${text.substring(0, 200)}...`);
+                
+            } catch (error) {
+                log(`❌ VIRHE: ${error.message}`, true);
+            }
+        }
+
+        async function testDirectUrl() {
+            try {
+                log('🌐 Testaan suoraa URL:ää...');
+                
+                const testUrls = [
+                    `${API_BASE}?test=apikey&apiKey=${API_KEY}`,
+                    `${API_BASE}?ping=true`,
+                    `${API_BASE}?debug=properties`
+                ];
+                
+                for (const url of testUrls) {
+                    log(`🧪 Testing: ${url}`);
+                    
+                    try {
+                        const response = await fetch(url);
+                        const text = await response.text();
+                        log(`📄 ${text.substring(0, 150)}...`);
+                    } catch (err) {
+                        log(`❌ Failed: ${err.message}`, true);
+                    }
+                }
+                
+            } catch (error) {
+                log(`❌ VIRHE: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
