@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DEBUG: v2.8 Kuittausongelma</title>
+</head>
+<body>
+    <h1>🚨 v2.8 Kuittausongelma Debug</h1>
+    
+    <h2>1. API Testi</h2>
+    <button onclick="testAPI()">Testaa API</button>
+    <div id="apiResult"></div>
+    
+    <h2>2. Kuittaus Testi</h2>
+    <button onclick="testAcknowledgment()">Testaa Kuittaus</button>
+    <div id="ackResult"></div>
+    
+    <h2>3. Console Logit</h2>
+    <div id="console"></div>
+    
+    <script>
+        const API_BASE = 'https://script.google.com/macros/s/AKfycbwgOUHKZHRMBNT0mBZBX6L6IzKzHQnIxrCXZ-IcpNpGwf8Xwo9qzNNGVOg78fWvPCGJ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+        
+        function log(message) {
+            console.log(message);
+            document.getElementById('console').innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+        }
+        
+        async function testAPI() {
+            log('🔍 Testataan API...');
+            try {
+                const response = await fetch(`${API_BASE}?action=getDailyTasks&clientID=test&apiKey=${API_KEY}`);
+                const data = await response.json();
+                log('✅ API vastaus: ' + JSON.stringify(data, null, 2));
+                document.getElementById('apiResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                log('❌ API virhe: ' + error.message);
+                document.getElementById('apiResult').innerHTML = '❌ Virhe: ' + error.message;
+            }
+        }
+        
+        async function testAcknowledgment() {
+            log('🔍 Testataan kuittaus...');
+            try {
+                const ackData = {
+                    clientID: 'test',
+                    type: 'RUOKA',
+                    timeOfDay: 'Päivä',
+                    description: 'Ruoka',
+                    apiKey: API_KEY
+                };
+                
+                log('📤 Lähetetään: ' + JSON.stringify(ackData, null, 2));
+                
+                const response = await fetch(`${API_BASE}?action=acknowledgeTask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(ackData)
+                });
+                
+                const result = await response.json();
+                log('✅ Kuittaus vastaus: ' + JSON.stringify(result, null, 2));
+                document.getElementById('ackResult').innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                
+                // Testaa heti uudelleen API
+                setTimeout(testAPI, 2000);
+                
+            } catch (error) {
+                log('❌ Kuittaus virhe: ' + error.message);
+                document.getElementById('ackResult').innerHTML = '❌ Virhe: ' + error.message;
+            }
+        }
+        
+        // Auto-test kun sivu latautuu
+        window.onload = function() {
+            log('🚀 Aloitetaan automaattinen testaus...');
+            testAPI();
+        };
+    </script>
+</body>
+</html>
