@@ -94,11 +94,11 @@
     {
         return TimeOfDay switch
         {
-            ViewMode.Morning => "AAMU",
-            ViewMode.Day => "PÄIVÄ",
-            ViewMode.Evening => "ILTA", 
-            ViewMode.Night => "YÖ",
-            _ => "AAMU"
+            ViewMode.Morning => "Aamu",
+            ViewMode.Day => "Päivä",
+            ViewMode.Evening => "Ilta", 
+            ViewMode.Night => "Yö",
+            _ => "Aamu"
         };
     }
 
@@ -182,14 +182,14 @@
         // Ensisijaisesti käytetään task.TimeOfDay API:sta
         if (!string.IsNullOrEmpty(task.TimeOfDay))
         {
-            var taskTimeOfDay = task.TimeOfDay.ToUpper();
+            var taskTimeOfDay = task.TimeOfDay;
             
             return TimeOfDay switch
             {
-                ViewMode.Morning => taskTimeOfDay == "AAMU",
-                ViewMode.Day => taskTimeOfDay == "PÄIVÄ", 
-                ViewMode.Evening => taskTimeOfDay == "ILTA",
-                ViewMode.Night => taskTimeOfDay == "YÖ",
+                ViewMode.Morning => taskTimeOfDay.Equals("Aamu", StringComparison.OrdinalIgnoreCase),
+                ViewMode.Day => taskTimeOfDay.Equals("Päivä", StringComparison.OrdinalIgnoreCase), 
+                ViewMode.Evening => taskTimeOfDay.Equals("Ilta", StringComparison.OrdinalIgnoreCase),
+                ViewMode.Night => taskTimeOfDay.Equals("Yö", StringComparison.OrdinalIgnoreCase),
                 _ => true
             };
         }
