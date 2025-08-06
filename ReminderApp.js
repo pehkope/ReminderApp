@@ -39,7 +39,8 @@ const TASK_TYPES = {
 const TIME_OF_DAY = {
   AAMU: "Aamu",
   PAIVA: "Päivä", 
-  ILTA: "Ilta"
+  ILTA: "Ilta",
+  YO: "Yö"
 };
 
 const EMOJIS = {
@@ -585,8 +586,10 @@ function getTimeOfDay_(date) {
     return TIME_OF_DAY.AAMU;
   } else if (hour >= 12 && hour < 18) {
     return TIME_OF_DAY.PAIVA;
-  } else {
+  } else if (hour >= 18 && hour < 22) {
     return TIME_OF_DAY.ILTA;
+  } else {
+    return TIME_OF_DAY.YO;
   }
 }
 
