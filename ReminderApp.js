@@ -605,12 +605,17 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     const foodReminders = getFoodReminders_(sheet, clientID, timeOfDay, currentHour);
     foodReminders.forEach(reminder => {
       const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, reminder.replace("🍽️ ", ""), today);
-      console.log(`📋 Adding RUOKA task: "${reminder}" with timeOfDay: "${timeOfDay}"`);
+      console.log(`📋 Adding RUOKA task: "${reminder}" with original timeOfDay: "${timeOfDay}"`);
+      
+      // Ensure timeOfDay is never empty - use current time if missing
+      const finalTimeOfDay = timeOfDay && timeOfDay.trim() ? timeOfDay : getTimeOfDay_(new Date());
+      
+      console.log(`📋 Final timeOfDay for RUOKA: "${finalTimeOfDay}"`);
       
       tasks.push({
         type: "RUOKA",
         description: reminder.replace("🍽️ ", ""), // Poista emoji jos on
-        timeOfDay: timeOfDay,
+        timeOfDay: finalTimeOfDay,
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "RUOKA", timeOfDay, today) : null
       });
@@ -620,10 +625,18 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     const medicineReminders = getMedicineReminders_(sheet, clientID, timeOfDay, currentHour);
     medicineReminders.forEach(reminder => {
       const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, reminder.replace("💊 ", ""), today);
+      
+      console.log(`📋 Adding LÄÄKKEET task: "${reminder}" with original timeOfDay: "${timeOfDay}"`);
+      
+      // Ensure timeOfDay is never empty - use current time if missing
+      const finalTimeOfDay = timeOfDay && timeOfDay.trim() ? timeOfDay : getTimeOfDay_(new Date());
+      
+      console.log(`📋 Final timeOfDay for LÄÄKKEET: "${finalTimeOfDay}"`);
+      
       tasks.push({
         type: "LÄÄKKEET", 
         description: reminder.replace("💊 ", ""), // Poista emoji jos on
-        timeOfDay: timeOfDay,
+        timeOfDay: finalTimeOfDay,
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
       });
