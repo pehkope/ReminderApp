@@ -198,21 +198,16 @@
             //     Console.WriteLine("Added test photo data");
             // }
 
-            // KORJAUS: Lisää default tehtävät VAIN jos backend antaa virheen, EI kun tehtävät on kuitattu
+            // KORJAUS: Lisää default tehtävät jos API ei palauta tehtäviä
             if (apiResponse.DailyTasks?.Any() != true)
             {
-                // Jos API palautti OK status, mutta ei tehtäviä → ne on kuitattu, älä lisää defaultteja
-                if (apiResponse.Status == "OK")
-                {
-                    Console.WriteLine("✅ No tasks from API with OK status - tasks are acknowledged, not adding defaults");
-                    apiResponse.DailyTasks = new List<DailyTask>(); // Tyhjä lista
-                }
-                else
-                {
-                    // API antoi virheen, lisää fallback tehtävät
-                    apiResponse.DailyTasks = TestDataService.GetDefaultTasks();
-                    Console.WriteLine("Added default tasks due to API error");
-                }
+                // DEBUGGING: Logitetaan syy miksi ei tehtäviä
+                Console.WriteLine($"🔍 No tasks from API. Status: '{apiResponse.Status}', DailyTasks count: {apiResponse.DailyTasks?.Count ?? 0}");
+                
+                // Lisää default tehtävät aina kun API ei palauta tehtäviä
+                // Jos tehtävät on todella kuitattu, API palauttaa ne IsAckedToday=true kanssa
+                apiResponse.DailyTasks = TestDataService.GetDefaultTasks();
+                Console.WriteLine("Added default tasks - frontend will handle acknowledgment display logic");
             }
             }
             else

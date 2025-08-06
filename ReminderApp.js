@@ -603,49 +603,74 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     
     // 1. RUOKA tehtävät Ruoka-ajat sheetistä  
     const foodReminders = getFoodReminders_(sheet, clientID, timeOfDay, currentHour);
-    foodReminders.forEach(reminder => {
-      const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, reminder.replace("🍽️ ", ""), today);
-      console.log(`📋 Adding RUOKA task: "${reminder}" with original timeOfDay: "${timeOfDay}"`);
-      
-      // Ensure timeOfDay is never empty - use current time if missing
-      const finalTimeOfDay = timeOfDay && timeOfDay.trim() ? timeOfDay : getTimeOfDay_(new Date());
-      
-      console.log(`📋 Final timeOfDay for RUOKA: "${finalTimeOfDay}"`);
+    
+    // Ensure timeOfDay is never empty - use current time if missing
+    const finalTimeOfDay = timeOfDay && timeOfDay.trim() ? timeOfDay : getTimeOfDay_(new Date());
+    
+    if (foodReminders.length > 0) {
+      // Löytyi muistutuksia sheet:stä
+      foodReminders.forEach(reminder => {
+        const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, reminder.replace("🍽️ ", ""), today);
+        console.log(`📋 Adding RUOKA task from sheet: "${reminder}" with timeOfDay: "${finalTimeOfDay}"`);
+        
+        tasks.push({
+          type: "RUOKA",
+          description: reminder.replace("🍽️ ", ""), // Poista emoji jos on
+          timeOfDay: finalTimeOfDay,
+          isAckedToday: isAcked,
+          acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "RUOKA", timeOfDay, today) : null
+        });
+      });
+    } else {
+      // Ei löytynyt muistutuksia sheet:stä, lisää default RUOKA tehtävä
+      const defaultFoodDesc = "Lounas tai ainakin kunnon välipala";
+      const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, defaultFoodDesc, today);
+      console.log(`📋 Adding default RUOKA task: "${defaultFoodDesc}" with timeOfDay: "${finalTimeOfDay}"`);
       
       tasks.push({
         type: "RUOKA",
-        description: reminder.replace("🍽️ ", ""), // Poista emoji jos on
+        description: defaultFoodDesc,
         timeOfDay: finalTimeOfDay,
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "RUOKA", timeOfDay, today) : null
       });
-    });
+    }
     
     // 2. LÄÄKKEET tehtävät Lääkkeet sheetistä
     const medicineReminders = getMedicineReminders_(sheet, clientID, timeOfDay, currentHour);
-    medicineReminders.forEach(reminder => {
-      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, reminder.replace("💊 ", ""), today);
-      
-      console.log(`📋 Adding LÄÄKKEET task: "${reminder}" with original timeOfDay: "${timeOfDay}"`);
-      
-      // Ensure timeOfDay is never empty - use current time if missing
-      const finalTimeOfDay = timeOfDay && timeOfDay.trim() ? timeOfDay : getTimeOfDay_(new Date());
-      
-      console.log(`📋 Final timeOfDay for LÄÄKKEET: "${finalTimeOfDay}"`);
+    
+    if (medicineReminders.length > 0) {
+      // Löytyi muistutuksia sheet:stä  
+      medicineReminders.forEach(reminder => {
+        const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, reminder.replace("💊 ", ""), today);
+        console.log(`📋 Adding LÄÄKKEET task from sheet: "${reminder}" with timeOfDay: "${finalTimeOfDay}"`);
+        
+        tasks.push({
+          type: "LÄÄKKEET", 
+          description: reminder.replace("💊 ", ""), // Poista emoji jos on
+          timeOfDay: finalTimeOfDay,
+          isAckedToday: isAcked,
+          acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
+        });
+      });
+    } else {
+      // Ei löytynyt muistutuksia sheet:stä, lisää default LÄÄKKEET tehtävä
+      const defaultMedDesc = "Muista ottaa päivän lääkkeet";
+      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, defaultMedDesc, today);
+      console.log(`📋 Adding default LÄÄKKEET task: "${defaultMedDesc}" with timeOfDay: "${finalTimeOfDay}"`);
       
       tasks.push({
-        type: "LÄÄKKEET", 
-        description: reminder.replace("💊 ", ""), // Poista emoji jos on
+        type: "LÄÄKKEET",
+        description: defaultMedDesc,
         timeOfDay: finalTimeOfDay,
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
       });
-    });
+    }
     
-    // 3. PUUHAA tehtävät (vain jos ei ole kuittauskelpoisia ruoka/lääke tehtäviä)
-    if (tasks.length === 0) {
-      // Hae PUUHAA aktiviteetti viestistä tai sääperusteisesti
-      const activityFromMessage = getActivityFromMessage_(sheet);
+    // 3. PUUHAA tehtävät - lisätään aina
+    // Hae PUUHAA aktiviteetti viestistä tai sääperusteisesti
+    const activityFromMessage = getActivityFromMessage_(sheet);
       const activity = activityFromMessage || getWeatherBasedActivity_() || "Mukava hetki yhdessä";
       
       tasks.push({
