@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 Debug Missing Fields - FINAL TEST</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { background: #1976d2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #1565c0; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow: auto; max-height: 400px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG: Missing Fields Test</h1>
+    
+    <div id="status">Valmis testaamaan...</div>
+    
+    <button onclick="testCurrentAPI()">🧪 Testaa nykyinen API</button>
+    <button onclick="testDirectSheets()">📊 Testaa Sheet data</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'https://script.google.com/macros/s/AKfycbzJP1csalIG9qU_SvtDTgEMrli5dRPCtayEqPjWgKny-jVfxzDo145BH1X5jDR_LZJxdQ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+
+        function log(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = `result ${isError ? 'error' : 'success'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            document.getElementById('results').appendChild(div);
+            document.getElementById('status').textContent = message;
+        }
+
+        async function testCurrentAPI() {
+            try {
+                log('📡 Testaan API kutsu...');
+                
+                const url = `${API_BASE}?clientID=mom&apiKey=${API_KEY}&_t=${Date.now()}`;
+                log(`🌐 URL: ${url}`);
+                
+                const response = await fetch(url);
+                log(`📥 HTTP Status: ${response.status}`);
+                
+                const text = await response.text();
+                log(`📄 Raw response: ${text.substring(0, 200)}...`);
+                
+                const data = JSON.parse(text);
+                log(`✅ JSON parsed successfully`);
+                
+                // Tarkista dailyTasks
+                if (data.dailyTasks) {
+                    log(`📋 DailyTasks count: ${data.dailyTasks.length}`);
+                    
+                    if (data.dailyTasks.length === 0) {
+                        log('❌ ONGELMA: DailyTasks array on tyhjä!', true);
+                    } else {
+                        data.dailyTasks.forEach((task, index) => {
+                            log(`📝 Task ${index + 1}: ${task.type} - "${task.description}" (${task.timeOfDay})`);
+                        });
+                    }
+                } else {
+                    log('❌ ONGELMA: Ei dailyTasks propertyä!', true);
+                }
+                
+                // Näytä koko vastaus
+                document.getElementById('results').innerHTML += 
+                    `<div class="result"><h3>🔍 Full API Response:</h3><pre>${JSON.stringify(data, null, 2)}</pre></div>`;
+                    
+            } catch (error) {
+                log(`❌ VIRHE: ${error.message}`, true);
+            }
+        }
+
+        async function testDirectSheets() {
+            try {
+                log('📊 Testaan Google Sheets data...');
+                
+                // Testaa eri parametreilla
+                const testParams = [
+                    'action=debug&type=sheets',
+                    'action=debug&type=dailytasks',
+                    'debug=true&sheets=all'
+                ];
+                
+                for (const params of testParams) {
+                    const url = `${API_BASE}?${params}&clientID=mom&apiKey=${API_KEY}`;
+                    log(`🧪 Testing: ${params}`);
+                    
+                    try {
+                        const response = await fetch(url);
+                        const text = await response.text();
+                        log(`📄 Response: ${text.substring(0, 100)}...`);
+                    } catch (err) {
+                        log(`❌ Failed: ${err.message}`, true);
+                    }
+                }
+                
+            } catch (error) {
+                log(`❌ VIRHE: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

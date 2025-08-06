@@ -1105,11 +1105,18 @@ function getMedicineReminders_(sheet, clientID, timeOfDay, currentHour) {
     const data = medicineSheet.getDataRange().getValues();
     const reminders = [];
     
+    const addedReminders = new Set(); // Duplikaattien esto
+    
     for (let i = 1; i < data.length; i++) {
       const reminderClientID = String(data[i][0]).trim().toLowerCase(); // A: ClientID
       const medicineTime = String(data[i][1]).trim(); // B: Aika (AAMU/PÄIVÄ/ILTA/YÖ)
       const specificTime = String(data[i][2]).trim(); // C: Kellonaika (klo 8:00)
       const medicineDescription = String(data[i][3]).trim(); // D: Lääke (yleisnimi)
+      
+      // Ohita tyhjät rivit
+      if (!reminderClientID || !medicineTime || !medicineDescription) {
+        continue;
+      }
       
       if (reminderClientID === clientID.toLowerCase() && 
           medicineTime.toUpperCase() === timeOfDay.toUpperCase()) {
@@ -1118,7 +1125,15 @@ function getMedicineReminders_(sheet, clientID, timeOfDay, currentHour) {
         let reminder = `💊 ${medicineDescription || 'Muista ottaa lääke'}`;
         if (specificTime) reminder += ` ${specificTime}`;
         
-        reminders.push(reminder);
+        // Tarkista duplikaatit ennen lisäämistä
+        const reminderKey = `${medicineDescription}-${specificTime}`;
+        if (!addedReminders.has(reminderKey)) {
+          addedReminders.add(reminderKey);
+          reminders.push(reminder);
+          console.log(`✅ Added unique medicine reminder: ${reminder}`);
+        } else {
+          console.log(`⚠️ Skipped duplicate medicine reminder: ${reminder}`);
+        }
       }
     }
     
