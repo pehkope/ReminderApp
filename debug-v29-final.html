@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🚨 v2.9 DEPLOYMENT TESTI</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🚨 v2.9 DEPLOYMENT DEBUG</h1>
+    
+    <div class="info">
+        <strong>Deployment Status:</strong> ✅ VALMIS (15:04, 1m 36s)<br>
+        <strong>Viimeisin commit:</strong> d60627e - "v2.9: Korjaa production API URL"<br>
+        <strong>Aikaleima:</strong> <span id="currentTime"></span>
+    </div>
+
+    <h2>1. 🎯 API TESTI</h2>
+    <button onclick="testAPI()" style="padding: 10px 20px; font-size: 16px;">TESTAA API NYT</button>
+    <div id="apiStatus"></div>
+    <pre id="apiResult"></pre>
+
+    <h2>2. 📍 AZURE SITE TESTI</h2>
+    <button onclick="testAzureSite()" style="padding: 10px 20px; font-size: 16px;">TESTAA AZURE</button>
+    <div id="azureStatus"></div>
+
+    <h2>3. 🔄 CACHE REFRESH</h2>
+    <button onclick="clearAndRefresh()" style="padding: 10px 20px; font-size: 16px;">TYHJENNÄ CACHE</button>
+    <div id="cacheStatus"></div>
+
+    <h2>4. 📋 CONSOLE LOGIT</h2>
+    <div id="console"></div>
+
+    <script>
+        const API_BASE = 'https://script.google.com/macros/s/AKfycbwgOUHKZHRMBNT0mBZBX6L6IzKzHQnIxrCXZ-IcpNpGwf8Xwo9qzNNGVOg78fWvPCGJ/exec';
+        const API_KEY = 'reminder-tablet-2024';
+        const AZURE_URL = 'https://lively-forest-0b274f703.1.azurestaticapps.net/';
+        
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            console.log(`[${time}] ${message}`);
+            document.getElementById('console').innerHTML += 
+                `<div class="${type}">[${time}] ${message}</div>`;
+        }
+        
+        function updateTime() {
+            document.getElementById('currentTime').textContent = new Date().toLocaleString();
+        }
+        
+        async function testAPI() {
+            log('🔍 Testataan Google Apps Script API...');
+            document.getElementById('apiStatus').innerHTML = '<div class="info">⏳ Ladataan...</div>';
+            
+            try {
+                const url = `${API_BASE}?action=getDailyTasks&clientID=test&apiKey=${API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    document.getElementById('apiStatus').innerHTML = 
+                        '<div class="success">✅ API TOIMII! Production URL on oikea!</div>';
+                    log('✅ API vastaus onnistui', 'success');
+                } else {
+                    document.getElementById('apiStatus').innerHTML = 
+                        '<div class="error">❌ API virhe: ' + JSON.stringify(data) + '</div>';
+                    log('❌ API virhe: ' + JSON.stringify(data), 'error');
+                }
+                
+                document.getElementById('apiResult').textContent = JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML = 
+                    '<div class="error">❌ Verkkovirhe: ' + error.message + '</div>';
+                log('❌ Verkkovirhe: ' + error.message, 'error');
+                document.getElementById('apiResult').textContent = 'Virhe: ' + error.message;
+            }
+        }
+        
+        async function testAzureSite() {
+            log('🌐 Testataan Azure Static Web App...');
+            document.getElementById('azureStatus').innerHTML = '<div class="info">⏳ Tarkistetaan...</div>';
+            
+            try {
+                const response = await fetch(AZURE_URL, { method: 'HEAD' });
+                const title = document.title; // Pitäisi olla v2.9 jos cache on päivittynyt
+                
+                if (response.ok) {
+                    document.getElementById('azureStatus').innerHTML = 
+                        '<div class="success">✅ Azure site vastaa! Status: ' + response.status + '</div>';
+                    log('✅ Azure site toimii', 'success');
+                } else {
+                    document.getElementById('azureStatus').innerHTML = 
+                        '<div class="error">❌ Azure site ongelma: ' + response.status + '</div>';
+                    log('❌ Azure site ongelma: ' + response.status, 'error');
+                }
+                
+            } catch (error) {
+                document.getElementById('azureStatus').innerHTML = 
+                    '<div class="error">❌ Azure site virhe: ' + error.message + '</div>';
+                log('❌ Azure site virhe: ' + error.message, 'error');
+            }
+        }
+        
+        function clearAndRefresh() {
+            log('🗑️ Tyhjennetään cache...');
+            document.getElementById('cacheStatus').innerHTML = '<div class="info">⏳ Tyhjentää...</div>';
+            
+            // Tyhjennä kaikki cachet
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(registration => registration.unregister());
+                });
+            }
+            
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                });
+            }
+            
+            // Tyhjennä local/session storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            document.getElementById('cacheStatus').innerHTML = 
+                '<div class="success">✅ Cache tyhjennetty! Refreshaa sivu F5:llä</div>';
+            log('✅ Cache tyhjennetty', 'success');
+            
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 2000);
+        }
+        
+        // Päivitä aika
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Automaattinen API testi
+        log('🚀 Aloitetaan automaattinen testaus...');
+        setTimeout(testAPI, 1000);
+    </script>
+</body>
+</html>
