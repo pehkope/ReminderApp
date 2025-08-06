@@ -55,8 +55,130 @@ const EMOJIS = {
 };
 
 // ===================================================================================
+//  CORS HELPER FUNCTIONS
+// ===================================================================================
+
+/**
+ * Create a response with CORS headers
+ */
+function createCorsResponse_(data) {
+  // Google Apps Script doesn't support setHeaders on ContentService
+  // CORS headers need to be handled differently in GAS
+  const jsonResponse = ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+  
+  return jsonResponse;
+}
+
+// ===================================================================================
 //  MAIN ENTRY POINTS
 // ===================================================================================
+
+/**
+ * Handle OPTIONS requests for CORS preflight
+ */
+function doOptions(e) {
+  return createCorsResponse_({
+    status: "OK",
+    message: "CORS preflight successful"
+  });
+}
+
+/**
+ * Handle POST requests with CORS support
+ */
+function doPost(e) {
+  try {
+    console.log("doPost called with:", JSON.stringify(e, null, 2));
+    
+    // Parse POST body
+    let postData = {};
+    if (e.postData && e.postData.contents) {
+      try {
+        postData = JSON.parse(e.postData.contents);
+      } catch (parseError) {
+        console.error("Failed to parse POST data:", parseError.toString());
+        return createCorsResponse_({
+          error: "Invalid JSON in POST body",
+          status: "ERROR"
+        });
+      }
+    }
+    
+    // API Key authentication
+    const apiKey = postData.apiKey || (e.parameter && e.parameter.apiKey);
+    if (!validateApiKey_(apiKey)) {
+      console.error("❌ Invalid or missing API key in POST:", apiKey);
+      return createCorsResponse_({
+        error: "Unauthorized - Invalid API key",
+        status: "UNAUTHORIZED"
+      });
+    }
+    
+    // Handle acknowledgment from POST data
+    if (postData.action === 'acknowledgeTask' || (e.parameter && e.parameter.action === 'acknowledgeTask')) {
+      return handlePostAcknowledgement_(postData, e);
+    }
+    
+    // Default: treat as data fetch
+    return handleDataFetchAction_(e);
+    
+  } catch (error) {
+    console.error("CRITICAL ERROR in doPost:", error.toString());
+    return createCorsResponse_({
+      error: "Server error: " + error.toString(),
+      status: "ERROR"
+    });
+  }
+}
+
+/**
+ * Handle POST acknowledgment requests
+ */
+function handlePostAcknowledgement_(postData, e) {
+  try {
+    const clientID = postData.clientID || 'mom';
+    const type = postData.type || '';
+    const timeOfDay = postData.timeOfDay || '';
+    const description = postData.description || '';
+    const timestamp = postData.timestamp || new Date().toISOString();
+    
+    console.log(`POST Acknowledgment: ${clientID} - ${type} (${timeOfDay}) "${description}"`);
+    
+    if (!type || !timeOfDay) {
+      return createCorsResponse_({
+        error: "Missing type or timeOfDay in POST data",
+        status: "ERROR"
+      });
+    }
+    
+    const ackSuccess = acknowledgeWeeklyTask_(clientID, type, timeOfDay, description, timestamp);
+    
+    if (ackSuccess) {
+      try {
+        sendAcknowledgmentNotifications_(clientID, type, timeOfDay, timestamp);
+      } catch (notifyError) {
+        console.error("⚠️ Notification failed:", notifyError.toString());
+      }
+    }
+    
+    return createCorsResponse_({
+      status: ackSuccess ? "OK" : "ERROR",
+      message: ackSuccess ? "Task acknowledged" : "Failed to acknowledge task",
+      clientID: clientID,
+      type: type,
+      timeOfDay: timeOfDay,
+      timestamp: timestamp
+    });
+    
+  } catch (error) {
+    console.error("ERROR in handlePostAcknowledgement_:", error.toString());
+    return createCorsResponse_({
+      error: error.toString(),
+      status: "ERROR"
+    });
+  }
+}
 
 /**
  * Main entry point for HTTP GET requests
@@ -69,10 +191,10 @@ function doGet(e) {
     const apiKey = e && e.parameter && e.parameter.apiKey;
     if (!validateApiKey_(apiKey)) {
       console.error("❌ Invalid or missing API key:", apiKey);
-      return ContentService.createTextOutput(JSON.stringify({
+      return createCorsResponse_({
         error: "Unauthorized - Invalid API key",
         status: "UNAUTHORIZED"
-      })).setMimeType(ContentService.MimeType.JSON);
+      });
     }
     
     // Check if this is an acknowledgment request
@@ -87,11 +209,11 @@ function doGet(e) {
     console.error("CRITICAL ERROR in doGet:", error.toString());
     console.error("Stack trace:", error.stack);
     
-    return ContentService.createTextOutput(JSON.stringify({
+    return createCorsResponse_({
       error: "Server error: " + error.toString(),
       timestamp: new Date().toISOString(),
       status: "ERROR"
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
   }
 }
 
@@ -114,10 +236,10 @@ function handleAcknowledgementAction_(e) {
     
     if (!taskType || !timeOfDay) {
       console.error("Missing required parameters: taskType or timeOfDay");
-      return ContentService.createTextOutput(JSON.stringify({
+      return createCorsResponse_({
         error: "Missing taskType or timeOfDay",
         status: "ERROR"
-      })).setMimeType(ContentService.MimeType.JSON);
+      });
     }
     
     // Record acknowledgment in Google Sheets
@@ -138,21 +260,21 @@ function handleAcknowledgementAction_(e) {
       console.error("❌ Failed to record acknowledgment");
     }
     
-    return ContentService.createTextOutput(JSON.stringify({
+    return createCorsResponse_({
       status: ackSuccess ? "OK" : "ERROR",
       message: ackSuccess ? "Acknowledgment recorded" : "Failed to record acknowledgment",
       clientID: clientID,
         taskType: taskType,
       timeOfDay: timeOfDay,
       timestamp: timestamp
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
     
   } catch (error) {
     console.error("ERROR in handleAcknowledgementAction_:", error.toString());
-    return ContentService.createTextOutput(JSON.stringify({
+    return createCorsResponse_({
       error: error.toString(),
       status: "ERROR"
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
   }
 }
 
@@ -443,13 +565,13 @@ function handleDataFetchAction_(e) {
     
     if (!sheetId) {
       console.error(`CRITICAL: Google Sheet ID not configured for client: ${clientID}`);
-      return ContentService.createTextOutput(JSON.stringify({
+      return createCorsResponse_({
         error: `Sheet ID not configured for client: ${clientID}`,
         clientID: clientID,
         timestamp: new Date().toISOString(),
         status: "ERROR",
         suggestion: `Add SHEET_ID_${clientID.toLowerCase()} to Script Properties`
-      })).setMimeType(ContentService.MimeType.JSON);
+      });
     }
     
     const sheet = SpreadsheetApp.openById(sheetId);
@@ -500,19 +622,18 @@ function handleDataFetchAction_(e) {
     
     console.log("Returning response:", JSON.stringify(response, null, 2));
     
-    return ContentService.createTextOutput(JSON.stringify(response))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createCorsResponse_(response);
       
 } catch (error) {
     console.error("ERROR in handleDataFetchAction_:", error.toString());
     console.error("Stack trace:", error.stack);
     
-    return ContentService.createTextOutput(JSON.stringify({
+    return createCorsResponse_({
       error: error.toString(),
       clientID: "unknown",
       timestamp: new Date().toISOString(),
       status: "ERROR"
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
   }
 }
 

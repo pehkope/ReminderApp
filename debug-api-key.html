@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔑 API KEY DEBUG</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔑 API KEY TESTAUS</h1>
+    
+    <h2>Nykyinen tilanne:</h2>
+    <div class="error">
+        ❌ Virhe: {"error":"Unauthorized - Invalid API key","status":"UNAUTHORIZED"}
+    </div>
+    
+    <h2>Testit:</h2>
+    
+    <h3>1. Vanha URL + API key:</h3>
+    <button onclick="testOldUrl()">TESTAA VANHA</button>
+    <div id="oldResult"></div>
+    
+    <h3>2. API key ilman parametria:</h3>
+    <button onclick="testNoApiKey()">TESTAA ILMAN API KEY</button>
+    <div id="noKeyResult"></div>
+    
+    <h3>3. Eri API key arvot:</h3>
+    <button onclick="testDifferentKeys()">TESTAA ERI AVAIMET</button>
+    <div id="keysResult"></div>
+    
+    <h3>4. URL rakenne:</h3>
+    <div id="urlInfo"></div>
+    
+    <script>
+        const OLD_URL = 'https://script.google.com/macros/s/AKfycbyoKhAi_3VwgiFlX2yAUH36sw6nb_apqmNeNCTBVRnA3EDo6inP2icY0oDuamBsCiblzA/exec';
+        const CURRENT_KEY = 'reminder-tablet-2024';
+        
+        function log(elementId, content, isError = false) {
+            const el = document.getElementById(elementId);
+            const className = isError ? 'result error' : 'result success';
+            el.innerHTML = `<div class="${className}">${content}</div>`;
+        }
+        
+        async function testOldUrl() {
+            try {
+                const url = `${OLD_URL}?action=getDailyTasks&clientID=test&apiKey=${CURRENT_KEY}`;
+                console.log('Testataan URL:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                log('oldResult', `✅ Vastaus: <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+            } catch (error) {
+                log('oldResult', `❌ Virhe: ${error.message}`, true);
+            }
+        }
+        
+        async function testNoApiKey() {
+            try {
+                const url = `${OLD_URL}?action=getDailyTasks&clientID=test`;
+                console.log('Testataan ilman API key:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                log('noKeyResult', `Vastaus ilman API key: <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+            } catch (error) {
+                log('noKeyResult', `❌ Virhe: ${error.message}`, true);
+            }
+        }
+        
+        async function testDifferentKeys() {
+            const testKeys = [
+                'reminder-tablet-2024',
+                'test-key',
+                '',
+                'undefined',
+                'null'
+            ];
+            
+            let results = '';
+            
+            for (const key of testKeys) {
+                try {
+                    const url = `${OLD_URL}?action=getDailyTasks&clientID=test&apiKey=${key}`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    results += `<strong>${key}:</strong> ${data.status || data.error}<br>`;
+                    
+                } catch (error) {
+                    results += `<strong>${key}:</strong> ❌ ${error.message}<br>`;
+                }
+            }
+            
+            log('keysResult', results);
+        }
+        
+        // Näytä URL info
+        document.getElementById('urlInfo').innerHTML = `
+            <div class="result">
+                <strong>Vanha URL:</strong><br>
+                <code>${OLD_URL}</code><br><br>
+                <strong>API Key:</strong> <code>${CURRENT_KEY}</code><br><br>
+                <strong>Testiurl kokonaisuudessaan:</strong><br>
+                <code>${OLD_URL}?action=getDailyTasks&clientID=test&apiKey=${CURRENT_KEY}</code>
+            </div>
+        `;
+        
+        // Automaattinen testi
+        console.log('🔍 Aloitetaan API key debuggaus...');
+        setTimeout(testOldUrl, 1000);
+    </script>
+</body>
+</html>
