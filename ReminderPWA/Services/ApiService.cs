@@ -29,7 +29,7 @@ public class ApiService
                 Console.WriteLine($"🔧 ApiKey: '{_apiSettings.ApiKey}'");
                 
                 // Fallback for Azure deployment if config loading fails
-                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbyR-Eo-1tw38-BOqfJnQAyHAJkmOC9dQpOH64H5VdRKda_czUdF7NrpouKzQDjD3gkQFw/exec" : _apiSettings.BaseUrl;
+                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzRt10UaYWaJMWKEk_T9kHBmLoRbd3wu5tVZOUjqfno8kgg171PB7uK54hFPfgS4LyS8Q/exec" : _apiSettings.BaseUrl;
                     
                 var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
                 
@@ -146,7 +146,7 @@ public class ApiService
         try
         {
             // Fallback for Azure deployment if config loading fails
-            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbyR-Eo-1tw38-BOqfJnQAyHAJkmOC9dQpOH64H5VdRKda_czUdF7NrpouKzQDjD3gkQFw/exec" : _apiSettings.BaseUrl;
+            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzRt10UaYWaJMWKEk_T9kHBmLoRbd3wu5tVZOUjqfno8kgg171PB7uK54hFPfgS4LyS8Q/exec" : _apiSettings.BaseUrl;
                 
             var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
