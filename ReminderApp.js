@@ -882,7 +882,10 @@ function isTaskAckedToday_(sheet, taskType, timeOfDay, description, today) {
       // Match by taskType, timeOfDay, description (if provided), and date
       const descriptionMatches = !description || ackDescription === description;
       
-      if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && descriptionMatches && ackDate === today) {
+      // 🔧 KORJAUS: Vertaa vain päivämäärä osaa aikaleimasta (ackDate voi olla "2025-08-07T17:55:42.083Z" tai "2025-08-07")
+      const ackDateOnly = ackDate.split('T')[0]; // Ota vain päivämäärä osa
+      
+      if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && descriptionMatches && ackDateOnly === today) {
         return true;
       }
     }
@@ -907,7 +910,10 @@ function getTaskAckTimestamp_(sheet, taskType, timeOfDay, today) {
       const ackTimeOfDay = String(data[i][3]).trim();
       const ackDate = String(data[i][5] || data[i][4]).trim(); // Date in column 5, fallback to old position
       
-      if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && ackDate === today) {
+      // 🔧 KORJAUS: Vertaa vain päivämäärä osaa aikaleimasta
+      const ackDateOnly = ackDate.split('T')[0]; // Ota vain päivämäärä osa
+      
+      if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && ackDateOnly === today) {
         return data[i][0];
       }
     }
