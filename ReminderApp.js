@@ -21,15 +21,14 @@ const WEATHER_API_BASE = "https://api.openweathermap.org/data/2.5/weather";
 const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01/Accounts";
 
 const SHEET_NAMES = {
-  CONFIG: "Config", // ✅ Säilytetään (tekninen nimi)
+  CONFIG: "Konfiguraatio", // 🔄 Suomennettu Config → Konfiguraatio
   KUITTAUKSET: "Kuittaukset", // ✅ Suomenkielinen kuittausten hallinta
-  VIESTIT: "Viestit", // 🔄 Suomennettu Messages → Viestit  
-  KUVAT: "Kuvat", // ✅ Suomenkielinen
-  TAPAAMISET: "Tapaamiset", // ✅ Suomenkielinen
+  VIESTIT: "Viestit", // 🔄 Päivittäiset tervehdykset (ent. SMS-Tervehdykset)
+  TAPAAMISET: "Tapaamiset", // ✅ Tärkeät tapaamiset (lääkäri jne.)
+  KUVAT: "Kuvat", // ✅ Suomenkielinen  
   RUOKA_AJAT: "Ruoka-ajat", // ✅ Suomenkielinen
   LÄÄKKEET: "Lääkkeet", // ✅ Suomenkielinen
-  PUUHAA: "Puuhaa", // 🆕 Aktiviteettiehdotukset
-  SMS_TERVEHDYKSET: "SMS-Tervehdykset" // 🆕 Puhtaat tervehdykset SMS:ään
+  PUUHAA: "Puuhaa-asetukset" // 🔄 Oikea välilehden nimi
 };
 
 const TASK_TYPES = {
