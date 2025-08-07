@@ -42,9 +42,8 @@
 
     private bool ShouldShowOkButton(DailyTask task)
     {
-        // ASIAT ja PUUHAA ei tarvitse kuittausta - vain ideoita/tekstiä
-        var taskType = task.Type.ToUpper();
-        return !taskType.Contains("ASIAT") && !taskType.Contains("PUUHAA") && !task.IsAckedToday;
+        // ✅ Käytetään RequiresAck kenttää API:sta
+        return task.RequiresAck && !task.IsAckedToday;
     }
 
     private string GetTaskIconClass(string taskType)
