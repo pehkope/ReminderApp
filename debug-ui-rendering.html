@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 DEBUG: UI RENDERING LOGIIKKA</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .task { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .task.ruoka { background-color: #e8f5e8; }
+        .task.laakkeet { background-color: #fff3e0; }
+        .task.puuhaa { background-color: #e3f2fd; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 5px 0; font-family: monospace; font-size: 12px; }
+        .button { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        .button.hidden { background: #ccc; cursor: not-allowed; }
+        .result { padding: 10px; margin: 5px 0; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 DEBUG: UI RENDERING LOGIIKKA</h1>
+        
+        <div class="result" id="status">🔄 Haetaan API dataa...</div>
+        
+        <h2>📋 UI PÄÄTTELYLOGIIKKA:</h2>
+        <div id="tasks-container"></div>
+        
+        <h2>🧪 TESTAA SHOULDSHOWOBUTTON LOGIIKKA:</h2>
+        <div id="logic-test"></div>
+        
+        <h2>🔧 MANUAL TEST:</h2>
+        <button onclick="testButtonLogic()">🧪 TESTAA NAPPI LOGIIKKA</button>
+        
+        <script>
+            const API_URL = 'https://script.google.com/macros/s/AKfycbxaBM6who78A4GRajviLamNyRhJO1uzculsReozoAcljUGiDKh23QiehakOLNVPx2Wgpg/exec';
+            const API_KEY = 'reminder-tablet-2024';
+            const CLIENT_ID = 'mom';
+            
+            // 🎯 SAMA LOGIIKKA KUIN BLAZOR TASKFIELD.RAZOR
+            function shouldShowOkButton(task) {
+                console.log(`🔍 ShouldShowOkButton test for ${task.type}:`, {
+                    requiresAck: task.requiresAck,
+                    isAckedToday: task.isAckedToday,
+                    result: task.requiresAck && !task.isAckedToday
+                });
+                return task.requiresAck && !task.isAckedToday;
+            }
+            
+            function renderTask(task) {
+                const shouldShow = shouldShowOkButton(task);
+                
+                return `
+                    <div class="task ${task.type.toLowerCase()}">
+                        <h3>${task.type}: ${task.description}</h3>
+                        
+                        <div class="debug">
+                            <strong>DEBUG KENTÄT:</strong><br>
+                            RequiresAck: ${task.requiresAck}<br>
+                            IsAckedToday: ${task.isAckedToday}<br>
+                            TimeOfDay: ${task.timeOfDay}<br>
+                            Type: ${task.type}
+                        </div>
+                        
+                        <div class="debug">
+                            <strong>UI PÄÄTTELY:</strong><br>
+                            task.requiresAck && !task.isAckedToday = ${task.requiresAck} && !${task.isAckedToday} = <strong>${shouldShow}</strong>
+                        </div>
+                        
+                        <button class="button ${shouldShow ? '' : 'hidden'}" 
+                                ${shouldShow ? '' : 'disabled'}>
+                            ${shouldShow ? '✅ KUITTAA' : '❌ PIILOTETTU'}
+                        </button>
+                    </div>
+                `;
+            }
+            
+            function testButtonLogic() {
+                const testCases = [
+                    { type: "RUOKA", requiresAck: true, isAckedToday: false, description: "Test ruoka" },
+                    { type: "RUOKA", requiresAck: true, isAckedToday: true, description: "Test ruoka (kuitattu)" },
+                    { type: "LÄÄKKEET", requiresAck: true, isAckedToday: false, description: "Test lääke" },
+                    { type: "LÄÄKKEET", requiresAck: true, isAckedToday: true, description: "Test lääke (kuitattu)" },
+                    { type: "PUUHAA", requiresAck: false, isAckedToday: false, description: "Test puuhaa" },
+                    { type: "RUOKA", requiresAck: false, isAckedToday: false, description: "Test ruoka (NO ACK)" },
+                ];
+                
+                let html = '<h3>🧪 MANUAL TEST CASES:</h3>';
+                testCases.forEach(testCase => {
+                    const shouldShow = shouldShowOkButton(testCase);
+                    html += `
+                        <div class="debug">
+                            ${testCase.type} (RequiresAck: ${testCase.requiresAck}, IsAckedToday: ${testCase.isAckedToday})
+                            → ShouldShow: <strong>${shouldShow}</strong>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('logic-test').innerHTML = html;
+            }
+            
+            async function fetchAndAnalyze() {
+                try {
+                    const url = `${API_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`;
+                    console.log('🌐 Fetching from:', url);
+                    
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    console.log('📦 API Response:', data);
+                    
+                    if (data.error) {
+                        document.getElementById('status').innerHTML = `❌ <strong>API ERROR:</strong> ${data.error}`;
+                        document.getElementById('status').className = 'result error';
+                        return;
+                    }
+                    
+                    const tasks = data.dailyTasks || [];
+                    console.log('📋 Daily Tasks:', tasks);
+                    
+                    if (tasks.length === 0) {
+                        document.getElementById('status').innerHTML = '⚠️ <strong>EI TEHTÄVIÄ:</strong> API palautti tyhjän dailyTasks listan';
+                        document.getElementById('status').className = 'result error';
+                        return;
+                    }
+                    
+                    document.getElementById('status').innerHTML = `✅ <strong>API OK:</strong> Löytyi ${tasks.length} tehtävää`;
+                    document.getElementById('status').className = 'result success';
+                    
+                    // 🎯 RENDERÖI JOKAINEN TEHTÄVÄ
+                    let html = '';
+                    tasks.forEach(task => {
+                        html += renderTask(task);
+                    });
+                    
+                    document.getElementById('tasks-container').innerHTML = html;
+                    
+                    // 🧮 TILASTOT
+                    const ruokaTasks = tasks.filter(t => t.type === 'RUOKA');
+                    const laakeTasks = tasks.filter(t => t.type === 'LÄÄKKEET');
+                    const puuhaaTasks = tasks.filter(t => t.type === 'PUUHAA');
+                    
+                    const visibleButtons = tasks.filter(shouldShowOkButton).length;
+                    
+                    html += `
+                        <div class="result">
+                            <strong>📊 TILASTOT:</strong><br>
+                            RUOKA tehtäviä: ${ruokaTasks.length}<br>
+                            LÄÄKKEET tehtäviä: ${laakeTasks.length}<br>
+                            PUUHAA tehtäviä: ${puuhaaTasks.length}<br>
+                            <strong>NÄKYVIÄ NAPPEJA: ${visibleButtons}</strong>
+                        </div>
+                    `;
+                    
+                    document.getElementById('tasks-container').innerHTML += html;
+                    
+                } catch (error) {
+                    console.error('💥 Error:', error);
+                    document.getElementById('status').innerHTML = `💥 <strong>FETCH ERROR:</strong> ${error.message}`;
+                    document.getElementById('status').className = 'result error';
+                }
+            }
+            
+            // 🚀 ALOITA AUTOMAATTISESTI
+            window.onload = () => {
+                fetchAndAnalyze();
+                testButtonLogic();
+            };
+        </script>
+    </div>
+</body>
+</html>
