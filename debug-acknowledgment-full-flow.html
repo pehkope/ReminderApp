@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔄 Kuittauksen täydellinen debug</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .step { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        .warning { background: #fff3cd; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Kuittauksen täydellinen debug ketju</h1>
+    <div id="results"></div>
+    
+    <script>
+        const NEW_API_URL = "https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec";
+        const API_KEY = "reminder-tablet-2024";
+        const CLIENT_ID = "mom";
+        
+        async function debugFullAcknowledgmentFlow() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔄 Kuittauksen täydellinen debug käynnissä...</h2>';
+            
+            try {
+                // VAIHE 1: Hae alku tilanne
+                console.log('📋 VAIHE 1: Hae alkutilanne...');
+                const initialResponse = await fetch(`${NEW_API_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`);
+                const initialData = await initialResponse.json();
+                
+                results.innerHTML += `<div class="step">`;
+                results.innerHTML += `<h3>📋 VAIHE 1: Alkutilanne</h3>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${initialResponse.status}</p>`;
+                
+                if (initialData.dailyTasks) {
+                    results.innerHTML += `<p><strong>Löydettiin ${initialData.dailyTasks.length} tehtävää:</strong></p>`;
+                    initialData.dailyTasks.forEach((task, index) => {
+                        const ackStatus = task.isAckedToday ? "✅ KUITATTU" : "❌ EI KUITATTU";
+                        results.innerHTML += `<p>${index + 1}. <strong>${task.type}</strong>: "${task.description}" (${task.timeOfDay}) - ${ackStatus}</p>`;
+                    });
+                } else {
+                    results.innerHTML += `<p style="color: red;">❌ Ei dailyTasks dataa!</p>`;
+                }
+                results.innerHTML += `</div>`;
+                
+                // Etsi RUOKA tehtävä kuittaukseen
+                const ruokaTask = initialData.dailyTasks?.find(task => task.type === "RUOKA");
+                if (!ruokaTask) {
+                    results.innerHTML += `<div class="step error">❌ Ei löytynyt RUOKA tehtävää kuittaukseen!</div>`;
+                    return;
+                }
+                
+                console.log('🍽️ Löydettiin RUOKA tehtävä:', ruokaTask);
+                
+                // VAIHE 2: Lähetä kuittaus
+                console.log('📤 VAIHE 2: Lähetä kuittaus...');
+                const ackPayload = {
+                    clientID: CLIENT_ID,
+                    taskType: "RUOKA",
+                    timeOfDay: ruokaTask.timeOfDay,
+                    description: ruokaTask.description
+                };
+                
+                results.innerHTML += `<div class="step">`;
+                results.innerHTML += `<h3>📤 VAIHE 2: Kuittaus lähetys</h3>`;
+                results.innerHTML += `<p><strong>Payload:</strong></p>`;
+                results.innerHTML += `<pre>${JSON.stringify(ackPayload, null, 2)}</pre>`;
+                
+                const ackResponse = await fetch(NEW_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        apiKey: API_KEY,
+                        action: "acknowledge",
+                        ...ackPayload
+                    })
+                });
+                
+                const ackResult = await ackResponse.text();
+                results.innerHTML += `<p><strong>Kuittaus vastaus status:</strong> ${ackResponse.status}</p>`;
+                results.innerHTML += `<p><strong>Kuittaus vastaus:</strong></p>`;
+                results.innerHTML += `<pre>${ackResult}</pre>`;
+                
+                let ackJson;
+                try {
+                    ackJson = JSON.parse(ackResult);
+                    if (ackJson.status === "OK") {
+                        results.innerHTML += `<p style="color: green;">✅ Kuittaus onnistui!</p>`;
+                    } else {
+                        results.innerHTML += `<p style="color: red;">❌ Kuittaus epäonnistui: ${ackJson.error || ackJson.message || "Tuntematon virhe"}</p>`;
+                    }
+                } catch (e) {
+                    results.innerHTML += `<p style="color: red;">❌ Kuittaus vastaus ei ole validia JSON!</p>`;
+                }
+                results.innerHTML += `</div>`;
+                
+                // VAIHE 3: Odota hetki ja hae uudelleen
+                console.log('⏱️ VAIHE 3: Odota ja hae uudelleen...');
+                results.innerHTML += `<div class="step">`;
+                results.innerHTML += `<h3>⏱️ VAIHE 3: Odotetaan 2 sekuntia...</h3>`;
+                results.innerHTML += `</div>`;
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // VAIHE 4: Hae tilanne kuittauksen jälkeen
+                console.log('🔄 VAIHE 4: Hae tilanne kuittauksen jälkeen...');
+                const afterResponse = await fetch(`${NEW_API_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`);
+                const afterData = await afterResponse.json();
+                
+                results.innerHTML += `<div class="step">`;
+                results.innerHTML += `<h3>🔄 VAIHE 4: Tilanne kuittauksen jälkeen</h3>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${afterResponse.status}</p>`;
+                
+                if (afterData.dailyTasks) {
+                    results.innerHTML += `<p><strong>Tehtävät kuittauksen jälkeen:</strong></p>`;
+                    afterData.dailyTasks.forEach((task, index) => {
+                        const ackStatus = task.isAckedToday ? "✅ KUITATTU" : "❌ EI KUITATTU";
+                        const isRuoka = task.type === "RUOKA";
+                        const style = isRuoka ? 'style="background: yellow; font-weight: bold;"' : '';
+                        results.innerHTML += `<p ${style}>${index + 1}. <strong>${task.type}</strong>: "${task.description}" (${task.timeOfDay}) - ${ackStatus}</p>`;
+                    });
+                } else {
+                    results.innerHTML += `<p style="color: red;">❌ Ei dailyTasks dataa!</p>`;
+                }
+                results.innerHTML += `</div>`;
+                
+                // VAIHE 5: Analysoi muutos
+                console.log('📊 VAIHE 5: Analysoi muutos...');
+                const afterRuokaTask = afterData.dailyTasks?.find(task => task.type === "RUOKA");
+                
+                results.innerHTML += `<div class="step">`;
+                results.innerHTML += `<h3>📊 VAIHE 5: Analyysi</h3>`;
+                
+                if (ruokaTask && afterRuokaTask) {
+                    results.innerHTML += `<p><strong>ENNEN:</strong> RUOKA isAckedToday = ${ruokaTask.isAckedToday}</p>`;
+                    results.innerHTML += `<p><strong>JÄLKEEN:</strong> RUOKA isAckedToday = ${afterRuokaTask.isAckedToday}</p>`;
+                    
+                    if (ruokaTask.isAckedToday === false && afterRuokaTask.isAckedToday === true) {
+                        results.innerHTML += `<p style="color: green; font-weight: bold;">✅ ONNISTUI: isAckedToday muuttui false → true</p>`;
+                        results.innerHTML += `<p style="color: green;">👍 Backend toimii oikein - ongelma on frontend UI päivityksessä!</p>`;
+                    } else if (ruokaTask.isAckedToday === afterRuokaTask.isAckedToday) {
+                        results.innerHTML += `<p style="color: red; font-weight: bold;">❌ ONGELMA: isAckedToday ei muuttunut</p>`;
+                        if (afterRuokaTask.isAckedToday === false) {
+                            results.innerHTML += `<p style="color: red;">🐛 Backend ei tallenna kuittausta oikein!</p>`;
+                        } else {
+                            results.innerHTML += `<p style="color: orange;">🤔 RUOKA oli jo kuitattu aikaisemmin</p>`;
+                        }
+                    }
+                    
+                    if (afterRuokaTask.acknowledgmentTimestamp) {
+                        results.innerHTML += `<p><strong>Kuittausaika:</strong> ${afterRuokaTask.acknowledgmentTimestamp}</p>`;
+                    }
+                } else {
+                    results.innerHTML += `<p style="color: red;">❌ Ei voitu verrata RUOKA tehtäviä!</p>`;
+                }
+                
+                results.innerHTML += `</div>`;
+                
+                // VAIHE 6: Frontend suositukset
+                results.innerHTML += `<div class="step">`;
+                results.innerHTML += `<h3>💡 VAIHE 6: Suositukset</h3>`;
+                
+                if (afterRuokaTask?.isAckedToday === true) {
+                    results.innerHTML += `<p style="color: green;">✅ <strong>Backend toimii:</strong> Kuittaus tallentuu oikein</p>`;
+                    results.innerHTML += `<p>🔧 <strong>Frontend ongelma:</strong> UI ei päivity kuittauksen jälkeen</p>`;
+                    results.innerHTML += `<p>🛠️ <strong>Korjaukset tarvitaan:</strong></p>`;
+                    results.innerHTML += `<ul>`;
+                    results.innerHTML += `<li>Blazor komponentin StateHasChanged() kutsuminen</li>`;
+                    results.innerHTML += `<li>API vastauksen oikea käsittely</li>`;
+                    results.innerHTML += `<li>TaskField.razor päivityslogiikka</li>`;
+                    results.innerHTML += `</ul>`;
+                } else {
+                    results.innerHTML += `<p style="color: red;">❌ <strong>Backend ongelma:</strong> Kuittaus ei tallennu</p>`;
+                    results.innerHTML += `<p>🛠️ <strong>Korjaukset tarvitaan Google Apps Scriptissä:</strong></p>`;
+                    results.innerHTML += `<ul>`;
+                    results.innerHTML += `<li>acknowledgeWeeklyTask_() funktio</li>`;
+                    results.innerHTML += `<li>isTaskAckedToday_() funktio</li>`;
+                    results.innerHTML += `<li>Kuittaukset sheet rakenne</li>`;
+                    results.innerHTML += `</ul>`;
+                }
+                
+                results.innerHTML += `</div>`;
+                
+            } catch (error) {
+                console.error('❌ Virhe debuggauksessa:', error);
+                results.innerHTML += `<div class="step error">`;
+                results.innerHTML += `<h3>❌ Virhe debuggauksessa</h3>`;
+                results.innerHTML += `<p>${error.message}</p>`;
+                results.innerHTML += `<pre>${error.stack}</pre>`;
+                results.innerHTML += `</div>`;
+            }
+        }
+        
+        // Aloita debug automaattisesti
+        debugFullAcknowledgmentFlow();
+    </script>
+</body>
+</html>
