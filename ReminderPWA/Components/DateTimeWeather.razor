@@ -18,14 +18,7 @@
                 <div class="weather-info">
                     <span class="weather-temp">@Weather.Temperature</span>
                     <span class="weather-desc">@GetFinnishWeatherDescription(Weather.Description)</span>
-                    @if (Weather.IsGoodForOutdoor)
-                    {
-                        <span class="weather-advice">Ulkoiluun sopiva!</span>
-                    }
-                    else if (Weather.IsRaining || Weather.IsSnowing)
-                    {
-                        <span class="weather-advice">Sisäpuolella mukavampaa</span>
-                    }
+                    @* Sääneuvo poistettu - kenttiä ei ole Weather modelissa *@
                 </div>
             }
             else
