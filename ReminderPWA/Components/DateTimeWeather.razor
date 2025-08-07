@@ -10,14 +10,22 @@
             <div class="time-period">@TimeOfDayText</div>
         </div>
         
-        @* Säätieto kellonaika-alueen sisällä alaosassa *@
+        @* Säätietoon parannettu näkyvyys *@
         <div class="weather-compact">
             @if (Weather != null)
             {
                 <span class="weather-icon">@GetWeatherIcon(Weather.Description)</span>
                 <div class="weather-info">
                     <span class="weather-temp">@Weather.Temperature</span>
-                    <span class="weather-desc">@Weather.Description</span>
+                    <span class="weather-desc">@GetFinnishWeatherDescription(Weather.Description)</span>
+                    @if (Weather.IsGoodForOutdoor)
+                    {
+                        <span class="weather-advice">Ulkoiluun sopiva!</span>
+                    }
+                    else if (Weather.IsRaining || Weather.IsSnowing)
+                    {
+                        <span class="weather-advice">Sisäpuolella mukavampaa</span>
+                    }
                 </div>
             }
             else
@@ -25,7 +33,7 @@
                 <span class="weather-icon">🌤️</span>
                 <div class="weather-info">
                     <span class="weather-temp">22°C</span>
-                    <span class="weather-desc">Pilvinen</span>
+                    <span class="weather-desc">Ladataan säätietoja...</span>
                 </div>
             }
         </div>
@@ -69,5 +77,30 @@
         if (desc.Contains("kuuma") || desc.Contains("helle")) return "🔥";
         
         return "🌤️";
+    }
+
+    private string GetFinnishWeatherDescription(string? description)
+    {
+        if (string.IsNullOrEmpty(description)) return "Sää ei tiedossa";
+        
+        var desc = description.ToLower();
+        
+        // Käännökset suomeksi
+        if (desc.Contains("clear sky")) return "Selkeää";
+        if (desc.Contains("few clouds")) return "Vähän pilviä";
+        if (desc.Contains("scattered clouds")) return "Hajanaisia pilviä";
+        if (desc.Contains("broken clouds")) return "Melko pilvistä";
+        if (desc.Contains("overcast clouds")) return "Pilvistä";
+        if (desc.Contains("light rain")) return "Heikkoa sadetta";
+        if (desc.Contains("moderate rain")) return "Kohtalaista sadetta";
+        if (desc.Contains("heavy rain")) return "Rankka sade";
+        if (desc.Contains("shower rain")) return "Sadekuuroja";
+        if (desc.Contains("thunderstorm")) return "Ukkosta";
+        if (desc.Contains("snow")) return "Lumisadetta";
+        if (desc.Contains("mist") || desc.Contains("fog")) return "Sumua";
+        if (desc.Contains("haze")) return "Utuista";
+        
+        // Jos ei löydy käännöstä, palautetaan alkuperäinen
+        return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(description);
     }
 }

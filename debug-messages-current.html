@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Testaa: Messages taulukon lukeminen</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; max-height: 400px; }
+        .message-row { border: 1px solid #ccc; margin: 5px 0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Testaa: Messages taulukon lukeminen</h1>
+    
+    <button onclick="testMessagesReading()">📖 LUE MESSAGES TAULUKKO</button>
+    <button onclick="testCurrentAPI()">🌐 TESTAA NYKYINEN API</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testMessagesReading() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">🔍 Luetaan Messages taulukkoa...</div>';
+            
+            try {
+                // Testaa API:a ja katso mitä viestejä tulee
+                const url = `https://script.google.com/macros/s/AKfycbxIXvVNq27JQ9ggKvxfeiTjX9LpBKZkdx1k9VHK62lXuiFgHVC6wZNAsMEzWw0nS_yXEg/exec?clientID=mom&apiKey=reminder-tablet-2024&_t=${Date.now()}`;
+                
+                console.log('🌐 URL:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('📄 Response:', data);
+                
+                if (data.status === 'OK') {
+                    let html = '<div class="success">✅ API vastasi onnistuneesti!</div>';
+                    
+                    // Näytä latestReminder
+                    html += '<h3>📱 latestReminder (SMS viesti):</h3>';
+                    html += `<div class="message-row"><strong>Viesti:</strong> ${data.latestReminder || 'EI VIESTIÄ'}</div>`;
+                    
+                    // Näytä dailyTasks
+                    html += '<h3>📋 dailyTasks:</h3>';
+                    if (data.dailyTasks && data.dailyTasks.length > 0) {
+                        data.dailyTasks.forEach((task, index) => {
+                            html += `<div class="message-row">
+                                <strong>🎯 ${task.type}:</strong> ${task.description}<br>
+                                <small>⏰ ${task.timeOfDay} | ✅ Kuitattu: ${task.isAckedToday}</small>
+                            </div>`;
+                        });
+                    } else {
+                        html += '<div class="error">❌ Ei dailyTasks tehtäviä!</div>';
+                    }
+                    
+                    // Näytä täysi JSON
+                    html += '<h3>🗂️ Täysi API vastaus:</h3>';
+                    html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">❌ API virhe: ${JSON.stringify(data)}</div>`;
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `<div class="error">❌ Verkkovirhe: ${error.message}</div>`;
+            }
+        }
+        
+        async function testCurrentAPI() {
+            await testMessagesReading();
+        }
+    </script>
+</body>
+</html>

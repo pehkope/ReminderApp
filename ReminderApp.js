@@ -23,11 +23,13 @@ const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01/Accounts";
 const SHEET_NAMES = {
   CONFIG: "Config", // ✅ Säilytetään (tekninen nimi)
   KUITTAUKSET: "Kuittaukset", // ✅ Suomenkielinen kuittausten hallinta
-  VIESTIT: "Messages", // 🔄 Käytetään olemassa olevaa Messages tabia  
-  KUVAT: "Kuvat", // 🔄 Suomennettu Photos → Kuvat
-  TAPAAMISET: "Tapaamiset", // 🔄 Suomennettu Appointments → Tapaamiset
-  RUOKA_AJAT: "Ruoka-ajat", // 🆕 Ruokamuistutukset
-  LÄÄKKEET: "Lääkkeet" // 🆕 Lääkemuistutukset
+  VIESTIT: "Viestit", // 🔄 Suomennettu Messages → Viestit  
+  KUVAT: "Kuvat", // ✅ Suomenkielinen
+  TAPAAMISET: "Tapaamiset", // ✅ Suomenkielinen
+  RUOKA_AJAT: "Ruoka-ajat", // ✅ Suomenkielinen
+  LÄÄKKEET: "Lääkkeet", // ✅ Suomenkielinen
+  PUUHAA: "Puuhaa", // 🆕 Aktiviteettiehdotukset
+  SMS_TERVEHDYKSET: "SMS-Tervehdykset" // 🆕 Puhtaat tervehdykset SMS:ään
 };
 
 const TASK_TYPES = {
@@ -41,6 +43,21 @@ const TIME_OF_DAY = {
   PAIVA: "Päivä", 
   ILTA: "Ilta",
   YO: "Yö"
+};
+
+const SAA_KATEGORIAT = {
+  AURINKO: ["clear", "sunny", "few clouds"],
+  PILVIA: ["scattered clouds", "broken clouds", "overcast clouds"],
+  SADE: ["shower rain", "rain", "thunderstorm", "light rain"],
+  LUMISADE: ["snow", "light snow", "heavy snow", "sleet"],
+  SUMU: ["mist", "fog", "haze"],
+  KAIKKI: ["*"] // Soveltuu kaikkeen säähän
+};
+
+const PUUHAA_KATEGORIAT = {
+  ULKO: "ULKO",
+  SISÄ: "SISÄ", 
+  SOSIAALI: "SOSIAALI"
 };
 
 const EMOJIS = {
@@ -791,15 +808,21 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
       });
     }
     
-    // 3. PUUHAA tehtävät - lisätään aina
-    // Hae PUUHAA aktiviteetti viestistä tai sääperusteisesti
+    // 3. PUUHAA tehtävät - uusi älykäs sääperusteinen ehdotus
+    const weatherApiKey = PropertiesService.getScriptProperties().getProperty(WEATHER_API_KEY_KEY);
+    const currentWeather = weatherApiKey ? getWeatherData_(weatherApiKey) : null;
+    
+    // Hae PUUHAA aktiviteetti viestistä tai uudesta Puuhaa taulukosta
     const activityFromMessage = getActivityFromMessage_(sheet);
-    const activity = activityFromMessage || getWeatherBasedActivity_() || "Mukava hetki yhdessä";
+    const activityFromPuuhaa = getPuuhaaEhdotus_(sheet, clientID, timeOfDay, currentWeather);
+    const activity = activityFromMessage || activityFromPuuhaa || "😊 Mukava hetki rauhassa";
+    
+    console.log(`🎯 PUUHAA valittu: "${activity}"`);
     
     tasks.push({
       type: "PUUHAA",
       description: activity,
-      timeOfDay: timeOfDay,
+      timeOfDay: finalTimeOfDay,
       isAckedToday: false, // PUUHAA ei kuitata
       acknowledgmentTimestamp: null
     });
@@ -957,7 +980,7 @@ function getClientSettings_(sheet, clientID) {
         console.log(`✅ Found matching client! usePhotos: ${usePhotosValue} → ${usePhotosResult}`);
         
         return {
-          useTelegram: data[i][5] === true || String(data[i][5]).toLowerCase() === 'true',
+          useTelegram: false, // 🚨 HÄTÄTILA: SMS SPAMMI PYSÄYTETTY!
           usePhotos: usePhotosResult
         };
       }
@@ -976,27 +999,26 @@ function getClientSettings_(sheet, clientID) {
  */
 function getLatestReminder_(sheet, clientID) {
   try {
-    // 1. Get time-based greeting
-    const greeting = getTimeBasedGreeting_();
+    console.log(`🌟 Haetaan puhdasta tervehdystä SMS:ään asiakkaalle: ${clientID}`);
     
-    // 2. Get weather info for activity suggestions
-    const weatherApiKey = PropertiesService.getScriptProperties().getProperty(WEATHER_API_KEY_KEY);
-    const weather = weatherApiKey ? getWeatherData_(weatherApiKey) : null;
-    const weatherActivity = getWeatherBasedActivity_(weather);
-    
-    // 3. Combine greeting + weather activity ONLY
-    // NOTE: Food and medicine reminders are handled in SEURAAVAKSI tasks, not here
-    let message = greeting;
-    
-    if (weatherActivity) {
-      message += "\n" + weatherActivity;
+    // 1. Hae SMS-Tervehdykset taulukosta
+    const smsSheet = sheet.getSheetByName(SHEET_NAMES.SMS_TERVEHDYKSET);
+    if (smsSheet) {
+      const currentTimeOfDay = getTimeOfDay_();
+      const greeting = getSMSTervehdys_(smsSheet, currentTimeOfDay);
+      if (greeting) {
+        console.log(`📱 SMS tervehdys löytyi: "${greeting}"`);
+        return greeting;
+      }
     }
     
-    console.log("Generated contextual reminder (greeting + weather):", message);
-    return message;
+    // 2. Fallback: Yksinkertainen aikapohjainen tervehdys  
+    const greeting = getTimeBasedGreeting_();
+    console.log(`📱 Käytetään fallback tervehdystä: "${greeting}"`);
+    return greeting;
     
   } catch (error) {
-    console.error("Error generating contextual reminder:", error.toString());
+    console.error("Error getting SMS greeting:", error.toString());
     return "Hyvää päivää kultaseni! 💕";
   }
 }
@@ -2480,6 +2502,180 @@ function getActivityFromMessage_(sheet) {
     
   } catch (error) {
     console.error("Error getting activity from message:", error);
+    return null;
+  }
+}
+
+/**
+ * Hae puuhaa ehdotus sään ja ajankohdan mukaan
+ */
+function getPuuhaaEhdotus_(sheet, clientID, timeOfDay, weather) {
+  try {
+    console.log(`🎯 Haetaan puuhaa ehdotusta: ${clientID}, ${timeOfDay}, ${weather?.description}`);
+    
+    const puuhaaSheet = sheet.getSheetByName(SHEET_NAMES.PUUHAA);
+    if (!puuhaaSheet) {
+      console.log("Ei 'Puuhaa' taulukkoa - käytetään oletusta");
+      return getPuuhaaOletus_(timeOfDay, weather);
+    }
+    
+    const data = puuhaaSheet.getDataRange().getValues();
+    if (data.length <= 1) {
+      console.log("Ei puuhaa rivejä taulukossa");
+      return getPuuhaaOletus_(timeOfDay, weather);
+    }
+    
+    const saaKategoria = getSaaKategoria_(weather);
+    console.log(`🌤️ Sääkategoria: ${saaKategoria}`);
+    
+    const sopivat = [];
+    
+    // Käy läpi kaikki puuhaa vaihtoehdot
+    for (let i = 1; i < data.length; i++) {
+      const asiakasID = String(data[i][0]).trim().toLowerCase();
+      const kategoria = String(data[i][1]).trim(); // ULKO/SISÄ/SOSIAALI
+      const saa = String(data[i][2]).trim(); // AURINKO/SADE/KAIKKI
+      const ajankohta = String(data[i][3]).trim(); // AAMU,PÄIVÄ,ILTA tai KAIKKI
+      const kuvaus = String(data[i][4]).trim();
+      const sosiaaliset = String(data[i][5]).trim().toLowerCase() === 'true';
+      
+      // Tarkista asiakas
+      if (asiakasID !== clientID.toLowerCase()) continue;
+      
+      // Tarkista ajankohta
+      const ajankohdatList = ajankohta.split(',').map(a => a.trim().toUpperCase());
+      if (!ajankohdatList.includes('KAIKKI') && !ajankohdatList.includes(timeOfDay.toUpperCase())) {
+        continue;
+      }
+      
+      // Tarkista sää
+      if (saa !== 'KAIKKI' && saa !== saaKategoria) continue;
+      
+      sopivat.push({
+        kategoria: kategoria,
+        kuvaus: kuvaus,
+        sosiaaliset: sosiaaliset,
+        saa: saa,
+        ajankohta: ajankohta
+      });
+    }
+    
+    if (sopivat.length === 0) {
+      console.log("Ei sopivia puuhaa vaihtoehtoja - käytetään oletusta");
+      return getPuuhaaOletus_(timeOfDay, weather);
+    }
+    
+    // Valitse satunnainen sopiva vaihtoehto
+    const valittu = sopivat[Math.floor(Math.random() * sopivat.length)];
+    console.log(`🎲 Valittiin puuhaa: ${valittu.kuvaus}`);
+    
+    return valittu.kuvaus;
+    
+  } catch (error) {
+    console.error("Virhe puuhaa ehdotuksessa:", error.toString());
+    return getPuuhaaOletus_(timeOfDay, weather);
+  }
+}
+
+/**
+ * Määritä sään kategoria
+ */
+function getSaaKategoria_(weather) {
+  if (!weather || !weather.description) return "KAIKKI";
+  
+  const kuvaus = weather.description.toLowerCase();
+  
+  for (const [kategoria, kuvaukset] of Object.entries(SAA_KATEGORIAT)) {
+    if (kategoria === "KAIKKI") continue;
+    
+    for (const saaKuvaus of kuvaukset) {
+      if (kuvaus.includes(saaKuvaus.toLowerCase())) {
+        return kategoria;
+      }
+    }
+  }
+  
+  return "KAIKKI";
+}
+
+/**
+ * Oletus puuhaa jos ei löydy taulukosta
+ */
+function getPuuhaaOletus_(timeOfDay, weather) {
+  const isGoodWeather = weather && (weather.temp > 10) && !weather.isRaining && !weather.isSnowing;
+  
+  switch (timeOfDay.toUpperCase()) {
+    case "AAMU":
+      return isGoodWeather ? "🚶‍♀️ Aamukävely raikkaassa ilmassa" : "☕ Rauhallinen aamukahvi ikkunan ääressä";
+    case "PAIVA":  
+      return isGoodWeather ? "🌳 Istuskelua puistossa" : "📚 Hyvän kirjan lukemista";
+    case "ILTA":
+      return isGoodWeather ? "🌅 Iltakävely auringonlaskussa" : "📞 Mukava puhelu ystävälle";
+    case "YO":
+      return "🎵 Rauhallista musiikkia ja lepoa";
+    default:
+      return "😊 Jotain mukavaa pientä";
+  }
+}
+
+/**
+ * Testaa Puuhaa järjestelmää
+ */
+function testPuuhaaJarjestelma() {
+  try {
+    console.log("=== 🎯 PUUHAA JÄRJESTELMÄN TESTAUS ===");
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet();
+    const clientID = "mom";
+    
+    // Testi eri ajankohtina ja säissä
+    const testCases = [
+      { timeOfDay: "AAMU", weather: { description: "clear sky", temp: 15, isRaining: false }},
+      { timeOfDay: "PAIVA", weather: { description: "light rain", temp: 12, isRaining: true }},
+      { timeOfDay: "ILTA", weather: { description: "few clouds", temp: 18, isRaining: false }},
+      { timeOfDay: "YO", weather: { description: "overcast clouds", temp: 8, isRaining: false }}
+    ];
+    
+    testCases.forEach(testCase => {
+      console.log(`\n--- ${testCase.timeOfDay} (${testCase.weather.description}) ---`);
+      
+      const saaKategoria = getSaaKategoria_(testCase.weather);
+      console.log(`🌤️ Sääkategoria: ${saaKategoria}`);
+      
+      const ehdotus = getPuuhaaEhdotus_(sheet, clientID, testCase.timeOfDay, testCase.weather);
+      console.log(`🎲 Puuhaa ehdotus: "${ehdotus}"`);
+    });
+    
+    console.log("\n=== PUUHAA TESTIT VALMIIT ===");
+      return "Puuhaa järjestelmä testattu onnistuneesti!";
+  
+} catch (error) {
+  console.error("Puuhaa testi epäonnistui:", error.toString());
+  return "Puuhaa testi epäonnistui: " + error.toString();
+}
+}
+
+/**
+ * Hae SMS tervehdys taulukosta
+ */
+function getSMSTervehdys_(smsSheet, timeOfDay) {
+  try {
+    const data = smsSheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      const ajankohta = String(data[i][0]).trim().toUpperCase();
+      const tervehdys = String(data[i][1]).trim();
+      
+      if (ajankohta === timeOfDay.toUpperCase() && tervehdys) {
+        console.log(`📱 Löytyi SMS tervehdys: ${ajankohta} → "${tervehdys}"`);
+        return tervehdys;
+      }
+    }
+    
+    console.log(`📱 Ei löytynyt SMS tervehdystä ajankohdalle: ${timeOfDay}`);
+    return null;
+  } catch (error) {
+    console.error("Error reading SMS greetings:", error.toString());
     return null;
   }
 }

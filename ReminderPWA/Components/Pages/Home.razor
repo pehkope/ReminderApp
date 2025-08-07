@@ -503,14 +503,37 @@
          }
      }
 
-     private async Task StartPeriodicMessageCheck()
-     {
-         while (true)
-         {
-             await Task.Delay(TimeSpan.FromMinutes(1)); // Check every minute
-             await CheckForNewMessages();
-         }
-     }
+         private async Task StartPeriodicMessageCheck()
+    {
+        var lastWeatherUpdate = DateTime.MinValue;
+        var lastHourCheck = -1;
+        
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromMinutes(1)); // Check every minute
+            await CheckForNewMessages();
+            
+            var currentHour = DateTime.Now.Hour;
+            
+            // Päivitä säätiedot 4x päivässä: 6, 12, 18, 24 (keskiyö)
+            if ((currentHour == 6 || currentHour == 12 || currentHour == 18 || currentHour == 0) && 
+                currentHour != lastHourCheck)
+            {
+                Console.WriteLine($"🌤️ Säätiedon automaattinen päivitys klo {currentHour}:00");
+                await LoadData(); // Lataa uudet säätiedot
+                lastHourCheck = currentHour;
+                lastWeatherUpdate = DateTime.Now;
+            }
+            
+            // Varmista että säätiedot päivittyvät vähintään 4h välein
+            if (DateTime.Now - lastWeatherUpdate > TimeSpan.FromHours(4))
+            {
+                Console.WriteLine("🌤️ Säätiedon pakollinen päivitys (4h ylittynyt)");
+                await LoadData();
+                lastWeatherUpdate = DateTime.Now;
+            }
+        }
+    }
 
     private async Task OnTaskAcknowledged()
     {
