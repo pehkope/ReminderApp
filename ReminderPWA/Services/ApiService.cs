@@ -146,33 +146,49 @@ public class ApiService
         try
         {
             // Fallback for Azure deployment if config loading fails
-                            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec" : _apiSettings.BaseUrl;
+            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec" : _apiSettings.BaseUrl;
                 
             var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
 
-            // Build acknowledgment URL with description for unique identification
-            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&taskType={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}";
+            Console.WriteLine($"🔘 Lähetetään kuittaus POST pyyntönä: {taskType} - {description} ({timeOfDay})");
 
-            Console.WriteLine($"Sending acknowledgment request: {taskType} for {timeOfDay}");
+            // 🔧 KORJAUS: Lähetetään POST pyyntö JSON bodyssä oikeilla kentillä
+            var requestData = new
+            {
+                apiKey = apiKey,
+                action = "acknowledge", 
+                clientID = clientId,
+                type = taskType,        // 🔧 Backend odottaa "type", ei "taskType"
+                timeOfDay = timeOfDay,
+                description = description,
+                timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            };
 
-            var response = await _httpClient.GetAsync(fullUrl);
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(requestData);
+            var httpContent = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            Console.WriteLine($"📤 POST JSON: {jsonContent}");
+
+            var response = await _httpClient.PostAsync(baseUrl, httpContent);
             
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Acknowledgment successful: {responseContent}");
+                Console.WriteLine($"✅ Kuittaus onnistui: {responseContent}");
                 return true;
             }
             else
             {
-                Console.WriteLine($"Acknowledgment failed with status: {response.StatusCode}");
+                Console.WriteLine($"❌ Kuittaus epäonnistui status: {response.StatusCode}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ Virhe vastaus: {errorContent}");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error acknowledging task {taskType}: {ex.Message}");
+            Console.WriteLine($"❌ Virhe kuittauksessa {taskType}: {ex.Message}");
             return false;
         }
     }
