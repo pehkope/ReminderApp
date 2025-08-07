@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🛑 Kuittauksen ohitus testi</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>🛑 Kuittauksen ohitus - testi</h1>
+    <div id="results"></div>
+    
+    <script>
+        // TESTAA SUORAAN GAS URL:ää ilman kuittausta
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec";
+        const API_KEY = "reminder-tablet-2024";
+        const CLIENT_ID = "mom";
+        
+        async function testGasAccess() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔄 Testataan GAS URL:ää...</h2>';
+            
+            try {
+                // Testaa pelkkä data haku
+                const url = `${GAS_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`;
+                console.log('Testataan URL:', url);
+                
+                const response = await fetch(url);
+                const status = response.status;
+                
+                results.innerHTML += `<h3>📡 GAS URL Testi</h3>`;
+                results.innerHTML += `<p><strong>URL:</strong> ${url}</p>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${status}</p>`;
+                
+                if (status === 200) {
+                    const data = await response.json();
+                    results.innerHTML += `<p style="color: green;">✅ <strong>GAS toimii!</strong></p>`;
+                    results.innerHTML += `<p><strong>Saatiin data:</strong></p>`;
+                    results.innerHTML += `<pre>${JSON.stringify(data, null, 2).substring(0, 500)}...</pre>`;
+                    
+                    if (data.dailyTasks && data.dailyTasks.length > 0) {
+                        results.innerHTML += `<h3>📋 Tehtävät ilman kuittausta:</h3>`;
+                        data.dailyTasks.forEach((task, index) => {
+                            const status = task.isAckedToday ? "✅ KUITATTU" : "❌ EI KUITATTU";
+                            results.innerHTML += `<p>${index + 1}. <strong>${task.type}</strong>: "${task.description}" (${task.timeOfDay}) - ${status}</p>`;
+                        });
+                        
+                        results.innerHTML += `<h3>💡 Suositus</h3>`;
+                        results.innerHTML += `<p style="color: blue;"><strong>GAS backend toimii</strong> - ongelma on kuittauksen lähettämisessä tai frontend/backend kommunikaatiossa.</p>`;
+                        results.innerHTML += `<p>🔧 <strong>Ratkaisu:</strong> Anna uusi GAS URL tai odota Azure deployment valmistumista.</p>`;
+                    }
+                } else if (status === 503) {
+                    results.innerHTML += `<p style="color: red;">❌ <strong>503 Service Unavailable</strong></p>`;
+                    results.innerHTML += `<p>🔧 <strong>Syy:</strong> GAS URL on vanhentunut tai Google Apps Script alhaalla</p>`;
+                    results.innerHTML += `<p>💡 <strong>Ratkaisu:</strong> Anna uusi Google Apps Script URL</p>`;
+                } else {
+                    const errorText = await response.text();
+                    results.innerHTML += `<p style="color: red;">❌ <strong>Odottamaton virhe:</strong> ${status}</p>`;
+                    results.innerHTML += `<pre>${errorText}</pre>`;
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<h3 style="color: red;">❌ Network virhe</h3>`;
+                results.innerHTML += `<p>${error.message}</p>`;
+                results.innerHTML += `<p>🔧 <strong>Mahdolliset syyt:</strong></p>`;
+                results.innerHTML += `<ul>`;
+                results.innerHTML += `<li>CORS esto (ei pitäisi tapahtua GET pyynnöillä)</li>`;
+                results.innerHTML += `<li>Network yhteys poikki</li>`;
+                results.innerHTML += `<li>GAS URL vanhentunut</li>`;
+                results.innerHTML += `</ul>`;
+            }
+        }
+        
+        // Aloita testi automaattisesti
+        testGasAccess();
+    </script>
+</body>
+</html>
