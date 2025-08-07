@@ -138,6 +138,7 @@
 
     private async Task LoadData()
     {
+        Console.WriteLine("🔄 LoadData() aloitettu - haetaan uudet tiedot API:sta");
         statusMessage = "📡 Haetaan tietoja...";
         
         var result = await ApiService.GetDataAsync("mom", maxRetries: 2); // Only 2 retries for faster UX
@@ -350,6 +351,7 @@
     {
         try
         {
+            Console.WriteLine($"🔘 KUITTAUS ALOITETTU: {request.TaskType} - {request.Description} ({request.TimeOfDay})");
             statusMessage = $"Kuittaan {request.TaskType}...";
             
             // Use ApiService for acknowledgment to ensure consistent URL and API key
@@ -368,7 +370,8 @@
                 Console.WriteLine("🔄 Reloading data now...");
                 await LoadData();
                 
-                Console.WriteLine("🔄 Data reload completed");
+                Console.WriteLine("🔄 Data reload completed - forcing UI refresh");
+                StateHasChanged(); // 🔄 PAKOTA UI PÄIVITYS!
             }
             else
             {

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kuittaus Debug - ReminderApp</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>🧪 Kuittaus Debug Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyPUOCR3ZwCNx_bzmBCQfSeukL69WANDBXQHzFTQg1Eygz67C8jxt3PioE54wjgeNdy/exec";
+        const API_KEY = "reminder-tablet-2024";
+        const CLIENT_ID = "mom";
+        
+        async function testAcknowledgment() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔄 Testaus käynnissä...</h2>';
+            
+            try {
+                // 1. Hae nykyiset tehtävät
+                console.log('📋 Haetaan nykyiset tehtävät...');
+                const dataUrl = `${API_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`;
+                
+                const dataResponse = await fetch(dataUrl);
+                const data = await dataResponse.json();
+                
+                console.log('📄 Tehtävät:', data.dailyTasks);
+                
+                results.innerHTML += `<h3>📋 Nykyiset tehtävät:</h3>`;
+                data.dailyTasks.forEach(task => {
+                    results.innerHTML += `<p>• <strong>${task.type}</strong>: ${task.description} (Kuitattu: ${task.isAckedToday})</p>`;
+                });
+                
+                // 2. Testaa RUOKA kuittausta
+                const ruokaTask = data.dailyTasks.find(t => t.type === 'RUOKA');
+                if (ruokaTask) {
+                    console.log('🍽️ Kuitataan RUOKA tehtävä...');
+                    
+                    const ackUrl = `${API_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=${CLIENT_ID}&taskType=RUOKA&timeOfDay=${ruokaTask.timeOfDay}&description=${encodeURIComponent(ruokaTask.description)}`;
+                    
+                    console.log('🌐 Kuittaus URL:', ackUrl);
+                    
+                    const ackResponse = await fetch(ackUrl);
+                    const ackResult = await ackResponse.text();
+                    
+                    console.log('✅ Kuittaus vastaus:', ackResult);
+                    
+                    results.innerHTML += `<h3>🍽️ RUOKA kuittaus:</h3>`;
+                    results.innerHTML += `<p><strong>URL:</strong> ${ackUrl}</p>`;
+                    results.innerHTML += `<p><strong>Vastaus:</strong> ${ackResult}</p>`;
+                    
+                    // 3. Hae tehtävät uudestaan 3 sekunnin kuluttua
+                    setTimeout(async () => {
+                        console.log('🔄 Haetaan päivitetyt tehtävät...');
+                        
+                        const newDataUrl = `${API_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`;
+                        const newDataResponse = await fetch(newDataUrl);
+                        const newData = await newDataResponse.json();
+                        
+                        console.log('📄 Päivitetyt tehtävät:', newData.dailyTasks);
+                        
+                        results.innerHTML += `<h3>🔄 Tehtävät kuittauksen jälkeen:</h3>`;
+                        newData.dailyTasks.forEach(task => {
+                            const wasAcked = task.type === 'RUOKA' && task.isAckedToday;
+                            const icon = wasAcked ? '✅' : '❌';
+                            results.innerHTML += `<p>${icon} <strong>${task.type}</strong>: ${task.description} (Kuitattu: ${task.isAckedToday})</p>`;
+                        });
+                        
+                        if (newData.dailyTasks.find(t => t.type === 'RUOKA')?.isAckedToday) {
+                            results.innerHTML += `<h2 style="color: green;">✅ KUITTAUS ONNISTUI!</h2>`;
+                        } else {
+                            results.innerHTML += `<h2 style="color: red;">❌ KUITTAUS EI TOIMINUT</h2>`;
+                        }
+                        
+                    }, 3000);
+                }
+                
+            } catch (error) {
+                console.error('❌ Virhe testauksessa:', error);
+                results.innerHTML += `<h3 style="color: red;">❌ Virhe: ${error.message}</h3>`;
+            }
+        }
+        
+        // Aloita testaus automaattisesti
+        testAcknowledgment();
+    </script>
+</body>
+</html>

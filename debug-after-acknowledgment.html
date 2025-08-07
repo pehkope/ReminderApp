@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Kuittauksen Jälkeen - API Debug</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>🧪 Mitä API palauttaa kuittauksen jälkeen?</h1>
+    <div id="results"></div>
+    
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyPUOCR3ZwCNx_bzmBCQfSeukL69WANDBXQHzFTQg1Eygz67C8jxt3PioE54wjgeNdy/exec";
+        const API_KEY = "reminder-tablet-2024";
+        const CLIENT_ID = "mom";
+        
+        async function testAfterAcknowledgment() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔄 Testaus käynnissä...</h2>';
+            
+            try {
+                console.log('📋 Haetaan tehtävät kuittauksen jälkeen...');
+                const dataUrl = `${API_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`;
+                
+                const dataResponse = await fetch(dataUrl);
+                const data = await dataResponse.json();
+                
+                console.log('📄 API vastaus:', data);
+                
+                results.innerHTML += `<h3>📋 Kaikki tehtävät API:sta:</h3>`;
+                
+                if (data.dailyTasks && data.dailyTasks.length > 0) {
+                    data.dailyTasks.forEach(task => {
+                        const ackStatus = task.isAckedToday ? '✅ KUITATTU' : '❌ EI KUITATTU';
+                        const ackColor = task.isAckedToday ? 'green' : 'red';
+                        
+                        results.innerHTML += `
+                            <div style="border: 1px solid #ccc; padding: 10px; margin: 5px;">
+                                <p><strong>Tyyppi:</strong> ${task.type}</p>
+                                <p><strong>Kuvaus:</strong> ${task.description}</p>
+                                <p><strong>Aika:</strong> ${task.timeOfDay}</p>
+                                <p style="color: ${ackColor}"><strong>Kuitattu:</strong> ${ackStatus}</p>
+                                <p><strong>Kuittausaika:</strong> ${task.acknowledgmentTimestamp || 'Ei kuitattu'}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    results.innerHTML += `<p style="color: orange;">⚠️ Ei tehtäviä API:sta</p>`;
+                }
+                
+                // Analysoi RUOKA tehtävä
+                const ruokaTask = data.dailyTasks?.find(t => t.type === 'RUOKA');
+                if (ruokaTask) {
+                    results.innerHTML += `<h3>🍽️ RUOKA tehtävän tila:</h3>`;
+                    results.innerHTML += `<pre>${JSON.stringify(ruokaTask, null, 2)}</pre>`;
+                    
+                    if (ruokaTask.isAckedToday) {
+                        results.innerHTML += `<h2 style="color: green;">✅ RUOKA on kuitattu - OK-nappi pitäisi olla piilotettu!</h2>`;
+                    } else {
+                        results.innerHTML += `<h2 style="color: red;">❌ RUOKA ei ole kuitattu - siksi OK-nappi näkyy vielä!</h2>`;
+                    }
+                } else {
+                    results.innerHTML += `<h2 style="color: orange;">⚠️ RUOKA tehtävää ei löytynyt!</h2>`;
+                }
+                
+            } catch (error) {
+                console.error('❌ Virhe testauksessa:', error);
+                results.innerHTML += `<h3 style="color: red;">❌ Virhe: ${error.message}</h3>`;
+            }
+        }
+        
+        // Aloita testaus automaattisesti
+        testAfterAcknowledgment();
+    </script>
+</body>
+</html>

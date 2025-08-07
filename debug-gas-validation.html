@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔑 Google Apps Script API Key Debug</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>🔍 Google Apps Script API Key Validation Debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        const NEW_API_URL = "https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec";
+        const API_KEY = "reminder-tablet-2024";
+        const CLIENT_ID = "mom";
+        
+        async function debugGasValidation() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔄 Debug käynnissä...</h2>';
+            
+            try {
+                // 1. Testaa ilman API keytä
+                console.log('🚫 Testaa ilman API keytä...');
+                const noKeyUrl = `${NEW_API_URL}?clientID=${CLIENT_ID}&_t=${Date.now()}`;
+                
+                const noKeyResponse = await fetch(noKeyUrl);
+                const noKeyResult = await noKeyResponse.text();
+                
+                results.innerHTML += `<h3>🚫 Ilman API keytä:</h3>`;
+                results.innerHTML += `<p><strong>URL:</strong> ${noKeyUrl}</p>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${noKeyResponse.status}</p>`;
+                results.innerHTML += `<p><strong>Vastaus:</strong> <pre>${noKeyResult}</pre></p>`;
+                
+                // 2. Testaa debug parametrilla
+                console.log('🔍 Testaa debug properties...');
+                const debugUrl = `${NEW_API_URL}?debug=properties&_t=${Date.now()}`;
+                
+                const debugResponse = await fetch(debugUrl);
+                const debugResult = await debugResponse.text();
+                
+                results.innerHTML += `<h3>🔍 Debug Properties:</h3>`;
+                results.innerHTML += `<p><strong>URL:</strong> ${debugUrl}</p>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${debugResponse.status}</p>`;
+                results.innerHTML += `<p><strong>Vastaus:</strong> <pre>${debugResult}</pre></p>`;
+                
+                // 3. Testaa oikealla API keylla
+                console.log('🔑 Testaa oikealla API keylla...');
+                const validUrl = `${NEW_API_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}&_t=${Date.now()}`;
+                
+                const validResponse = await fetch(validUrl);
+                const validResult = await validResponse.text();
+                
+                results.innerHTML += `<h3>🔑 Oikealla API keylla:</h3>`;
+                results.innerHTML += `<p><strong>URL:</strong> ${validUrl}</p>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${validResponse.status}</p>`;
+                results.innerHTML += `<p><strong>Vastaus:</strong> <pre>${validResult.substring(0, 500)}...</pre></p>`;
+                
+                // 4. Testaa väärällä API keylla
+                console.log('❌ Testaa väärällä API keylla...');
+                const wrongUrl = `${NEW_API_URL}?clientID=${CLIENT_ID}&apiKey=wrong-key&_t=${Date.now()}`;
+                
+                const wrongResponse = await fetch(wrongUrl);
+                const wrongResult = await wrongResponse.text();
+                
+                results.innerHTML += `<h3>❌ Väärällä API keylla:</h3>`;
+                results.innerHTML += `<p><strong>URL:</strong> ${wrongUrl}</p>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${wrongResponse.status}</p>`;
+                results.innerHTML += `<p><strong>Vastaus:</strong> <pre>${wrongResult}</pre></p>`;
+                
+                // 5. Analysoi tulokset
+                results.innerHTML += `<h2>📊 ANALYYSI:</h2>`;
+                
+                if (validResult.includes("Invalid API key")) {
+                    results.innerHTML += `<p style="color: red;">❌ <strong>ONGELMA:</strong> Oikea API key hylätään!</p>`;
+                    results.innerHTML += `<p>🔧 <strong>Mahdolliset syyt:</strong></p>`;
+                    results.innerHTML += `<ul>`;
+                    results.innerHTML += `<li>🔑 Script Properties VALID_API_KEYS ei ole oikein</li>`;
+                    results.innerHTML += `<li>🐛 validateApiKey_() funktio buginen</li>`;
+                    results.innerHTML += `<li>📝 API key vertailu case-sensitiivinen</li>`;
+                    results.innerHTML += `<li>🔄 Deployment ei päivittänyt koodia</li>`;
+                    results.innerHTML += `</ul>`;
+                } else if (validResult.includes("clientID")) {
+                    results.innerHTML += `<p style="color: green;">✅ <strong>TOIMII:</strong> API key hyväksytty!</p>`;
+                } else {
+                    results.innerHTML += `<p style="color: orange;">❓ <strong>EPÄSELVÄ:</strong> Odottamaton vastaus</p>`;
+                }
+                
+            } catch (error) {
+                console.error('❌ Virhe debuggauksessa:', error);
+                results.innerHTML += `<h3 style="color: red;">❌ Virhe: ${error.message}</h3>`;
+            }
+        }
+        
+        // Aloita debug automaattisesti
+        debugGasValidation();
+    </script>
+</body>
+</html>
