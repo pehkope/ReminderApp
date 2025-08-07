@@ -155,7 +155,7 @@ public class ApiService
 
             // 🔧 CORS VÄLIAIKAINEN KORJAUS: Käytetään GET pyyntöä POST:in sijaan
             // Google Apps Script CORS ei toimi POST pyynnöillä, mutta GET toimii
-            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&type={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}&timestamp={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}";
+            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&taskType={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}&timestamp={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}";
 
             Console.WriteLine($"📤 GET URL: {fullUrl}");
 

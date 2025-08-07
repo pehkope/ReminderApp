@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 Yksinkertainen kuittaus debug</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>🔧 Yksinkertainen kuittaus debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec";
+        const API_KEY = "reminder-tablet-2024";
+        
+        async function testSimpleAcknowledgment() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔄 Testataan yksinkertainen kuittaus...</h2>';
+            
+            const tests = [
+                {
+                    name: "Vanha taskType parametri",
+                    url: `${GAS_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=mom&taskType=RUOKA&timeOfDay=Ilta`
+                },
+                {
+                    name: "Uusi type parametri", 
+                    url: `${GAS_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=mom&type=RUOKA&timeOfDay=Ilta`
+                },
+                {
+                    name: "Molemmat parametrit",
+                    url: `${GAS_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=mom&taskType=RUOKA&type=RUOKA&timeOfDay=Ilta`
+                },
+                {
+                    name: "Vain data haku (toimii)",
+                    url: `${GAS_URL}?clientID=mom&apiKey=${API_KEY}`
+                }
+            ];
+            
+            for (let i = 0; i < tests.length; i++) {
+                const test = tests[i];
+                results.innerHTML += `<h3>🧪 Testi ${i+1}: ${test.name}</h3>`;
+                results.innerHTML += `<p><strong>URL:</strong> ${test.url}</p>`;
+                
+                try {
+                    const response = await fetch(test.url);
+                    const responseText = await response.text();
+                    
+                    results.innerHTML += `<p><strong>Status:</strong> ${response.status}</p>`;
+                    results.innerHTML += `<p><strong>Vastaus:</strong></p>`;
+                    results.innerHTML += `<pre>${responseText.substring(0, 200)}...</pre>`;
+                    
+                    try {
+                        const json = JSON.parse(responseText);
+                        if (json.status === "OK") {
+                            results.innerHTML += `<p style="color: green;">✅ TOIMII!</p>`;
+                        } else if (json.error && json.error.includes("Missing")) {
+                            results.innerHTML += `<p style="color: red;">❌ ${json.error}</p>`;
+                        } else {
+                            results.innerHTML += `<p style="color: orange;">❓ ${json.status}</p>`;
+                        }
+                    } catch (e) {
+                        results.innerHTML += `<p style="color: red;">❌ JSON parse virhe</p>`;
+                    }
+                    
+                } catch (error) {
+                    results.innerHTML += `<p style="color: red;">❌ Network: ${error.message}</p>`;
+                }
+                
+                results.innerHTML += `<hr>`;
+                
+                // Pieni tauko seuraavan testin välillä
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            results.innerHTML += `<h2>📊 Johtopäätökset</h2>`;
+            results.innerHTML += `<p>Jos <strong>vanha taskType</strong> toimii mutta <strong>uusi type</strong> ei, niin GAS koodi ei ole päivittynyt.</p>`;
+            results.innerHTML += `<p>Jos <strong>kaikki kuittaukset</strong> epäonnistuvat mutta <strong>data haku</strong> toimii, ongelma on kuittauslogiikassa.</p>`;
+            results.innerHTML += `<p>Jos <strong>molemmat parametrit</strong> toimii, voimme käyttää sitä väliaikaisena ratkaisuna.</p>`;
+        }
+        
+        // Aloita testi automaattisesti
+        testSimpleAcknowledgment();
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 GAS Parametrit Debug</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>🔍 GAS Parametrit Debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec";
+        const API_KEY = "reminder-tablet-2024";
+        const CLIENT_ID = "mom";
+        
+        async function testAcknowledgmentParameters() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔄 Testataan kuittaus parametreja...</h2>';
+            
+            try {
+                // 1. Testaa kuittaus samoilla parametreilla kuin frontend
+                const taskType = "RUOKA";
+                const timeOfDay = "Ilta";
+                const description = "päivällinen ruokaisa salaatti - 16:00";
+                const timestamp = new Date().toISOString();
+                
+                // Rakenna URL samalla tavalla kuin frontend
+                const encodedDescription = encodeURIComponent(description);
+                const url = `${GAS_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=${CLIENT_ID}&type=${taskType}&timeOfDay=${timeOfDay}&description=${encodedDescription}&timestamp=${timestamp}`;
+                
+                results.innerHTML += `<h3>📤 Testataan kuittausta</h3>`;
+                results.innerHTML += `<p><strong>taskType:</strong> "${taskType}"</p>`;
+                results.innerHTML += `<p><strong>timeOfDay:</strong> "${timeOfDay}"</p>`;
+                results.innerHTML += `<p><strong>description:</strong> "${description}"</p>`;
+                results.innerHTML += `<p><strong>Encoded description:</strong> "${encodedDescription}"</p>`;
+                results.innerHTML += `<p><strong>URL (first 100 chars):</strong> ${url.substring(0, 100)}...</p>`;
+                
+                console.log('Full URL:', url);
+                
+                const response = await fetch(url);
+                const responseText = await response.text();
+                
+                results.innerHTML += `<h3>📡 GAS Vastaus</h3>`;
+                results.innerHTML += `<p><strong>Status:</strong> ${response.status}</p>`;
+                results.innerHTML += `<p><strong>Vastaus:</strong></p>`;
+                results.innerHTML += `<pre>${responseText}</pre>`;
+                
+                try {
+                    const responseJson = JSON.parse(responseText);
+                    if (responseJson.error && responseJson.error.includes("Missing taskType or timeOfDay")) {
+                        results.innerHTML += `<h3 style="color: red;">❌ ONGELMA LÖYTYI</h3>`;
+                        results.innerHTML += `<p>GAS ei saa <code>taskType</code> tai <code>timeOfDay</code> parametreja!</p>`;
+                        results.innerHTML += `<p><strong>Mahdolliset syyt:</strong></p>`;
+                        results.innerHTML += `<ul>`;
+                        results.innerHTML += `<li>🔧 GAS koodin parametri lukeminen rikki</li>`;
+                        results.innerHTML += `<li>📝 URL encoding ongelma</li>`;
+                        results.innerHTML += `<li>🔄 GAS ei ole deployattu uusimmalla koodilla</li>`;
+                        results.innerHTML += `</ul>`;
+                        
+                        // Testaa yksinkertainen kuittaus ilman description
+                        results.innerHTML += `<h4>🧪 Testaa yksinkertainen kuittaus:</h4>`;
+                        const simpleUrl = `${GAS_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=${CLIENT_ID}&type=${taskType}&timeOfDay=${timeOfDay}`;
+                        results.innerHTML += `<p><strong>Simple URL:</strong> ${simpleUrl}</p>`;
+                        
+                        const simpleResponse = await fetch(simpleUrl);
+                        const simpleText = await simpleResponse.text();
+                        results.innerHTML += `<p><strong>Simple vastaus:</strong> ${simpleText}</p>`;
+                        
+                    } else if (responseJson.status === "OK") {
+                        results.innerHTML += `<h3 style="color: green;">✅ KUITTAUS ONNISTUI!</h3>`;
+                        results.innerHTML += `<p>GAS sai parametrit oikein ja kuittaus tallentui.</p>`;
+                    } else {
+                        results.innerHTML += `<h3 style="color: orange;">❓ Odottamaton vastaus</h3>`;
+                    }
+                } catch (parseError) {
+                    results.innerHTML += `<h3 style="color: red;">❌ JSON parse virhe</h3>`;
+                    results.innerHTML += `<p>${parseError.message}</p>`;
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<h3 style="color: red;">❌ Network virhe</h3>`;
+                results.innerHTML += `<p>${error.message}</p>`;
+            }
+        }
+        
+        // Aloita testi automaattisesti
+        testAcknowledgmentParameters();
+    </script>
+</body>
+</html>
