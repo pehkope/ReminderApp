@@ -241,9 +241,9 @@ function handleAcknowledgementAction_(e) {
     console.log("=== ACKNOWLEDGMENT ACTION RECEIVED ===");
     console.log("Full request details:", JSON.stringify(e, null, 2));
     
-    // Extract parameters
+    // Extract parameters - 🔧 KORJAUS: Käytetään "type" parametria
     const clientID = (e.parameter && e.parameter.clientID) || 'mom';
-    const taskType = (e.parameter && e.parameter.taskType) || '';
+    const taskType = (e.parameter && e.parameter.type) || (e.parameter && e.parameter.taskType) || ''; // Support both names
     const timeOfDay = (e.parameter && e.parameter.timeOfDay) || '';
     const description = (e.parameter && e.parameter.description) || '';
     const timestamp = (e.parameter && e.parameter.timestamp) || new Date().toISOString();

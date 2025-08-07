@@ -151,26 +151,15 @@ public class ApiService
             var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
 
-            Console.WriteLine($"🔘 Lähetetään kuittaus POST pyyntönä: {taskType} - {description} ({timeOfDay})");
+            Console.WriteLine($"🔘 Lähetetään kuittaus GET pyyntönä (CORS välttämiseksi): {taskType} - {description} ({timeOfDay})");
 
-            // 🔧 KORJAUS: Lähetetään POST pyyntö JSON bodyssä oikeilla kentillä
-            var requestData = new
-            {
-                apiKey = apiKey,
-                action = "acknowledge", 
-                clientID = clientId,
-                type = taskType,        // 🔧 Backend odottaa "type", ei "taskType"
-                timeOfDay = timeOfDay,
-                description = description,
-                timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-            };
+            // 🔧 CORS VÄLIAIKAINEN KORJAUS: Käytetään GET pyyntöä POST:in sijaan
+            // Google Apps Script CORS ei toimi POST pyynnöillä, mutta GET toimii
+            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&type={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}&timestamp={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}";
 
-            var jsonContent = System.Text.Json.JsonSerializer.Serialize(requestData);
-            var httpContent = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            Console.WriteLine($"📤 GET URL: {fullUrl}");
 
-            Console.WriteLine($"📤 POST JSON: {jsonContent}");
-
-            var response = await _httpClient.PostAsync(baseUrl, httpContent);
+            var response = await _httpClient.GetAsync(fullUrl);
             
             if (response.IsSuccessStatusCode)
             {
