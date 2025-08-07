@@ -707,7 +707,7 @@ function getOrCreateSheet_(spreadsheet, sheetName) {
     sheet = spreadsheet.insertSheet(sheetName);
     
     if (sheetName === SHEET_NAMES.KUITTAUKSET) {
-      sheet.getRange(1, 1, 1, 5).setValues([["Aikaleima", "AsiakasTunniste", "TehtäväTyyppi", "VuorokaudenAika", "Päivämäärä"]]);
+      sheet.getRange(1, 1, 1, 6).setValues([["Aikaleima", "AsiakasTunniste", "TehtäväTyyppi", "VuorokaudenAika", "Kuvaus", "Päivämäärä"]]);
     }
   }
   return sheet;
@@ -900,7 +900,7 @@ function getTaskAckTimestamp_(sheet, taskType, timeOfDay, today) {
     for (let i = 1; i < data.length; i++) {
       const ackTaskType = String(data[i][2]).trim();
       const ackTimeOfDay = String(data[i][3]).trim();
-      const ackDate = String(data[i][4]).trim();
+      const ackDate = String(data[i][5] || data[i][4]).trim(); // Date in column 5, fallback to old position
       
       if (ackTaskType === taskType && ackTimeOfDay === timeOfDay && ackDate === today) {
         return data[i][0];
@@ -1179,24 +1179,36 @@ function getFoodReminders_(sheet, clientID, timeOfDay, currentHour) {
     const data = foodSheet.getDataRange().getValues();
     const reminders = [];
     
+    console.log(`🍽️ Haetaan ruoka-aikoja asiakkaalle: ${clientID}, aika: ${timeOfDay}`);
+    
     for (let i = 1; i < data.length; i++) {
+      // Skip empty rows
+      if (!data[i][0] || !data[i][1] || !data[i][2]) continue;
+      
       const reminderClientID = String(data[i][0]).trim().toLowerCase();
       const mealTime = String(data[i][1]).trim(); // AAMU/PÄIVÄ/ILTA/YÖ
-      const mealType = String(data[i][2]).trim(); // Aamupala/Lounas/Päivällinen/Iltapala
-      const suggestion = String(data[i][3]).trim(); // Vapaa teksti
-      const specificTime = String(data[i][4]).trim(); // klo 12:00
+      const mealType = String(data[i][2]).trim(); // Aamupala/Lounas/Päivällinen/Pieni ilta  
+      const mealClock = String(data[i][3] || '').trim(); // 08:00, 12:00, 18:00
+      const suggestion = String(data[i][4] || '').trim(); // Valinnainen ehdotus
+      
+      console.log(`📋 Rivi ${i}: ClientID="${reminderClientID}", Aika="${mealTime}", Ateria="${mealType}", Kello="${mealClock}", Ehdotus="${suggestion}"`);
+      
+      console.log(`📋 Tarkistetaan: ${reminderClientID} vs ${clientID.toLowerCase()}, ${mealTime} vs ${timeOfDay}`);
       
       if (reminderClientID === clientID.toLowerCase() && 
           mealTime.toUpperCase() === timeOfDay.toUpperCase()) {
         
+        // Rakenna ruokamuistutus: Ateria + kellonaika + (valinnainen ehdotus)
         let reminder = getFoodEmoji_(mealType) + " " + mealType;
+        if (mealClock) reminder += ` ${mealClock}`;
         if (suggestion) reminder += ` - ${suggestion}`;
-        if (specificTime) reminder += ` ${specificTime}`;
         
+        console.log(`✅ Lisätään ruokamuistutus: "${reminder}"`);
         reminders.push(reminder);
       }
     }
     
+    console.log(`🍽️ Löydettiin ${reminders.length} ruokamuistutusta asiakkaalle ${clientID}`);
     return reminders;
     
   } catch (error) {
@@ -1651,43 +1663,10 @@ function getUpcomingAppointments_(sheet, clientID) {
  * Get weather data with caching optimization
  */
 function getWeatherDataOptimized_(weatherApiKey, clientID) {
-  const now = new Date();
-  const hour = now.getHours();
-  const minute = now.getMinutes();
-  
-  const todayStr = Utilities.formatDate(now, HELSINKI_TIMEZONE, "yyyy-MM-dd");
-  const cacheKey = `weather_${clientID}_${todayStr}`;
-  
-  const isWeatherUpdateTime = (hour === 8 || hour === 12 || hour === 16 || hour === 20) && minute < 10;
-  
-  try {
-    const cachedWeatherStr = PropertiesService.getScriptProperties().getProperty(cacheKey);
-    
-    if (isWeatherUpdateTime) {
-      console.log(`Weather update time detected at ${hour}:${minute}, fetching fresh weather for ${clientID}`);
-      const freshWeather = getWeatherData_(weatherApiKey);
-      
-      PropertiesService.getScriptProperties().setProperty(cacheKey, JSON.stringify(freshWeather));
-      console.log(`Weather cached for ${clientID} at ${hour}:${minute}`);
-      
-      return freshWeather;
-    }
-    
-    if (cachedWeatherStr) {
-      console.log(`Using cached weather for ${clientID} at ${hour}:${minute}`);
-      return JSON.parse(cachedWeatherStr);
-    }
-    
-    console.log(`No cached weather found for ${clientID}, fetching fresh weather`);
-    const freshWeather = getWeatherData_(weatherApiKey);
-    PropertiesService.getScriptProperties().setProperty(cacheKey, JSON.stringify(freshWeather));
-    
-    return freshWeather;
-    
-  } catch (error) {
-    console.error(`Error in weather optimization for ${clientID}: ${error}`);
-    return getWeatherData_(weatherApiKey);
-  }
+  // 🗑️ CACHE POISTETTU - Säätieto haetaan aina suoraan
+  // Frontend päivittää säätiedot 4x päivässä, ei tarvita server-side cachea
+  console.log(`Fetching fresh weather data for ${clientID} (no cache)`);
+  return getWeatherData_(weatherApiKey);
 }
 
 /**
