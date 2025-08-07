@@ -18,7 +18,24 @@
                 <div class="weather-info">
                     <span class="weather-temp">@Weather.Temperature</span>
                     <span class="weather-desc">@GetFinnishWeatherDescription(Weather.Description)</span>
-                    @* Sääneuvo poistettu - kenttiä ei ole Weather modelissa *@
+                    @* Sääneuvonta Weather.Description perusteella *@
+                    @{
+                        var isGoodForOutdoor = IsGoodForOutdoor(Weather.Description);
+                        var isRaining = IsRaining(Weather.Description);
+                        var isSnowing = IsSnowing(Weather.Description);
+                    }
+                    @if (isGoodForOutdoor)
+                    {
+                        <span class="weather-advice good-weather">☀️ Ulkoiluun sopiva!</span>
+                    }
+                    else if (isRaining)
+                    {
+                        <span class="weather-advice bad-weather">🌧️ Sisäpuolella mukavampaa</span>
+                    }
+                    else if (isSnowing)
+                    {
+                        <span class="weather-advice cold-weather">❄️ Sisällä lämpimämpää</span>
+                    }
                 </div>
             }
             else
@@ -95,5 +112,34 @@
         
         // Jos ei löydy käännöstä, palautetaan alkuperäinen
         return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(description);
+    }
+
+    private bool IsGoodForOutdoor(string? description)
+    {
+        if (string.IsNullOrEmpty(description)) return true;
+        var desc = description.ToLower();
+        
+        // Hyvä ulkoiluilma
+        return desc.Contains("clear") || desc.Contains("few clouds") || 
+               desc.Contains("selkeä") || desc.Contains("aurinko");
+    }
+
+    private bool IsRaining(string? description)
+    {
+        if (string.IsNullOrEmpty(description)) return false;
+        var desc = description.ToLower();
+        
+        // Sateinen sää
+        return desc.Contains("rain") || desc.Contains("shower") || 
+               desc.Contains("sade") || desc.Contains("sateinen");
+    }
+
+    private bool IsSnowing(string? description)
+    {
+        if (string.IsNullOrEmpty(description)) return false;
+        var desc = description.ToLower();
+        
+        // Lumisade
+        return desc.Contains("snow") || desc.Contains("lumi");
     }
 }
