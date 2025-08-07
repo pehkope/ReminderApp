@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>🔍 TÄYDELLINEN KUITTAUS DEBUG</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #f0f0f0; }
+        .step { background: white; margin: 10px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; white-space: pre-wrap; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .loading { color: #6c757d; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>🔍 TÄYDELLINEN KUITTAUS DEBUG KETJU</h1>
+    <p><strong>Testataan koko kuittausketju vaihe vaiheelta</strong></p>
+
+    <div id="results"></div>
+
+    <button onclick="startFullDebug()">🚀 ALOITA TÄYDELLINEN DEBUG</button>
+    <button onclick="clearResults()">🗑️ TYHJENNÄ</button>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxpQyWZkyiMXJIoJrHLEGZPOm-TgqBlW3ftSkmZTuDK6Ya-OZOlKkPW3RNTRQetNeNb/exec';
+        const API_KEY = 'reminder-tablet-2024';
+        const CLIENT_ID = 'mom';
+
+        function addResult(title, content, type = 'step') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `step ${type}`;
+            div.innerHTML = `<h3>${title}</h3>${content}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function startFullDebug() {
+            clearResults();
+            addResult('🚀 ALOITETAAN TÄYDELLINEN KUITTAUS DEBUG', '<div class="loading">Testataan koko kuittausketju...</div>');
+
+            try {
+                // VAIHE 1: Hae alkutilanne
+                addResult('📋 VAIHE 1: Hae alkutilanne', '<div class="loading">Haetaan nykyiset tehtävät...</div>');
+                const initialData = await fetchCurrentTasks();
+                
+                // VAIHE 2: Analysoi tehtävät
+                addResult('🔍 VAIHE 2: Analysoi tehtävät', analyzeTasksHTML(initialData));
+                
+                // VAIHE 3: Valitse kuittausta varten
+                const taskToAck = selectTaskForAcknowledgment(initialData);
+                if (!taskToAck) {
+                    addResult('❌ VIRHE: Ei kuittaukseen sopivia tehtäviä', 'Ei löytynyt RUOKA tai LÄÄKKEET tehtäviä jotka eivät ole vielä kuitattu', 'error');
+                    return;
+                }
+
+                addResult('🎯 VAIHE 3: Valittu kuittaukseen', 
+                    `<strong>Tehtävä:</strong> ${taskToAck.type}<br>
+                     <strong>Aika:</strong> ${taskToAck.timeOfDay}<br>
+                     <strong>Kuvaus:</strong> ${taskToAck.description}<br>
+                     <strong>Kuitattu:</strong> ${taskToAck.isAckedToday}`);
+
+                // VAIHE 4: Lähetä kuittaus
+                addResult('📤 VAIHE 4: Lähetä kuittaus', '<div class="loading">Lähetetään kuittauspyyntö...</div>');
+                const ackResponse = await sendAcknowledgment(taskToAck);
+                
+                // VAIHE 5: Odota hetki
+                addResult('⏱️ VAIHE 5: Odota propagoitumista', '<div class="loading">Odotetaan 3 sekuntia...</div>');
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // VAIHE 6: Hae lopputilanne
+                addResult('📋 VAIHE 6: Hae lopputilanne', '<div class="loading">Haetaan päivitetyt tehtävät...</div>');
+                const finalData = await fetchCurrentTasks();
+                
+                // VAIHE 7: Vertaa tilannetta
+                addResult('🔄 VAIHE 7: Vertaa tilannetta', compareTaskStates(initialData, finalData, taskToAck));
+                
+                // VAIHE 8: Lopputulema
+                const success = analyzeSuccess(initialData, finalData, taskToAck);
+                addResult('🏁 LOPPUTULEMA', success.message, success.type);
+
+            } catch (error) {
+                addResult('💥 KRIITTINEN VIRHE', `<pre>${error.message}\n${error.stack}</pre>`, 'error');
+            }
+        }
+
+        async function fetchCurrentTasks() {
+            const url = `${GAS_URL}?clientID=${CLIENT_ID}&apiKey=${API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            addResult('📥 GET vastaus', `<pre>Status: ${response.status}\n${JSON.stringify(data, null, 2)}</pre>`);
+            return data;
+        }
+
+        function analyzeTasksHTML(data) {
+            if (!data.dailyTasks || data.dailyTasks.length === 0) {
+                return '<div class="error">❌ Ei päivittäisiä tehtäviä!</div>';
+            }
+
+            let html = `<strong>Löytyi ${data.dailyTasks.length} tehtävää:</strong><br><br>`;
+            data.dailyTasks.forEach((task, index) => {
+                const status = task.isAckedToday ? '✅ KUITATTU' : '⏳ ODOTTAA';
+                html += `<strong>${index + 1}. ${task.type}</strong> (${task.timeOfDay})<br>`;
+                html += `   Kuvaus: ${task.description}<br>`;
+                html += `   Status: ${status}<br><br>`;
+            });
+
+            return html;
+        }
+
+        function selectTaskForAcknowledgment(data) {
+            if (!data.dailyTasks) return null;
+            
+            // Etsi ensimmäinen ei-kuitattu RUOKA tai LÄÄKKEET tehtävä
+            return data.dailyTasks.find(task => 
+                (task.type === 'RUOKA' || task.type === 'LÄÄKKEET') && 
+                !task.isAckedToday
+            );
+        }
+
+        async function sendAcknowledgment(task) {
+            const url = `${GAS_URL}?action=acknowledge&apiKey=${API_KEY}&clientID=${CLIENT_ID}&taskType=${task.type}&timeOfDay=${task.timeOfDay}&description=${encodeURIComponent(task.description)}&timestamp=${new Date().toISOString()}`;
+            
+            addResult('📤 KUITTAUS URL', `<pre>${url}</pre>`);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            addResult('📥 KUITTAUS vastaus', `<pre>Status: ${response.status}\n${JSON.stringify(data, null, 2)}</pre>`, 
+                data.status === 'OK' ? 'success' : 'error');
+            
+            return data;
+        }
+
+        function compareTaskStates(initial, final, ackedTask) {
+            let html = '<strong>VERTAILU:</strong><br><br>';
+            
+            const initialTask = initial.dailyTasks?.find(t => 
+                t.type === ackedTask.type && 
+                t.timeOfDay === ackedTask.timeOfDay && 
+                t.description === ackedTask.description
+            );
+            
+            const finalTask = final.dailyTasks?.find(t => 
+                t.type === ackedTask.type && 
+                t.timeOfDay === ackedTask.timeOfDay && 
+                t.description === ackedTask.description
+            );
+
+            html += `<strong>Kuitattu tehtävä: ${ackedTask.type} (${ackedTask.timeOfDay})</strong><br>`;
+            html += `Kuvaus: ${ackedTask.description}<br><br>`;
+            
+            if (initialTask && finalTask) {
+                html += `<strong>ENNEN:</strong> isAckedToday = ${initialTask.isAckedToday}<br>`;
+                html += `<strong>JÄLKEEN:</strong> isAckedToday = ${finalTask.isAckedToday}<br><br>`;
+                
+                if (initialTask.isAckedToday === false && finalTask.isAckedToday === true) {
+                    html += '<div class="success">✅ MUUTOS ONNISTUI!</div>';
+                } else if (initialTask.isAckedToday === finalTask.isAckedToday) {
+                    html += '<div class="error">❌ EI MUUTOSTA!</div>';
+                } else {
+                    html += '<div class="warning">⚠️ ODOTTAMATON MUUTOS!</div>';
+                }
+            } else {
+                html += '<div class="error">❌ Tehtävää ei löytynyt vertailuun!</div>';
+            }
+
+            return html;
+        }
+
+        function analyzeSuccess(initial, final, ackedTask) {
+            const initialTask = initial.dailyTasks?.find(t => 
+                t.type === ackedTask.type && 
+                t.timeOfDay === ackedTask.timeOfDay && 
+                t.description === ackedTask.description
+            );
+            
+            const finalTask = final.dailyTasks?.find(t => 
+                t.type === ackedTask.type && 
+                t.timeOfDay === ackedTask.timeOfDay && 
+                t.description === ackedTask.description
+            );
+
+            if (!initialTask || !finalTask) {
+                return {
+                    type: 'error',
+                    message: '❌ KRIITTINEN VIRHE: Tehtävä katosi vertailun aikana!'
+                };
+            }
+
+            if (initialTask.isAckedToday === false && finalTask.isAckedToday === true) {
+                return {
+                    type: 'success',
+                    message: '🎉 KUITTAUS ONNISTUI! Backend päivittyi oikein. Jos UI ei päivity, ongelma on frontendissä.'
+                };
+            } else if (initialTask.isAckedToday === finalTask.isAckedToday) {
+                return {
+                    type: 'error',
+                    message: '❌ KUITTAUS EPÄONNISTUI: Backend ei päivittynyt. Ongelma Google Apps Scriptissä tai Google Sheetsistä.'
+                };
+            } else {
+                return {
+                    type: 'warning',
+                    message: '⚠️ ODOTTAMATON TILANNE: Jotain meni pieleen vertailussa.'
+                };
+            }
+        }
+    </script>
+</body>
+</html>

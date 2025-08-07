@@ -757,6 +757,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
           type: "RUOKA",
           description: reminder.replace("🍽️ ", ""), // Poista emoji jos on
           timeOfDay: finalTimeOfDay,
+          requiresAck: true, // 🍽️ RUOKA VAATII KUITTAUKSEN
           isAckedToday: isAcked,
           acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "RUOKA", timeOfDay, today) : null
         });
@@ -771,6 +772,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
         type: "RUOKA",
         description: defaultFoodDesc,
         timeOfDay: finalTimeOfDay,
+        requiresAck: true, // 🍽️ RUOKA VAATII KUITTAUKSEN
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "RUOKA", timeOfDay, today) : null
       });
@@ -789,6 +791,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
         type: "LÄÄKKEET", 
         description: firstReminder.replace("💊 ", ""), // Poista emoji jos on
         timeOfDay: finalTimeOfDay,
+        requiresAck: true, // 💊 LÄÄKKEET VAATII KUITTAUKSEN
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
       });
@@ -802,6 +805,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
         type: "LÄÄKKEET",
         description: defaultMedDesc,
         timeOfDay: finalTimeOfDay,
+        requiresAck: true, // 💊 LÄÄKKEET VAATII KUITTAUKSEN
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
       });
@@ -822,6 +826,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
       type: "PUUHAA",
       description: activity,
       timeOfDay: finalTimeOfDay,
+      requiresAck: false, // 😊 PUUHAA EI VAADI KUITTAUSTA
       isAckedToday: false, // PUUHAA ei kuitata
       acknowledgmentTimestamp: null
     });
