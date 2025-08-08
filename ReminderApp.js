@@ -1988,21 +1988,43 @@ function getDailyPhoto_(sheet, clientID) {
       }
     }
     
-    // Method 3: Fallback to Google Sheets Photos tab
-    const photoSheet = sheet.getSheetByName("Photos");
-    if (!photoSheet) return {url: "", caption: "Ei kuvia saatavilla"};
-    
-    const photos = photoSheet.getDataRange().getValues()
-                             .filter((row, index) => index > 0 && row[0] === clientID);
-    
-    if (photos.length === 0) return {url: "", caption: "Ei kuvia saatavilla"};
-    
-    // Enhanced photo selection logic
+    // Method 3: Fallback to Google Sheets Kuvat tab (suomenkielinen)
+    const photoSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) 
+                       || sheet.getSheetByName("Kuvat") 
+                       || sheet.getSheetByName("Photos");
+    if (!photoSheet) return { url: "", caption: "Ei kuvia saatavilla" };
+
+    const allRows = photoSheet.getDataRange().getValues();
+    const photos = allRows.filter((row, index) => {
+      if (index === 0) return false; // header
+      const rowClient = String(row[0] || "").trim().toLowerCase();
+      return rowClient === String(clientID || "").trim().toLowerCase();
+    });
+
+    if (photos.length === 0) return { url: "", caption: "Ei kuvia saatavilla" };
+
     const photoIndex = calculatePhotoIndex_(photos.length, rotationSettings);
-    
+    const selected = photos[photoIndex] || [];
+
+    // B-sarake oletuksena URL; jos tyhjä tai ei http, etsi 2..6 sarakkeista ensimmäinen http-linkki
+    let url = String(selected[1] || "").trim();
+    if (!url || !/^https?:\/\//i.test(url)) {
+      for (let ci = 1; ci < Math.min(selected.length, 6); ci++) {
+        const cell = String(selected[ci] || "").trim();
+        if (/^https?:\/\//i.test(cell)) { url = cell; break; }
+      }
+    }
+
+    // Caption: C tai D; ohita jos näyttää URL:lta
+    let caption = String(selected[2] || "").trim();
+    if (!caption || /^https?:\/\//i.test(caption)) {
+      caption = String(selected[3] || "").trim();
+    }
+    if (!caption) caption = "Kuva äidille";
+
     return {
-      url: photos[photoIndex][1],
-      caption: photos[photoIndex][2] || "Kuva äidille",
+      url: url,
+      caption: caption,
       rotationInfo: `${rotationSettings.rotationInterval} rotation, photo ${photoIndex + 1}/${photos.length}`
     };
     
