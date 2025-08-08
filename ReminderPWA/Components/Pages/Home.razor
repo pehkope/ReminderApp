@@ -362,6 +362,28 @@
                 statusMessage = $"✅ {request.TaskType} kuitattu! Ilmoitus lähetetty perheelle.";
                 await OnTaskAcknowledged(); // Play completion sound
                 
+                // Optimistinen UI-päivitys: merkitse vastaavat tehtävät kuitatuiksi heti
+                try
+                {
+                    if (apiResponse?.DailyTasks != null)
+                    {
+                        foreach (var t in apiResponse.DailyTasks)
+                        {
+                            var typeMatches = string.Equals(t.Type, request.TaskType, StringComparison.OrdinalIgnoreCase);
+                            var timeMatches = string.IsNullOrEmpty(t.TimeOfDay) || string.Equals(t.TimeOfDay, request.TimeOfDay, StringComparison.OrdinalIgnoreCase);
+
+                            if (typeMatches && timeMatches)
+                            {
+                                t.IsAckedToday = true;
+                                t.AcknowledgmentTimestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                            }
+                        }
+
+                        StateHasChanged();
+                    }
+                }
+                catch { /* ignore optimistic update errors */ }
+
                 Console.WriteLine($"🔄 Waiting 3 seconds before reloading data for task: {request.TaskType} - {request.Description}");
                 
                 // Reload data after longer delay to ensure Google Sheets has updated
