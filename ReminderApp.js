@@ -2015,6 +2015,9 @@ function getDailyPhoto_(sheet, clientID) {
       }
     }
 
+    // Paranna Google Drive -thumbnailin tarkkuutta, jos leveys puuttuu
+    url = ensureHighResDriveThumb_(url, 1400);
+
     // Caption: C tai D; ohita jos näyttää URL:lta
     let caption = String(selected[2] || "").trim();
     if (!caption || /^https?:\/\//i.test(caption)) {
@@ -2155,6 +2158,19 @@ function testEveningBefore() {
 // ===================================================================================
 //  ENHANCED PHOTO ROTATION FUNCTIONS
 // ===================================================================================
+
+/**
+ * Varmistaa että Google Drive thumbnail -URL sisältää riittävän leveysvihjeen (&sz=wNNN)
+ */
+function ensureHighResDriveThumb_(url, minWidth) {
+  try {
+    if (!url) return url;
+    if (!/^https?:\/\/drive\.google\.com\/thumbnail\?id=/i.test(url)) return url;
+    if (/([?&])sz=w\d+/i.test(url)) return url; // jo annettu
+    const width = Math.max(800, Number(minWidth) || 1200);
+    return url + (url.includes("?") ? "&" : "?") + "sz=w" + width;
+  } catch { return url; }
+}
 
 /**
  * Get photo rotation settings for client
