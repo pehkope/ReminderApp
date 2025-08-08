@@ -108,6 +108,7 @@
         StartTimer();
 
                  // Fetch initial data
+        await LoadLocalAcknowledgmentsAsync();
         await LoadData();
         
         // Check for new messages periodically
@@ -203,17 +204,7 @@
             //     Console.WriteLine("Added test photo data");
             // }
 
-            // KORJAUS: Lisää default tehtävät jos API ei palauta tehtäviä
-            if (apiResponse.DailyTasks?.Any() != true)
-            {
-                // DEBUGGING: Logitetaan syy miksi ei tehtäviä
-                Console.WriteLine($"🔍 No tasks from API. Status: '{apiResponse.Status}', DailyTasks count: {apiResponse.DailyTasks?.Count ?? 0}");
-                
-                // Lisää default tehtävät aina kun API ei palauta tehtäviä
-                // Jos tehtävät on todella kuitattu, API palauttaa ne IsAckedToday=true kanssa
-                apiResponse.DailyTasks = TestDataService.GetDefaultTasks();
-                Console.WriteLine("Added default tasks - frontend will handle acknowledgment display logic");
-            }
+            // ÄLÄ lisää testitehtäviä online-tilassa – muutoin kuittauksen jälkeen ne palaavat
 
                     // Sovella paikalliset (viime minuuttien) kuittaukset heti
                     ApplyLocalAcknowledgments();
@@ -271,6 +262,9 @@
                     }
                 }
             }
+
+            // Persistoi localStorageen
+            _ = SaveLocalAcknowledgmentsAsync();
         }
         catch (Exception ex)
         {
@@ -284,11 +278,54 @@
         // Tallenna sekä tarkka että "mikä tahansa vuorokaudenaika" -avaimet
         recentlyAckedTaskKeysUtc[BuildTaskKey(taskType, timeOfDay)] = now;
         recentlyAckedTaskKeysUtc[BuildTaskKey(taskType, "*")] = now;
+
+        _ = SaveLocalAcknowledgmentsAsync();
     }
 
     private static string BuildTaskKey(string taskType, string timeOfDay)
     {
         return $"{(taskType ?? "").Trim().ToUpperInvariant()}|{(timeOfDay ?? "").Trim().ToUpperInvariant()}";
+    }
+
+    private async Task LoadLocalAcknowledgmentsAsync()
+    {
+        try
+        {
+            var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "recentAcks");
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                if (dict != null)
+                {
+                    recentlyAckedTaskKeysUtc.Clear();
+                    foreach (var kv in dict)
+                    {
+                        if (DateTime.TryParse(kv.Value, out var dt))
+                        {
+                            recentlyAckedTaskKeysUtc[kv.Key] = dt;
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"LoadLocalAcknowledgmentsAsync error: {ex.Message}");
+        }
+    }
+
+    private async Task SaveLocalAcknowledgmentsAsync()
+    {
+        try
+        {
+            var dict = recentlyAckedTaskKeysUtc.ToDictionary(k => k.Key, v => v.Value.ToString("o"));
+            var json = System.Text.Json.JsonSerializer.Serialize(dict);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "recentAcks", json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SaveLocalAcknowledgmentsAsync error: {ex.Message}");
+        }
     }
 
     private void LoadFallbackData(string errorType)
