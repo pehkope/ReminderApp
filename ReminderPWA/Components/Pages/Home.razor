@@ -75,6 +75,9 @@
     private ReminderApiResponse? apiResponse;
     private bool IsNewMessage => true; // TODO: Track when new message arrives
     
+    // Paikallinen kuittausmuisti: pitää visuaalisen tilan kuitattuna hetken
+    private readonly Dictionary<string, DateTime> recentlyAckedTaskKeysUtc = new();
+    
     // Auto-return functionality
     private int AutoReturnSecondsLeft = 0;
     private bool isInAlternativeView = false;
@@ -210,6 +213,9 @@
                 apiResponse.DailyTasks = TestDataService.GetDefaultTasks();
                 Console.WriteLine("Added default tasks - frontend will handle acknowledgment display logic");
             }
+
+                    // Sovella paikalliset (viime minuuttien) kuittaukset heti
+                    ApplyLocalAcknowledgments();
             }
             else
             {
@@ -233,6 +239,51 @@
             statusMessage = "📱 Offline-tila - käytetään testidata";
             LoadFallbackData(result.ErrorCode);
         }
+    }
+
+    private void ApplyLocalAcknowledgments()
+    {
+        try
+        {
+            // Poista vanhentuneet (yli 15 min) merkinnät
+            var now = DateTime.UtcNow;
+            var expiredKeys = recentlyAckedTaskKeysUtc.Where(kv => (now - kv.Value) > TimeSpan.FromMinutes(15))
+                                                      .Select(kv => kv.Key)
+                                                      .ToList();
+            foreach (var key in expiredKeys)
+            {
+                recentlyAckedTaskKeysUtc.Remove(key);
+            }
+
+            if (apiResponse?.DailyTasks == null) return;
+            foreach (var t in apiResponse.DailyTasks)
+            {
+                var key = BuildTaskKey(t.Type, string.IsNullOrEmpty(t.TimeOfDay) ? GetTimeOfDay() : t.TimeOfDay);
+                if (recentlyAckedTaskKeysUtc.ContainsKey(key))
+                {
+                    t.IsAckedToday = true;
+                    if (string.IsNullOrEmpty(t.AcknowledgmentTimestamp))
+                    {
+                        t.AcknowledgmentTimestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ApplyLocalAcknowledgments error: {ex.Message}");
+        }
+    }
+
+    private void RegisterLocalAcknowledgment(string taskType, string timeOfDay)
+    {
+        var key = BuildTaskKey(taskType, timeOfDay);
+        recentlyAckedTaskKeysUtc[key] = DateTime.UtcNow;
+    }
+
+    private static string BuildTaskKey(string taskType, string timeOfDay)
+    {
+        return $"{(taskType ?? "").Trim().ToUpperInvariant()}|{(timeOfDay ?? "").Trim().ToUpperInvariant()}";
     }
 
     private void LoadFallbackData(string errorType)
@@ -381,6 +432,9 @@
 
                         StateHasChanged();
                     }
+
+                    // Rekisteröi paikallinen kuittaus, jotta uudelleenlataus ei kumoa näkymää
+                    RegisterLocalAcknowledgment(request.TaskType, request.TimeOfDay);
                 }
                 catch { /* ignore optimistic update errors */ }
 
