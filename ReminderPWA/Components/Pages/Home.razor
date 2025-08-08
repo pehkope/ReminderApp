@@ -77,6 +77,7 @@
     
     // Paikallinen kuittausmuisti: pitää visuaalisen tilan kuitattuna hetken
     private readonly Dictionary<string, DateTime> recentlyAckedTaskKeysUtc = new();
+    private static readonly TimeSpan LocalAckTtl = TimeSpan.FromMinutes(30);
     
     // Auto-return functionality
     private int AutoReturnSecondsLeft = 0;
@@ -245,9 +246,9 @@
     {
         try
         {
-            // Poista vanhentuneet (yli 15 min) merkinnät
+            // Poista vanhentuneet merkinnät (TTL)
             var now = DateTime.UtcNow;
-            var expiredKeys = recentlyAckedTaskKeysUtc.Where(kv => (now - kv.Value) > TimeSpan.FromMinutes(15))
+            var expiredKeys = recentlyAckedTaskKeysUtc.Where(kv => (now - kv.Value) > LocalAckTtl)
                                                       .Select(kv => kv.Key)
                                                       .ToList();
             foreach (var key in expiredKeys)
@@ -258,8 +259,10 @@
             if (apiResponse?.DailyTasks == null) return;
             foreach (var t in apiResponse.DailyTasks)
             {
-                var key = BuildTaskKey(t.Type, string.IsNullOrEmpty(t.TimeOfDay) ? GetTimeOfDay() : t.TimeOfDay);
-                if (recentlyAckedTaskKeysUtc.ContainsKey(key))
+                var tod = string.IsNullOrEmpty(t.TimeOfDay) ? GetTimeOfDay() : t.TimeOfDay;
+                var keyExact = BuildTaskKey(t.Type, tod);
+                var keyAny = BuildTaskKey(t.Type, "*");
+                if (recentlyAckedTaskKeysUtc.ContainsKey(keyExact) || recentlyAckedTaskKeysUtc.ContainsKey(keyAny))
                 {
                     t.IsAckedToday = true;
                     if (string.IsNullOrEmpty(t.AcknowledgmentTimestamp))
@@ -277,8 +280,10 @@
 
     private void RegisterLocalAcknowledgment(string taskType, string timeOfDay)
     {
-        var key = BuildTaskKey(taskType, timeOfDay);
-        recentlyAckedTaskKeysUtc[key] = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        // Tallenna sekä tarkka että "mikä tahansa vuorokaudenaika" -avaimet
+        recentlyAckedTaskKeysUtc[BuildTaskKey(taskType, timeOfDay)] = now;
+        recentlyAckedTaskKeysUtc[BuildTaskKey(taskType, "*")] = now;
     }
 
     private static string BuildTaskKey(string taskType, string timeOfDay)
