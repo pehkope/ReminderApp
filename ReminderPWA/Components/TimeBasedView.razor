@@ -210,11 +210,20 @@
     private async Task HandleTaskAcknowledge(DailyTask task)
     {
         var timeOfDay = !string.IsNullOrEmpty(task.TimeOfDay) ? task.TimeOfDay : GetTimeOfDayText();
-        
+
         Console.WriteLine($"🔧 Acknowledging task: {task.Type} - '{task.Description}' - Original TimeOfDay: '{task.TimeOfDay}' - Using: '{timeOfDay}'");
-        
-        await OnAcknowledgeTask.InvokeAsync(new TaskAckRequest { 
-            TaskType = task.Type, 
+
+        // Optimistinen UI: merkitse heti kuitatuksi, jotta nappi vaihtuu visuaalisesti
+        try
+        {
+            task.IsAckedToday = true;
+            task.AcknowledgmentTimestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            StateHasChanged();
+        }
+        catch { /* ignore */ }
+
+        await OnAcknowledgeTask.InvokeAsync(new TaskAckRequest {
+            TaskType = task.Type,
             TimeOfDay = timeOfDay,
             Description = task.Description ?? ""
         });
