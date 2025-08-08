@@ -136,3 +136,14 @@
     align-items: center;
     gap: 5px;
 } 
+
+/* Selkeämpi kuitattu-pilleri */
+.acked-pill {
+    background: #2ecc71;
+    color: #fff;
+    font-weight: 800;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+}
