@@ -2016,7 +2016,7 @@ function getDailyPhoto_(sheet, clientID) {
     }
 
     // Paranna Google Drive -thumbnailin tarkkuutta, jos leveys puuttuu
-    url = ensureHighResDriveThumb_(url, 1400);
+    url = ensureHighResDriveThumb_(url, 2000);
 
     // Caption: C tai D; ohita jos näyttää URL:lta
     let caption = String(selected[2] || "").trim();
