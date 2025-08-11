@@ -95,6 +95,8 @@
     private AudioNotificationService? audioService;
     private bool audioReady = false;
     private DateTime lastMessageTime = DateTime.MinValue;
+    // Ilmoituksen soittaminen vain aidossa muutoksessa
+    private int? lastContentHash = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -600,29 +602,38 @@
     private async Task CheckForNewMessages()
     {
         if (!audioReady || audioService == null) return;
-        
-        // Check if we have a new message (simplified logic)
-        if (apiResponse?.LatestReminder != null)
+        if (apiResponse == null) return;
+
+        // Koosta yksinkertainen sisältöallekirjoitus (muuta vain kun tieto vaihtuu)
+        var tasksSig = string.Empty;
+        if (apiResponse.DailyTasks != null)
         {
-            var messageHash = apiResponse.LatestReminder.GetHashCode();
-            var currentTime = DateTime.Now;
-            
-            // If message content changed or it's been more than 5 minutes since last check
-            if (lastMessageTime == DateTime.MinValue || 
-                (currentTime - lastMessageTime).TotalMinutes >= 5)
-            {
-                lastMessageTime = currentTime;
-                
-                // Play notification sound
-                await audioService.PlayNewMessageSound();
-                
-                // Start bell animation for 15 seconds
-                await audioService.StartBellAnimation(15);
-                
-                                 Console.WriteLine("New message notification played");
-             }
-         }
-     }
+            tasksSig = string.Join("|", apiResponse.DailyTasks
+                .Where(t => t.RequiresAck)
+                .Select(t => $"{t.Type}:{t.Description}:{t.IsAckedToday}"));
+        }
+
+        var signature = $"{apiResponse.LatestReminder}|{apiResponse.ImportantMessage}|{apiResponse.DailyPhotoUrl}|{apiResponse.DailyPhotoCaption}|{tasksSig}";
+        var contentHash = signature.GetHashCode();
+
+        // Ensimmäisellä kerralla älä soita – ota vain tilanne talteen
+        if (lastContentHash == null)
+        {
+            lastContentHash = contentHash;
+            lastMessageTime = DateTime.Now;
+            return;
+        }
+
+        if (lastContentHash != contentHash)
+        {
+            lastContentHash = contentHash;
+            lastMessageTime = DateTime.Now;
+
+            await audioService.PlayNewMessageSound();
+            await audioService.StartBellAnimation(15);
+            Console.WriteLine("🔔 Notification played (content changed)");
+        }
+    }
 
          private async Task StartPeriodicMessageCheck()
     {
