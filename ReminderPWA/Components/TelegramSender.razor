@@ -81,6 +81,7 @@
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback OnMessageSent { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public string? TargetTelegramChatId { get; set; }
 
     private string messageText = "";
     private bool isLoading = false;
@@ -140,7 +141,7 @@
 
         try
         {
-            var response = await TelegramService.SendMessageAsync(messageText);
+            var response = await TelegramService.SendMessageAsync(messageText, targetChatId: TargetTelegramChatId);
             
             lastSendSuccess = response.Success;
             statusMessage = response.Message;

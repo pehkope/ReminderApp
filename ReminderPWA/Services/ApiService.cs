@@ -15,10 +15,11 @@ public class ApiService
         _apiSettings = config.ApiSettings;
     }
 
-    public async Task<ApiResult<ReminderApiResponse>> GetDataAsync(string? clientId = null, int? maxRetries = null)
+    public async Task<ApiResult<ReminderApiResponse>> GetDataAsync(string? clientId = null, int? maxRetries = null, int? timeoutOverrideSeconds = null)
     {
         var actualClientId = clientId ?? _apiSettings.DefaultClientId;
         var actualMaxRetries = maxRetries ?? _apiSettings.MaxRetries;
+        var timeoutSeconds = timeoutOverrideSeconds ?? _apiSettings.TimeoutSeconds;
         
         for (int attempt = 1; attempt <= actualMaxRetries; attempt++)
         {
@@ -29,7 +30,7 @@ public class ApiService
                 Console.WriteLine($"🔧 ApiKey: '{_apiSettings.ApiKey}'");
                 
                 // Fallback for Azure deployment if config loading fails
-                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycby6ZGDkKRtmt51PMe544j9zQBPwiNGs5RlKrTtUHOuOuWhP5puKO96DouwmNUEz9TOvOQ/exec" : _apiSettings.BaseUrl;
+                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzwQ7eSFg-JS_1zxda6uHZFKQw2QGkcj6Zb7s19cHiY_I2lHjovNPniC8sdk94SWcA1oA/exec" : _apiSettings.BaseUrl;
                     
                 var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
                 
@@ -47,7 +48,7 @@ public class ApiService
                 Console.WriteLine($"🌐 Target URL: {targetUrl}");
                 Console.WriteLine($"🌐 Request URL: {url}");
                 
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_apiSettings.TimeoutSeconds));
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
                 
                 // First get the raw response to check for errors
                 var httpResponse = await _httpClient.GetAsync(url, cts.Token);

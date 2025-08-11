@@ -1,5 +1,6 @@
 @page "/contacts"
-@inject HttpClient Http
+@using ReminderTabletNew2.Services
+@inject ApiService ApiService
 @using ReminderTabletNew2.Models
 @using System.Text.Json
 @inject NavigationManager Navigation
@@ -26,15 +27,27 @@
                         </div>
                     }
                     <div class="contact-info">
-                        <div class="name">@contact.Name</div>
+                        <div class="name">@contact.Name @if(!string.IsNullOrEmpty(contact.TelegramChatID)){<span class="tg-badge">TG</span>}</div>
                         <div class="phone">📱 @contact.Phone</div>
                         @if (!string.IsNullOrEmpty(contact.Relationship))
                         {
                             <div class="relationship">@contact.Relationship</div>
                         }
                     </div>
-                    <button class="call-button" @onclick="() => CallContact(contact)">
-                        📞 Soita
+                    @if (!string.IsNullOrWhiteSpace(contact.Phone))
+                    {
+                        <a class="call-button" href="@($"tel:{contact.Phone}")">
+                            📞 Soita
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="call-button" disabled>
+                            📞 Soita
+                        </button>
+                    }
+                    <button class="msg-button" @onclick="() => MessageContact(contact)" disabled="@string.IsNullOrEmpty(contact.TelegramChatID)">
+                        💬 Viesti
                     </button>
                 </div>
             }
@@ -62,8 +75,9 @@
     {
         try
         {
-            var apiUrl = "https://script.google.com/macros/s/AKfycbxp2EJ2x71ypFA-PBH4Sc-vtDcGJqPrlr4poecZ7QVsRoM1YzySbK4-a2_WgeZzeBny9g/exec?clientID=mom";
-            apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
+            var result = await ApiService.GetDataAsync("mom", maxRetries: 1, timeoutOverrideSeconds: 6);
+            if (result.IsSuccess)
+                apiResponse = result.Data;
             
             // If no contacts from API, add temporary test contacts
             if (apiResponse?.Contacts?.Any() != true)
@@ -102,14 +116,13 @@
         }
     }
 
-    private void CallContact(Contact contact)
+    // Direct tel: link used in markup
+
+    private async Task MessageContact(Contact contact)
     {
-        // In a real tablet app, this would open the phone app
-        // For now, we'll just show an alert
-        var phoneUrl = $"tel:{contact.Phone}";
-        Console.WriteLine($"Would call: {contact.Name} at {contact.Phone}");
-        
-        // You could also navigate to a phone app or show a confirmation dialog
+        // Avaa TelegramSender suoraan tälle contactille
+        await JS.InvokeVoidAsync("localStorage.setItem", "prefillTelegramChatId", contact.TelegramChatID ?? "");
+        Navigation.NavigateTo("/", forceLoad: false);
     }
 
     private void GoBack()

@@ -57,3 +57,11 @@
 .action-icon-wrapper.brain { 
     background: linear-gradient(135deg, #2a9fd6 0%, #1f7ba4 100%);
 }
+
+.action-icon-wrapper.chat {
+    background: linear-gradient(135deg, #6c5ce7 0%, #5a4bd6 100%);
+}
+
+.action-icon-wrapper.trash {
+    background: linear-gradient(135deg, #e17055 0%, #d35400 100%);
+}

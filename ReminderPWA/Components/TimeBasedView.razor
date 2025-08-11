@@ -36,7 +36,9 @@
         @* Footer toiminnot *@
         <ActionFooter OnNavigateToWeekly="OnNavigateToWeekly"
                      OnNavigateToContacts="OnNavigateToContacts"
-                     OnStartExercise="OnStartExercise" />
+                     OnStartExercise="OnStartExercise"
+                     OnSendMessage="ShowTelegramFromFooter"
+                     OnClearCache="ClearCacheFromFooter" />
     </div>
 </div>
 
@@ -55,6 +57,7 @@
     [Parameter] public EventCallback OnNavigateToWeekly { get; set; }
     [Parameter] public EventCallback OnNavigateToContacts { get; set; }
     [Parameter] public EventCallback OnStartExercise { get; set; }
+    [Parameter] public EventCallback OnShowTelegram { get; set; }
     [Parameter] public bool IsNewMessage { get; set; } = false;
 
     public enum ViewMode
@@ -175,6 +178,25 @@
     {
         showImageModal = false;
         StateHasChanged();
+    }
+
+    private async Task ShowTelegramFromFooter()
+    {
+        if (OnShowTelegram.HasDelegate)
+        {
+            await OnShowTelegram.InvokeAsync();
+        }
+    }
+
+    private async Task ClearCacheFromFooter()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.removeItem", "lastApiResponse");
+            await JS.InvokeVoidAsync("localStorage.removeItem", "recentAcks");
+            await JS.InvokeVoidAsync("console.log", "Cache cleared from footer");
+        }
+        catch {}
     }
 
     private bool IsTaskRelevantForTime(DailyTask task)

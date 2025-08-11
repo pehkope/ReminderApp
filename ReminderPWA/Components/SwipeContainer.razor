@@ -33,7 +33,7 @@
     {
         if (dotNetRef != null)
         {
-            await JSRuntime.InvokeVoidAsync("SwipeHandler.cleanup", ElementId);
+            await JSRuntime.InvokeVoidAsync("SwipeHandler.dispose", ElementId);
             dotNetRef.Dispose();
         }
     }

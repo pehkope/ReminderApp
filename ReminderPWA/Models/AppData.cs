@@ -186,6 +186,9 @@ public class Contact
 
     [JsonPropertyName("relationship")]
     public string Relationship { get; set; } = "";
+
+    [JsonPropertyName("telegramChatID")]
+    public string TelegramChatID { get; set; } = "";
 }
 
 public class FlexibleStringConverter : JsonConverter<string>
