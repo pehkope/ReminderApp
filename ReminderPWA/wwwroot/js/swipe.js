@@ -112,7 +112,8 @@ window.SwipeHandler = {
         
         // Call back to .NET
         try {
-            config.dotNetRef.invokeMethodAsync('OnSwipeDetected', direction);
+            // Call the component instance method; attribute also maps name, but use method name for safety
+            config.dotNetRef.invokeMethodAsync('HandleSwipe', direction);
         } catch (error) {
             console.error('❌ Error calling .NET swipe handler:', error);
         }

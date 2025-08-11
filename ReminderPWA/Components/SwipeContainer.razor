@@ -23,7 +23,7 @@
         }
     }
 
-    [JSInvokable]
+    [JSInvokable("OnSwipeDetected")]
     public async Task HandleSwipe(string direction)
     {
         await OnSwipe.InvokeAsync(direction);

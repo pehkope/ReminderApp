@@ -984,7 +984,7 @@ function getClientSettings_(sheet, clientID) {
   } catch {}
 
   const defaultSettings = {
-    useTelegram: false,
+    useTelegram: !!PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN'),
     usePhotos: inferredUsePhotos
   };
   
@@ -1002,12 +1002,14 @@ function getClientSettings_(sheet, clientID) {
       // J-sarake oletus, mutta jos taulukkoa muutettu, tuetaan myös muita totuusarvoja
       
       if (configClientID === clientID.toLowerCase()) {
-        const raw = (data[i][9] !== undefined ? data[i][9] : data[i][3]);
-        const usePhotosResult = raw === true || String(raw).toLowerCase() === 'true' || String(raw).toLowerCase() === 'yes' || String(raw).toLowerCase() === '1';
-        console.log(`✅ Found matching client! usePhotos: ${usePhotosValue} → ${usePhotosResult}`);
-        
+        const rawPhotos = (data[i][9] !== undefined ? data[i][9] : data[i][3]);
+        const usePhotosResult = rawPhotos === true || String(rawPhotos).toLowerCase() === 'true' || String(rawPhotos).toLowerCase() === 'yes' || String(rawPhotos).toLowerCase() === '1';
+
+        const rawTelegram = (data[i][10] !== undefined ? data[i][10] : data[i][4]);
+        const useTelegramResult = rawTelegram === true || String(rawTelegram).toLowerCase() === 'true' || String(rawTelegram).toLowerCase() === 'yes' || String(rawTelegram).toLowerCase() === '1';
+
         return {
-          useTelegram: false, // 🚨 HÄTÄTILA: SMS SPAMMI PYSÄYTETTY!
+          useTelegram: useTelegramResult || defaultSettings.useTelegram,
           usePhotos: usePhotosResult || defaultSettings.usePhotos
         };
       }
@@ -2044,7 +2046,7 @@ function getDailyPhoto_(sheet, clientID) {
 
     return {
       url: url,
-      caption: caption,
+      caption: caption || "",
       rotationInfo: `${rotationSettings.rotationInterval} rotation, photo ${photoIndex + 1}/${photos.length}`
     };
     
