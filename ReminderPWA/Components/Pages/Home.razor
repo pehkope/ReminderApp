@@ -11,30 +11,35 @@
 @implements IDisposable
 
 <AudioNotificationService @ref="audioService" OnAudioInitialized="OnAudioReady" />
-<OfflineIndicator IsOffline="@isOfflineMode" 
-                  OfflineMessage="@offlineMessage"
-                  OnRetry="RetryConnection"
-                  IsRetrying="@isRetrying" />
+@if (!isInitializing && isOfflineMode)
+{
+    <OfflineIndicator IsOffline="@isOfflineMode" 
+                      OfflineMessage="@offlineMessage"
+                      OnRetry="RetryConnection"
+                      IsRetrying="@isRetrying" />
+}
 
+@if (apiResponse == null)
+{
+    <div class="app-loading">
+        <div class="spinner">⏳</div>
+        <div class="text">Ladataan...</div>
+    </div>
+}
+else
+{
 <SwipeContainer OnSwipe="HandleSwipe" CssClass="main-swipe-container">
-    @* Dynamic view based on time of day *@
-    @if (CurrentView == ViewMode.StartDay)
-    {
-        <StartDayView ApiResponse="@apiResponse" OnStartDayClicked="OnStartDayClicked" />
-    }
-    else
-    {
-        <TimeBasedView TimeOfDay="@GetTimeBasedViewMode()" 
-                       CurrentTime="@currentTime"
-                       ApiResponse="@apiResponse" 
-                       OnAcknowledgeTask="OnAcknowledgeTaskHandler"
-                       OnNavigateToWeekly="GoToWeeklyScheduleAsync"
-                       OnNavigateToContacts="GoToContactsAsync"
-                       OnStartExercise="OnStartExerciseHandler"
-                       OnShowTelegram="ShowTelegram"
-                       IsNewMessage="@IsNewMessage" />
-    }
+    <TimeBasedView TimeOfDay="@GetTimeBasedViewMode()" 
+                   CurrentTime="@currentTime"
+                   ApiResponse="@apiResponse" 
+                   OnAcknowledgeTask="OnAcknowledgeTaskHandler"
+                   OnNavigateToWeekly="GoToWeeklyScheduleAsync"
+                   OnNavigateToContacts="GoToContactsAsync"
+                   OnStartExercise="OnStartExerciseHandler"
+                   OnShowTelegram="ShowTelegram"
+                   IsNewMessage="@IsNewMessage" />
 </SwipeContainer>
+}
 
 @* Auto-return timer display *@
 @if (AutoReturnSecondsLeft > 0)
@@ -94,6 +99,10 @@
     // Ilmoituksen soittaminen vain aidossa muutoksessa
     private int? lastContentHash = null;
     private string? prefillChatId = null;
+    private int consecutiveFailures = 0;
+    private DateTime lastSuccessfulFetch = DateTime.MinValue;
+    private DateTime appStartTime = DateTime.Now;
+    private bool isInitializing = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -167,12 +176,14 @@
         Console.WriteLine("🔄 LoadData() aloitettu - haetaan uudet tiedot API:sta");
         statusMessage = "📡 Haetaan tietoja...";
         
-        var result = await ApiService.GetDataAsync("mom", maxRetries: initialFast ? 1 : 2, timeoutOverrideSeconds: initialFast ? 6 : null); // Fast path first load
+        var result = await ApiService.GetDataAsync("mom", maxRetries: initialFast ? 1 : 2, timeoutOverrideSeconds: initialFast ? 12 : null); // pidempi timeout käynnistyksessä
         
         if (result.IsSuccess && result.Data != null)
         {
             apiResponse = result.Data;
             isOfflineMode = false;
+            consecutiveFailures = 0;
+            lastSuccessfulFetch = DateTime.Now;
             statusMessage = $"✅ Tiedot ladattu {DateTime.Now:HH:mm:ss}";
             
                          if (apiResponse != null)
@@ -190,6 +201,7 @@
                 Console.WriteLine("========================");
                 // Cache
                 await SaveCacheAsync(apiResponse);
+                isInitializing = false;
             }
             else
             {
@@ -240,19 +252,39 @@
         else
         {
             Console.WriteLine($"❌ API virhe: {result.ErrorCode} - {result.ErrorMessage}");
-            isOfflineMode = true;
-            offlineMessage = result.ErrorCode switch
+            consecutiveFailures++;
+
+            // Älä mene offline-tilaan heti; salli 2 peräkkäistä epäonnistumista ja tarkista viimeinen onnistuminen
+            var gracePeriodNotOver = (DateTime.Now - appStartTime) < TimeSpan.FromSeconds(25);
+            var shouldGoOffline = !gracePeriodNotOver && consecutiveFailures >= 2 && (lastSuccessfulFetch == DateTime.MinValue || DateTime.Now - lastSuccessfulFetch > TimeSpan.FromSeconds(30));
+
+            if (shouldGoOffline)
             {
-                "API_TIMEOUT" => "API vastaa hitaasti",
-                "NETWORK_ERROR" => "Verkkoyhteys ongelma",
-                "UNAUTHORIZED" => "API-avain virheellinen", 
-                "JSON_ERROR" => "API vastaus virheellinen",
-                "EMPTY_RESPONSE" => "API palautti tyhjän vastauksen",
-                "HTML_RESPONSE" => "Google Apps Script URL virheellinen",
-                _ => result.ErrorMessage
-            };
-            statusMessage = "📱 Offline-tila - käytetään testidata";
-            LoadFallbackData(result.ErrorCode);
+                isOfflineMode = true;
+                offlineMessage = result.ErrorCode switch
+                {
+                    "API_TIMEOUT" => "API vastaa hitaasti",
+                    "NETWORK_ERROR" => "Verkkoyhteys ongelma",
+                    "UNAUTHORIZED" => "API-avain virheellinen", 
+                    "JSON_ERROR" => "API vastaus virheellinen",
+                    "EMPTY_RESPONSE" => "API palautti tyhjän vastauksen",
+                    "HTML_RESPONSE" => "Google Apps Script URL virheellinen",
+                    _ => result.ErrorMessage
+                };
+                statusMessage = "📱 Offline-tila - käytetään välimuistia";
+                // Älä korvaa näkymää testidatalla jos meillä on cache
+                if (apiResponse == null)
+                {
+                    LoadFallbackData(result.ErrorCode);
+                }
+            }
+            else
+            {
+                // Pysy online-tilassa ja pidä cache näkyvissä, yritetään myöhemmin uudelleen
+                Console.WriteLine("⌛ Pidetään nykyinen näkymä, ei siirrytä offline-tilaan (pehmeä virhe)");
+                // jos meillä ei vielä ole dataa, näytä latausnäkymä eikä offlinea
+                if (apiResponse == null) isInitializing = true;
+            }
         }
     }
 

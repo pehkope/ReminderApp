@@ -1,7 +1,7 @@
 /* Päivän valokuva */
 .main-photo {
     width: 100%;
-    height: 480px; /* KASVATETTU: 360px → 480px korkeampi kuva */
+    height: clamp(220px, 28vh, 320px); /* responsiivinen: hieman pienempi tabletille */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -64,8 +64,8 @@
 
 /* Pysyvä kuvateksti kuvan alla */
 .photo-caption {
-    margin-top: 8px;
-    font-size: 1rem;
+    margin-top: 6px;
+    font-size: 0.95rem;
     color: #333;
     text-align: center;
 }

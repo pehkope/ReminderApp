@@ -5,9 +5,9 @@
 }
 
 .tasks-section h2 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #5c4b99;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     padding-left: 5px;
     font-weight: 700;
     text-transform: uppercase;
@@ -25,12 +25,12 @@
     align-items: center;
     justify-content: space-between;
     background-color: rgba(255, 255, 255, 0.98);
-    padding: 18px 20px;
-    border-radius: 25px;
+    padding: 12px 16px;
+    border-radius: 18px;
     margin-bottom: 10px;
-    min-height: 65px;
-    backdrop-filter: blur(15px);
+    min-height: 56px;
     -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
@@ -44,13 +44,13 @@
 .task-details {
     display: flex;
     align-items: center;
-    gap: 18px;
-    font-size: 1.4rem;
+    gap: 12px;
+    font-size: 1.15rem;
     flex: 1;
 }
 
 .task-icon {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     color: #555;
     min-width: 20px;
 }
@@ -63,6 +63,7 @@
     color: #2c3e50;
     font-weight: 500;
     line-height: 1.4;
+    font-size: 1.05rem;
 }
 
 :global(.night-view) .task-text {
@@ -71,22 +72,22 @@
 
 /* Task Type Colors - KAIKKI VALKOINEN TAUSTA */
 .food-task {
-    border-left: 6px solid #ff4757 !important;
+    border-left: 4px solid #ff4757 !important;
     background-color: rgba(255, 255, 255, 0.98) !important;
 }
 
 .medicine-task {
-    border-left: 6px solid #ff6b35 !important;
+    border-left: 4px solid #ff6b35 !important;
     background-color: rgba(255, 255, 255, 0.98) !important;
 }
 
 .activity-task {
-    border-left: 6px solid #2ed573 !important;
+    border-left: 4px solid #2ed573 !important;
     background-color: rgba(255, 255, 255, 0.98) !important;
 }
 
 .general-task {
-    border-left: 6px solid #747d8c !important;
+    border-left: 4px solid #747d8c !important;
     background-color: rgba(255, 255, 255, 0.98) !important;
 }
 
@@ -106,14 +107,14 @@
     background-color: #5c4b99;
     color: #fff;
     border: none;
-    border-radius: 20px;
-    padding: 12px 25px;
+    border-radius: 16px;
+    padding: 8px 16px;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    min-width: 80px;
-    min-height: 48px;
+    min-width: 72px;
+    min-height: 40px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     touch-action: manipulation;
@@ -142,8 +143,8 @@
     background: #2ecc71;
     color: #fff;
     font-weight: 800;
-    padding: 8px 14px;
+    padding: 6px 12px;
     border-radius: 999px;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     letter-spacing: 0.5px;
 }

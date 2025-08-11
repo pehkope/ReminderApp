@@ -1,13 +1,16 @@
 /* MODERN MOBILE DESIGN for ReminderApp */
 .mobile-container {
-    max-width: 900px; /* Android tablet portrait mode */
+    max-width: 980px; /* leveämpi, mahtuu paremmin tabletille */
     margin: auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #EAE6F3; /* Light purple background */
-    min-height: 100vh;
+    min-height: calc(100vh - 20px); /* huomioi layoutin ylä/alatila */
     display: flex;
     flex-direction: column;
     transition: all 0.5s ease;
+    /* Jätä tilaa alapalkille jotta violetti tausta ei jatku sen alle */
+    padding-bottom: 110px; /* ~footerin korkeus */
+    background-clip: content-box; /* älä maalaa taustaa padding-alueelle */
 }
 
 /* Pehmeät ajankohdan värit ilman voimakkaita gradientteja */
@@ -61,8 +64,8 @@
     border-radius: 15px;
     padding: 12px; /* Vielä pienempi padding */
     margin-bottom: 10px; /* Pienempi marginaali */
-    backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
@@ -139,8 +142,11 @@
 /* Content Area */
 .content-area {
     padding: 0 20px;
-    flex: 1;
-    /* Kaikki komponentit normaali document flow ylhäältä alaspäin */
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
 }
 
 /* Notification Section */
@@ -172,11 +178,11 @@
 .notification-bubble {
     background-color: rgba(255, 255, 255, 0.98);
     border-radius: 18px;
-    padding: 25px;
+    padding: 16px; /* pienempi padding */
     padding-left: 60px; /* Lisää tilaa bell-iconille, ei margin-left */
     margin-left: 0; /* Samalle tasolle vasemman reunan kanssa */
-    backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
@@ -201,9 +207,9 @@
 
 .notification-bubble p {
     margin: 5px 0 0 0;
-    line-height: 1.4;
+    line-height: 1.3;
     color: #2c3e50;
-    font-size: 1.3rem;
+    font-size: 1.15rem; /* pienempi fontti */
     font-weight: 400;
 }
 
@@ -234,7 +240,10 @@
 /* Photo and Footer */
 .main-photo {
     width: 100%;
-    height: 480px; /* KASVATETTU: 360px → 480px korkeampi kuva */
+    height: auto;
+    flex: 1 1 200px;            /* hieman pienempi lähtökorkeus */
+    max-height: 30vh;           /* pienempi yläraja → enemmän tilaa korteille */
+    min-height: 180px;          /* alarajaa hieman alas */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -243,7 +252,7 @@
     background-color: #f5f5f5;
     position: relative;
     overflow: hidden;
-    border: 2px solid #ddd; /* Näkyvä reunus debug-tarkoituksiin */
+    border: 2px solid transparent; /* poistettu debug-reunus */
 }
 
 .main-photo img {
@@ -259,13 +268,13 @@
 }
 
 .footer-bar {
-    position: absolute;
-    bottom: 10px; /* Nostettu ylöspäin */
+    position: sticky; /* pysyy näkyvissä ja varmistaa ettei leikkaannu pois */
+    bottom: 0;
     left: 0;
     right: 0;
     background: linear-gradient(180deg, transparent 0%, rgba(136, 136, 136, 0.9) 35%, rgba(119, 119, 119, 0.95) 100%);
-    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     border-top-left-radius: 25px;
     border-top-right-radius: 25px;
     display: flex;
@@ -303,8 +312,8 @@
     font-size: 1.4rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     border: 2px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
 }
 
 .action-icon-wrapper.phone { 
