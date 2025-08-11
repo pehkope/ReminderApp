@@ -633,6 +633,7 @@ function handleDataFetchAction_(e) {
       contacts: contacts,
       latestReminder: latestReminder,
       dailyTasks: dailyTasks,
+      weeklyPlan: getWeeklyPlan_(sheet, clientID),
       currentTimeOfDay: timeOfDay
     };
     
@@ -2341,6 +2342,63 @@ function getNextChangeTime_(interval) {
     default:
       return "Unknown interval";
   }
+}
+
+// ===================================================================================
+//  WEEKLY PLAN (FOOD, MEDICINES, EVENTS)
+// ===================================================================================
+
+function getWeeklyPlan_(sheet, clientID) {
+  try {
+    const today = new Date();
+    const days = [];
+
+    // Read upcoming appointments once
+    const appointments = getUpcomingAppointments_(sheet, clientID) || [];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+      const iso = Utilities.formatDate(d, HELSINKI_TIMEZONE, 'yyyy-MM-dd');
+      const label = Utilities.formatDate(d, HELSINKI_TIMEZONE, 'EEE dd.MM');
+
+      // Food from Ruoka-ajat
+      const meals = (getFoodReminders_(sheet, clientID, getTimeOfDay_(d), d.getHours()) || [])
+        .map(x => x.replace(/^🍽️\s*/, ''));
+
+      // Medicines from Lääkkeet
+      const meds = (getMedicineReminders_(sheet, clientID, getTimeOfDay_(d), d.getHours()) || [])
+        .map(x => x.replace(/^💊\s*/, ''));
+
+      // Events for that exact date
+      const events = appointments.filter(a => {
+        try {
+          const ad = parseFlexibleDate_(a.date || a.Date);
+          return ad && Utilities.formatDate(ad, HELSINKI_TIMEZONE, 'yyyy-MM-dd') === iso;
+        } catch { return false; }
+      }).map(a => `${a.time || a.Time || ''} ${a.type || a.Type || ''}: ${a.message || a.Message || ''}`);
+
+      days.push({ date: iso, label, meals, medicines: meds, events });
+    }
+
+    return { days };
+  } catch (e) {
+    console.warn('getWeeklyPlan_ error:', e.toString());
+    return { days: [] };
+  }
+}
+
+function parseFlexibleDate_(s) {
+  if (!s) return null;
+  try {
+    const parts = String(s).split(/[.\-\/]/).map(p => p.trim());
+    if (parts.length === 3 && parts[0].length <= 2) {
+      // dd.MM.yyyy
+      return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    }
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d;
+    return null;
+  } catch { return null; }
 }
 
 // ===================================================================================

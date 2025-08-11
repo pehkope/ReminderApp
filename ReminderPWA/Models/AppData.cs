@@ -53,6 +53,9 @@ public class ReminderApiResponse
 
     [JsonPropertyName("currentTimeOfDay")]
     public string CurrentTimeOfDay { get; set; } = "";
+
+    [JsonPropertyName("weeklyPlan")]
+    public WeeklyPlan WeeklyPlan { get; set; } = new();
 }
 
 /// <summary>
@@ -143,6 +146,30 @@ public class Weather
 
     [JsonPropertyName("temperature")]
     public string Temperature { get; set; }
+}
+
+public class WeeklyPlan
+{
+    [JsonPropertyName("days")]
+    public List<WeeklyDay> Days { get; set; } = new();
+}
+
+public class WeeklyDay
+{
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = "";
+
+    [JsonPropertyName("label")]
+    public string Label { get; set; } = "";
+
+    [JsonPropertyName("meals")]
+    public List<string> Meals { get; set; } = new();
+
+    [JsonPropertyName("medicines")]
+    public List<string> Medicines { get; set; } = new();
+
+    [JsonPropertyName("events")]
+    public List<string> Events { get; set; } = new();
 }
 
 public class Contact

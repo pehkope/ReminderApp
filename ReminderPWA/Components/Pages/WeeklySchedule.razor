@@ -1,128 +1,107 @@
 @page "/weeklyschedule"
-@inject HttpClient Http
 @using ReminderTabletNew2.Models
-@using System.Text.Json
+@using ReminderTabletNew2.Services
 @inject NavigationManager Navigation
+@inject ApiService ApiService
 @using ReminderTabletNew2.Components
 
-<SwipeContainer OnSwipe="HandleSwipe" CssClass="daily-schedule-swipe">
-<div class="daily-schedule">
+<SwipeContainer OnSwipe="HandleSwipe" CssClass="weekly-schedule-swipe">
+<div class="weekly-schedule">
     <div class="header">
-        <h2>📅 TÄNÄÄN - PÄIVÄN OHJELMA</h2>
+        <h2>📅 VIIKKO-OHJELMA</h2>
         <button class="back-button" @onclick="GoBack">← Takaisin</button>
     </div>
     
-    <div class="schedule-content">
-        @if (apiResponse?.DailyTasks?.Any() == true)
+    <div class="schedule-grid">
+        @if (apiResponse?.WeeklyPlan?.Days?.Any() == true)
         {
-            @* AAMU *@
-            <div class="time-section">
-                <h3 class="time-title">🌅 AAMU (08:00-11:00)</h3>
-                @foreach (var task in GetTasksForTimeOfDay("AAMU"))
+            <div class="grid-header">
+                @foreach (var d in apiResponse.WeeklyPlan.Days)
                 {
-                    <div class="task-item @GetTaskCssClass(task.Type)">
-                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
-                        <div class="task-details">
-                            <div class="task-text">@task.Message</div>
-                            <div class="task-time">@task.Time</div>
-                        </div>
+                    <div class="grid-col header-col">@d.Label</div>
+                }
+            </div>
+            <div class="grid-row section-row">
+                @foreach (var d in apiResponse.WeeklyPlan.Days)
+                {
+                    <div class="grid-col">
+                        <div class="section-title">🍽️ Ruoka</div>
+                        @foreach (var item in d.Meals)
+                        {
+                            <div class="entry food-task">@item</div>
+                        }
+                        @if (d.Meals == null || d.Meals.Count == 0)
+                        {
+                            <div class="entry empty">—</div>
+                        }
                     </div>
                 }
             </div>
-
-            @* PÄIVÄ *@
-            <div class="time-section">
-                <h3 class="time-title">☀️ PÄIVÄ (11:00-16:00)</h3>
-                @foreach (var task in GetTasksForTimeOfDay("PÄIVÄ"))
+            <div class="grid-row section-row">
+                @foreach (var d in apiResponse.WeeklyPlan.Days)
                 {
-                    <div class="task-item @GetTaskCssClass(task.Type)">
-                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
-                        <div class="task-details">
-                            <div class="task-text">@task.Message</div>
-                            <div class="task-time">@task.Time</div>
-                        </div>
+                    <div class="grid-col">
+                        <div class="section-title">💊 Lääkkeet</div>
+                        @foreach (var item in d.Medicines)
+                        {
+                            <div class="entry medicine-task">@item</div>
+                        }
+                        @if (d.Medicines == null || d.Medicines.Count == 0)
+                        {
+                            <div class="entry empty">—</div>
+                        }
                     </div>
                 }
             </div>
-
-            @* ILTA *@
-            <div class="time-section">
-                <h3 class="time-title">🌅 ILTA (16:00-21:00)</h3>
-                @foreach (var task in GetTasksForTimeOfDay("ILTA"))
+            <div class="grid-row section-row">
+                @foreach (var d in apiResponse.WeeklyPlan.Days)
                 {
-                    <div class="task-item @GetTaskCssClass(task.Type)">
-                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
-                        <div class="task-details">
-                            <div class="task-text">@task.Message</div>
-                            <div class="task-time">@task.Time</div>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            @* YÖ *@
-            <div class="time-section">
-                <h3 class="time-title">🌙 YÖ (21:00+)</h3>
-                @foreach (var task in GetTasksForTimeOfDay("YÖ"))
-                {
-                    <div class="task-item @GetTaskCssClass(task.Type)">
-                        <div class="task-icon">@GetTaskIcon(task.Type)</div>
-                        <div class="task-details">
-                            <div class="task-text">@task.Message</div>
-                            <div class="task-time">@task.Time</div>
-                        </div>
+                    <div class="grid-col">
+                        <div class="section-title">📅 Tapahtumat</div>
+                        @foreach (var item in d.Events)
+                        {
+                            <div class="entry general-task">@item</div>
+                        }
+                        @if (d.Events == null || d.Events.Count == 0)
+                        {
+                            <div class="entry empty">—</div>
+                        }
                     </div>
                 }
             </div>
         }
         else
         {
-            <div class="no-tasks">
-                <p>Ei tehtäviä merkittynä tälle päivälle.</p>
-                <p>Nauti vapaasta päivästä! 😊</p>
-            </div>
+            <div class="no-tasks">Ei tietoja tälle viikolle</div>
         }
-
-        @* Tärkeät tapahtumat *@
-        @if (!string.IsNullOrEmpty(apiResponse?.ImportantMessage))
-        {
-            <div class="important-section">
-                <h3 class="important-title">⚠️ TÄRKEÄÄ TÄNÄÄN</h3>
-                <div class="important-message">
-                    @apiResponse.ImportantMessage
-                </div>
-                         </div>
-         }
-     </div>
+    </div>
 </div>
 </SwipeContainer>
 
 @code {
     private ReminderApiResponse? apiResponse;
+    private List<WeekDayColumn> weekDays = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
+    protected override async Task OnInitializedAsync() => await LoadData();
 
     private async Task LoadData()
     {
-        try
+        var result = await ApiService.GetDataAsync("mom", maxRetries: 1);
+        if (result.IsSuccess)
         {
-            var apiUrl = "https://script.google.com/macros/s/AKfycbxp2EJ2x71ypFA-PBH4Sc-vtDcGJqPrlr4poecZ7QVsRoM1YzySbK4-a2_WgeZzeBny9g/exec?clientID=mom";
-            apiResponse = await Http.GetFromJsonAsync<ReminderApiResponse>(apiUrl);
+            apiResponse = result.Data;
+            BuildWeek();
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Error loading data: {ex.Message}");
-            // Add test data if API fails
+            Console.WriteLine($"WeeklySchedule API error: {result.ErrorCode} {result.ErrorMessage}");
             AddTestData();
+            BuildWeek();
         }
-
-        // Always add test data if no data exists
         if (apiResponse == null || apiResponse.DailyTasks?.Any() != true)
         {
             AddTestData();
+            BuildWeek();
         }
     }
 
@@ -152,19 +131,17 @@
         apiResponse.ImportantMessage = "13.20 Hammaslääkäri Lauttasaaren terveysasemalla";
     }
 
-    private IEnumerable<DailyTask> GetTasksForTimeOfDay(string timeOfDay)
-    {
-        if (apiResponse?.DailyTasks == null) return Enumerable.Empty<DailyTask>();
+    private IEnumerable<DailyTask> GetMealsToday() =>
+        apiResponse?.DailyTasks?.Where(t => (t.Type?.ToUpperInvariant().Contains("RUOKA") == true) ||
+                                             (t.Type?.ToUpperInvariant().Contains("AAMU") == true) ||
+                                             (t.Type?.ToUpperInvariant().Contains("LOUNAS") == true) ||
+                                             (t.Type?.ToUpperInvariant().Contains("PÄIVÄLLINEN") == true) ||
+                                             (t.Type?.ToUpperInvariant().Contains("ILTAPALA") == true))
+        ?? Enumerable.Empty<DailyTask>();
 
-        return timeOfDay switch
-        {
-            "AAMU" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "AAMU")),
-            "PÄIVÄ" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "PÄIVÄ")),
-            "ILTA" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "ILTA")),
-            "YÖ" => apiResponse.DailyTasks.Where(t => IsTaskForTimeOfDay(t, "YÖ")),
-            _ => Enumerable.Empty<DailyTask>()
-        };
-    }
+    private IEnumerable<DailyTask> GetMedicinesToday() =>
+        apiResponse?.DailyTasks?.Where(t => (t.Type?.ToUpperInvariant().Contains("LÄÄKKEET") == true))
+        ?? Enumerable.Empty<DailyTask>();
 
     private bool IsTaskForTimeOfDay(DailyTask task, string timeOfDay)
     {
@@ -230,5 +207,46 @@
         {
             GoBack();
         }
+    }
+
+    // Rakenna yksinkertainen viikon ruudukko (tänään + 6 seuraavaa päivää)
+    private void BuildWeek()
+    {
+        weekDays.Clear();
+        var today = DateTime.Today;
+        for (int i = 0; i < 7; i++)
+        {
+            var d = today.AddDays(i);
+            var label = d.ToString("ddd dd.MM");
+
+            var meals = GetMealsToday()
+                .Select(t => (t.Description ?? t.Message) ?? "")
+                .ToList();
+            var meds = GetMedicinesToday()
+                .Select(t => (t.Description ?? t.Message) ?? "")
+                .ToList();
+            var eventsList = (apiResponse?.UpcomingAppointments ?? new List<UpcomingAppointment>())
+                .Where(a => DateTime.TryParse(a.Date, out var ad) && ad.Date == d.Date)
+                .Select(a => $"{a.Time} {a.Type}: {a.Message}")
+                .ToList();
+
+            weekDays.Add(new WeekDayColumn
+            {
+                Date = d,
+                Label = label,
+                Meals = meals,
+                Medicines = meds,
+                Events = eventsList
+            });
+        }
+    }
+
+    private class WeekDayColumn
+    {
+        public DateTime Date { get; set; }
+        public string Label { get; set; } = "";
+        public List<string> Meals { get; set; } = new();
+        public List<string> Medicines { get; set; } = new();
+        public List<string> Events { get; set; } = new();
     }
 } 
