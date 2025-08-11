@@ -14,7 +14,7 @@ namespace ReminderTabletNew2.Services
             _httpClient = httpClient;
         }
 
-        public async Task<TelegramResponse> SendMessageAsync(string message, string sender = "Äiti")
+        public async Task<TelegramResponse> SendMessageAsync(string message, string sender = "Äiti", string? targetChatId = null)
         {
             try
             {
@@ -24,7 +24,8 @@ namespace ReminderTabletNew2.Services
                     clientID = "mom",
                     message = message,
                     sender = sender,
-                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    chatId = targetChatId
                 };
 
                 var response = await _httpClient.PostAsJsonAsync(_apiUrl, postData);

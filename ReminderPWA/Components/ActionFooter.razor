@@ -18,10 +18,24 @@
         </div>
         <span>Aloita jumppa</span>
     </div>
+    <div class="footer-action" @onclick="() => OnSendMessage.InvokeAsync()">
+        <div class="action-icon-wrapper chat">
+            <i class="fas fa-comment-dots"></i>
+        </div>
+        <span>Lähetä viesti</span>
+    </div>
+    <div class="footer-action" @onclick="() => OnClearCache.InvokeAsync()">
+        <div class="action-icon-wrapper trash">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <span>Tyhjennä välimuisti</span>
+    </div>
 </div>
 
 @code {
     [Parameter] public EventCallback OnNavigateToWeekly { get; set; }
     [Parameter] public EventCallback OnNavigateToContacts { get; set; }
     [Parameter] public EventCallback OnStartExercise { get; set; }
+    [Parameter] public EventCallback OnSendMessage { get; set; }
+    [Parameter] public EventCallback OnClearCache { get; set; }
 }

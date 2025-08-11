@@ -967,13 +967,29 @@ function getContacts_(sheet) {
  * Get client-specific settings
  */
 function getClientSettings_(sheet, clientID) {
+  // Yritä päätellä usePhotos automaattisesti Kuvat-välilehden perusteella
+  let inferredUsePhotos = false;
+  try {
+    const photosSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) || sheet.getSheetByName("Kuvat") || sheet.getSheetByName("Photos");
+    if (photosSheet) {
+      const values = photosSheet.getDataRange().getValues();
+      for (let i = 1; i < values.length; i++) {
+        for (let c = 1; c < Math.min(values[i].length, 6); c++) {
+          const cell = String(values[i][c] || '').trim();
+          if (/^https?:\/\//i.test(cell)) { inferredUsePhotos = true; break; }
+        }
+        if (inferredUsePhotos) break;
+      }
+    }
+  } catch {}
+
   const defaultSettings = {
     useTelegram: false,
-    usePhotos: false
+    usePhotos: inferredUsePhotos
   };
   
   try {
-    const configSheet = sheet.getSheetByName(SHEET_NAMES.CONFIG);
+    const configSheet = sheet.getSheetByName(SHEET_NAMES.CONFIG) || sheet.getSheetByName("Konfiguraatio") || sheet.getSheetByName("Config");
     if (!configSheet) {
       return defaultSettings;
     }
@@ -983,16 +999,16 @@ function getClientSettings_(sheet, clientID) {
     for (let i = 1; i < data.length; i++) {
       const configClientID = String(data[i][0]).trim().toLowerCase();
       console.log(`🔍 Checking config row ${i}: "${configClientID}" vs "${clientID.toLowerCase()}"`);
-      console.log(`📊 usePhotos value: "${data[i][9]}" (column J)`);
+      // J-sarake oletus, mutta jos taulukkoa muutettu, tuetaan myös muita totuusarvoja
       
       if (configClientID === clientID.toLowerCase()) {
-        const usePhotosValue = data[i][9];
-        const usePhotosResult = usePhotosValue === true || String(usePhotosValue).toLowerCase() === 'true' || String(usePhotosValue).toLowerCase() === 'yes';
+        const raw = (data[i][9] !== undefined ? data[i][9] : data[i][3]);
+        const usePhotosResult = raw === true || String(raw).toLowerCase() === 'true' || String(raw).toLowerCase() === 'yes' || String(raw).toLowerCase() === '1';
         console.log(`✅ Found matching client! usePhotos: ${usePhotosValue} → ${usePhotosResult}`);
         
         return {
           useTelegram: false, // 🚨 HÄTÄTILA: SMS SPAMMI PYSÄYTETTY!
-          usePhotos: usePhotosResult
+          usePhotos: usePhotosResult || defaultSettings.usePhotos
         };
       }
     }

@@ -31,6 +31,7 @@
                        OnNavigateToWeekly="GoToWeeklyScheduleAsync"
                        OnNavigateToContacts="GoToContactsAsync"
                        OnStartExercise="OnStartExerciseHandler"
+                       OnShowTelegram="ShowTelegram"
                        IsNewMessage="@IsNewMessage" />
     }
 </SwipeContainer>
@@ -44,16 +45,11 @@
     </div>
 }
 
-@* Telegram floating button *@
-@if (!isInTelegramMode && CurrentView != ViewMode.StartDay)
-{
-    <button class="telegram-float-btn" @onclick="ShowTelegram" title="Lähetä viesti perheelle">
-        📱
-    </button>
-}
+@* Tablet-käyttö: ei kelluvia nappeja, kaikki toiminnot alapalkissa *@
 
 @* Telegram sender modal *@
 <TelegramSender IsVisible="@isInTelegramMode" 
+                TargetTelegramChatId="@prefillChatId"
                 OnMessageSent="OnTelegramMessageSent"
                 OnClose="HideTelegram" />
 
@@ -97,6 +93,7 @@
     private DateTime lastMessageTime = DateTime.MinValue;
     // Ilmoituksen soittaminen vain aidossa muutoksessa
     private int? lastContentHash = null;
+    private string? prefillChatId = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,9 +106,31 @@
         // Start simple timer
         StartTimer();
 
-                 // Fetch initial data
+                 // Fetch initial data (stale-while-revalidate)
         await LoadLocalAcknowledgmentsAsync();
-        await LoadData();
+        // Prefill chat from localStorage if set (coming from Contacts)
+        try { prefillChatId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "prefillTelegramChatId"); } catch {}
+        if (!string.IsNullOrWhiteSpace(prefillChatId))
+        {
+            isInTelegramMode = true;
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "prefillTelegramChatId");
+        }
+        await LoadCachedDataIfAny();
+        await LoadData(initialFast: true);
+        // Taustalla perusteellisempi päivitys (photo + weeklyPlan), pidempi timeout
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(200); // pieni hengähdys UI:lle
+                await LoadData(initialFast: false);
+                Console.WriteLine("🟢 Heavy refresh valmis");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Heavy refresh failed: {ex.Message}");
+            }
+        });
         
         // Check for new messages periodically
         _ = StartPeriodicMessageCheck();
@@ -143,12 +162,12 @@
         }
     }
 
-    private async Task LoadData()
+    private async Task LoadData(bool initialFast = false)
     {
         Console.WriteLine("🔄 LoadData() aloitettu - haetaan uudet tiedot API:sta");
         statusMessage = "📡 Haetaan tietoja...";
         
-        var result = await ApiService.GetDataAsync("mom", maxRetries: 2); // Only 2 retries for faster UX
+        var result = await ApiService.GetDataAsync("mom", maxRetries: initialFast ? 1 : 2, timeoutOverrideSeconds: initialFast ? 6 : null); // Fast path first load
         
         if (result.IsSuccess && result.Data != null)
         {
@@ -169,6 +188,8 @@
                     Console.WriteLine($"Task: {task.Type}, RequiresAck: {task.RequiresAck}, IsAckedToday: {task.IsAckedToday}, Desc: {task.Description}");
                 }
                 Console.WriteLine("========================");
+                // Cache
+                await SaveCacheAsync(apiResponse);
             }
             else
             {
@@ -232,6 +253,41 @@
             };
             statusMessage = "📱 Offline-tila - käytetään testidata";
             LoadFallbackData(result.ErrorCode);
+        }
+    }
+
+    private async Task LoadCachedDataIfAny()
+    {
+        try
+        {
+            var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "lastApiResponse");
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var cached = System.Text.Json.JsonSerializer.Deserialize<ReminderApiResponse>(json);
+                if (cached != null)
+                {
+                    apiResponse = cached;
+                    Console.WriteLine("📦 Näytetään välimuistidata heti");
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"LoadCachedDataIfAny error: {ex.Message}");
+        }
+    }
+
+    private async Task SaveCacheAsync(ReminderApiResponse data)
+    {
+        try
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "lastApiResponse", json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SaveCacheAsync error: {ex.Message}");
         }
     }
 
@@ -733,6 +789,24 @@
         }
         
         statusMessage = "📱 Viesti lähetetty perheelle!";
+    }
+
+    private async Task ClearCache()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "lastApiResponse");
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "recentAcks");
+            statusMessage = "🗑️ Välimuisti tyhjennetty";
+            Console.WriteLine("Cache cleared: lastApiResponse + recentAcks");
+            // Hae tuore data nopeasti
+            await LoadData(initialFast: true);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ClearCache error: {ex.Message}");
+        }
     }
 
     private async Task RetryConnection()
