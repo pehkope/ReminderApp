@@ -1487,7 +1487,6 @@ function getImportantMessage_(sheet) {
       const shouldShow = (today >= startShowDate && today <= endShowDate) || isEveningBefore;
       
       if (shouldShow) {
-        
         // Create full datetime with SUOMI timezone
         let fullEventDate = new Date(eventDate);
         
@@ -1506,9 +1505,18 @@ function getImportantMessage_(sheet) {
           } catch (timeError) {
             console.error("Error parsing time:", eventTime, timeError);
           }
-} else {
+        } else {
           // Jos ei kellonaikaa, käytä päivämäärää Suomi-ajassa
           fullEventDate = finnishDate;
+        }
+
+        // HIDE past events and events earlier today (after end time)
+        const now = new Date();
+        if (daysUntilEvent < 0) {
+          continue; // eilen/aiemmin → ei näytetä
+        }
+        if (daysUntilEvent === 0 && now > fullEventDate) {
+          continue; // tänään mutta aika jo ohi → ei näytetä
         }
         
         console.log(`🕐 Event date: ${eventDate}, Time: ${eventTime}, Full: ${fullEventDate}`);
@@ -2043,7 +2051,7 @@ function getDailyPhoto_(sheet, clientID) {
     if (!caption || /^https?:\/\//i.test(caption)) {
       caption = String(selected[3] || "").trim();
     }
-    // Ei oletuskuvatekstiä
+    // Caption tulee ensisijaisesti C-sarakkeesta (index 2). Ei oletustekstiä.
 
     return {
       url: url,
