@@ -1634,7 +1634,8 @@ function formatImportantMessage_(messageObj) {
   if (isToday) {
     return `🔔 TÄNÄÄN: ${mainMessage} ${formattedDate}`;
   } else if (isPast) {
-    return `📋 ${mainMessage} (oli ${Math.abs(daysUntilEvent)} päivää sitten)`;
+    // Älä näytä menneitä tapahtumia
+    return "";
   } else if (daysUntilEvent === 1) {
     // Check if it's evening - show different message
     const now = new Date();
@@ -2020,7 +2021,7 @@ function getDailyPhoto_(sheet, clientID) {
       return rowClient === String(clientID || "").trim().toLowerCase();
     });
 
-    if (photos.length === 0) return { url: "", caption: "Ei kuvia saatavilla" };
+    if (photos.length === 0) return { url: "", caption: "" };
 
     const photoIndex = calculatePhotoIndex_(photos.length, rotationSettings);
     const selected = photos[photoIndex] || [];
@@ -2042,7 +2043,7 @@ function getDailyPhoto_(sheet, clientID) {
     if (!caption || /^https?:\/\//i.test(caption)) {
       caption = String(selected[3] || "").trim();
     }
-    if (!caption) caption = "Kuva äidille";
+    // Ei oletuskuvatekstiä
 
     return {
       url: url,

@@ -1,23 +1,23 @@
 /* Footer toiminnot */
 .footer-bar {
     position: relative;
-    margin: 15px 0; /* Normaali marginaali ylös ja alas */
+    margin: 10px 0; /* hieman pienempi marginaali */
     background: linear-gradient(180deg, transparent 0%, rgba(136, 136, 136, 0.9) 35%, rgba(119, 119, 119, 0.95) 100%);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border-top-left-radius: 25px;
-    border-top-right-radius: 25px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
     display: flex;
     justify-content: space-around;
-    padding: 15px 10px 10px 10px;
+    padding: 10px 8px 8px 8px; /* pienemmät paddingit */
 }
 
 .footer-action {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
+    gap: 6px;
+    font-size: 0.85rem;
     font-weight: 600;
     color: white;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
@@ -33,13 +33,13 @@
 
 .action-icon-wrapper {
     width: 55px;
-    height: 55px;
+    height: 52px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(12px);
