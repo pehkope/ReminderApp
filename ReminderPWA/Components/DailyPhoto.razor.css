@@ -1,7 +1,7 @@
 /* Päivän valokuva */
 .main-photo {
     width: 100%;
-    height: clamp(230px, 32vh, 360px); /* hieman suurempi kuva toiveen mukaan */
+    height: clamp(240px, 34vh, 380px); /* hieman suurempi kuva toiveen mukaan */
     display: flex;
     align-items: center;
     justify-content: center;
