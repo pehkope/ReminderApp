@@ -1,21 +1,12 @@
-<div class="@GetBannerClass()">
-    @if (!string.IsNullOrWhiteSpace(ImportantMessage))
-    {
+@if (!string.IsNullOrWhiteSpace(ImportantMessage))
+{
+    <div class="@GetBannerClass()">
         @ImportantMessage
-    }
-    else
-    {
-        <span>📅 Ei sovittuja tapaamisia</span>
-    }
-</div>
+    </div>
+}
 
 @code {
     [Parameter] public string? ImportantMessage { get; set; }
     
-    private string GetBannerClass()
-    {
-        return !string.IsNullOrWhiteSpace(ImportantMessage) 
-            ? "important-banner" 
-            : "no-appointments-banner";
-    }
+    private string GetBannerClass() => "important-banner";
 }

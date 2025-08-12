@@ -1,7 +1,7 @@
 /* Päivän valokuva */
 .main-photo {
     width: 100%;
-    height: clamp(220px, 28vh, 320px); /* responsiivinen: hieman pienempi tabletille */
+    height: clamp(230px, 32vh, 360px); /* hieman suurempi kuva toiveen mukaan */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -10,7 +10,7 @@
     background-color: #f5f5f5;
     position: relative;
     overflow: hidden;
-    border: 2px solid #ddd;
+    border: 2px solid transparent; /* poistettu näkyvä debug-reunus */
 }
 
 .main-photo img {
@@ -63,9 +63,4 @@
 }
 
 /* Pysyvä kuvateksti kuvan alla */
-.photo-caption {
-    margin-top: 6px;
-    font-size: 0.95rem;
-    color: #333;
-    text-align: center;
-}
+.photo-caption { display:none; }

@@ -209,35 +209,18 @@ else
                 Console.WriteLine("No tasks found from API - this is normal after acknowledgment");
             }
 
-            // ALWAYS check and add missing data regardless of tasks
-            // Add test important message if none exists
-            if (string.IsNullOrEmpty(apiResponse.ImportantMessage))
-            {
-                apiResponse.ImportantMessage = TestDataService.GetDefaultImportantMessage();
-                Console.WriteLine("Added test important message");
-            }
-            
-            // Add test weather if none exists (backend handles 4x daily updates)
+            // Poista kaikki placeholder-testitäytöt: UI näyttää vain API:n datan
+            // Sää: lisää vain jos taustalta ei tule mitään (säilytetään varalla)
+            if (apiResponse.Weather == null)
             if (apiResponse.Weather == null)
             {
                 apiResponse.Weather = TestDataService.GetDefaultWeather();
                 Console.WriteLine($"Added test weather data (backend will handle real updates)");
             }
             
-            // Add test exercise video URL if none exists  
-            if (string.IsNullOrEmpty(apiResponse.ExerciseVideoUrl))
-            {
-                apiResponse.ExerciseVideoUrl = TestDataService.GetDefaultExerciseVideoUrl();
-                Console.WriteLine("Added test exercise video URL");
-            }
+            // Älä lisää testijumppalinkkejä automaattisesti
             
-            // KORJATTU: Ei lisätä placeholder kuvia - käytetään vain API:sta tulevia kuvia
-            // if (string.IsNullOrEmpty(apiResponse.DailyPhotoUrl))
-            // {
-            //     apiResponse.DailyPhotoUrl = TestDataService.GetDefaultPhotoUrl();
-            //     apiResponse.DailyPhotoCaption = TestDataService.GetDefaultPhotoCaption();
-            //     Console.WriteLine("Added test photo data");
-            // }
+            // Ei lisätä placeholder kuvia tai tärkeitä tapaamisia
 
             // ÄLÄ lisää testitehtäviä online-tilassa – muutoin kuittauksen jälkeen ne palaavat
 
