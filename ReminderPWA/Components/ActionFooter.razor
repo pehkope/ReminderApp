@@ -18,12 +18,15 @@
         </div>
         <span>Aloita jumppa</span>
     </div>
-    <div class="footer-action" @onclick="() => OnSendMessage.InvokeAsync()">
-        <div class="action-icon-wrapper chat">
-            <i class="fas fa-comment-dots"></i>
+    @if (ShowSendMessage)
+    {
+        <div class="footer-action" @onclick="() => OnSendMessage.InvokeAsync()">
+            <div class="action-icon-wrapper chat">
+                <i class="fas fa-comment-dots"></i>
+            </div>
+            <span>Lähetä viesti</span>
         </div>
-        <span>Lähetä viesti</span>
-    </div>
+    }
     <div class="footer-action" @onclick="() => OnClearCache.InvokeAsync()">
         <div class="action-icon-wrapper trash">
             <i class="fas fa-trash-alt"></i>
@@ -38,4 +41,5 @@
     [Parameter] public EventCallback OnStartExercise { get; set; }
     [Parameter] public EventCallback OnSendMessage { get; set; }
     [Parameter] public EventCallback OnClearCache { get; set; }
+    [Parameter] public bool ShowSendMessage { get; set; } = false;
 }
