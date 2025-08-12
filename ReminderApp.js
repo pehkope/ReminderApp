@@ -188,8 +188,11 @@ function handleTelegramWebhook_(e, postData) {
     // Whitelist
     const allowedStr = scriptProperties.getProperty(ALLOWED_TELEGRAM_CHAT_IDS_KEY) || "";
     const allowed = allowedStr.split(',').map(x => String(x).trim()).filter(Boolean);
-    if (allowed.length > 0 && !allowed.includes(chatId)) {
+    const isAllowed = (allowed.length === 0) || allowed.includes(chatId);
+    if (!isAllowed) {
       console.warn(`⚠️ Telegram chat not allowed: ${chatId}`);
+      // Yritä kohtelias vastaus, jotta lähettäjä löytää oman chat id:n
+      try { sendTelegramMessage_(token, chatId, `Hei! Tunnisteesi (chat id) on ${chatId}. Pyydä ylläpitoa lisäämään se sallittuihin lähettäjiin.`); } catch (__) {}
       return createCorsResponse_({ status: "FORBIDDEN" });
     }
 
@@ -197,6 +200,14 @@ function handleTelegramWebhook_(e, postData) {
     let clientID = "mom";
     const tagMatch = (caption || text).match(/#client:([a-zA-Z0-9_-]+)/);
     if (tagMatch && tagMatch[1]) clientID = tagMatch[1];
+
+    // Jos teksti-/komentiviesti
+    if (text && (text.startsWith('/start') || text.startsWith('/id'))) {
+      try {
+        sendTelegramMessage_(token, chatId, `Terve! Chat ID: ${chatId}. Voit lisätä captioniin myös #client:mom jos lähetät kuvan.`);
+      } catch (__) {}
+      return createCorsResponse_({ status: "OK" });
+    }
 
     // Photos array
     const photos = message.photo || [];
@@ -231,6 +242,7 @@ function handleTelegramWebhook_(e, postData) {
     photoSheet.appendRow(row);
 
     console.log(`✅ Telegram photo saved for ${clientID}`);
+    try { sendTelegramMessage_(token, chatId, `Kiitos! Kuva vastaanotettu asiakkaalle "${clientID}".`); } catch (__) {}
     return createCorsResponse_({ status: "OK" });
   } catch (err) {
     console.error("Telegram webhook error:", err.toString());
@@ -302,6 +314,11 @@ function doGet(e) {
   try {
     console.log("doGet called with parameters:", e ? JSON.stringify(e.parameter || {}, null, 2) : "no parameters");
     
+    // Health check: fast ping without auth
+    if (e && e.parameter && e.parameter.action === 'ping') {
+      return createCorsResponse_({ status: 'OK', now: new Date().toISOString() });
+    }
+
     // API Key authentication
     const apiKey = e && e.parameter && e.parameter.apiKey;
     if (!validateApiKey_(apiKey)) {
@@ -317,7 +334,12 @@ function doGet(e) {
       return handleAcknowledgementAction_(e);
     }
     
-    // Default: return tablet data
+    // Fast mode: light data without photo/external calls
+    if (e && e.parameter && e.parameter.fast === '1') {
+      return handleDataFetchAction_(Object.assign({}, e, { parameter: Object.assign({}, e.parameter, { fast: '1' }) }));
+    }
+    
+    // Default: return tablet data (full)
     return handleDataFetchAction_(e);
     
 } catch (error) {
@@ -708,7 +730,7 @@ function handleDataFetchAction_(e) {
     let dailyPhotoUrl = "";
     let dailyPhotoCaption = "Kuvat eivät ole vielä käytössä";
     
-    if (settings.usePhotos) {
+    if (settings.usePhotos && !(e && e.parameter && e.parameter.fast === '1')) {
       try {
         const dailyPhoto = getDailyPhoto_(sheet, clientID);
         dailyPhotoUrl = dailyPhoto.url;
@@ -2130,8 +2152,8 @@ function getDailyPhoto_(sheet, clientID) {
 
     if (photos.length === 0) return { url: "", caption: "" };
 
-    const photoIndex = calculatePhotoIndex_(photos.length, rotationSettings);
-    const selected = photos[photoIndex] || [];
+    // Näytä uusin kuva ensisijaisesti → viimeinen rivi
+    const selected = photos[photos.length - 1] || [];
 
     // B-sarake oletuksena URL; jos tyhjä tai ei http, etsi 2..6 sarakkeista ensimmäinen http-linkki
     let url = String(selected[1] || "").trim();
@@ -2144,6 +2166,11 @@ function getDailyPhoto_(sheet, clientID) {
 
     // Paranna Google Drive -thumbnailin tarkkuutta, jos leveys puuttuu
     url = ensureHighResDriveThumb_(url, 2000);
+    // Cache-busting jotta uusi kuva näkyy heti
+    if (url) {
+      const sep = url.includes('?') ? '&' : '?';
+      url = `${url}${sep}v=${Date.now()}`;
+    }
 
     // Caption: C tai D; ohita jos näyttää URL:lta
     let caption = String(selected[2] || "").trim();
@@ -2155,7 +2182,7 @@ function getDailyPhoto_(sheet, clientID) {
     return {
       url: url,
       caption: caption || "",
-      rotationInfo: `${rotationSettings.rotationInterval} rotation, photo ${photoIndex + 1}/${photos.length}`
+      rotationInfo: `${rotationSettings.rotationInterval} rotation, latest photo ${photos.length}/${photos.length}`
     };
     
   } catch (error) {
