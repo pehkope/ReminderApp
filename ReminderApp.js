@@ -17,6 +17,8 @@ const GOOGLE_PHOTOS_ALBUM_ID_KEY = "Google_Photos_Album_ID";
 
 const HELSINKI_TIMEZONE = "Europe/Helsinki";
 const TELEGRAM_API_BASE = "https://api.telegram.org/bot";
+const TELEGRAM_WEBHOOK_SECRET_KEY = "TELEGRAM_WEBHOOK_SECRET";
+const ALLOWED_TELEGRAM_CHAT_IDS_KEY = "ALLOWED_TELEGRAM_CHAT_IDS"; // comma separated
 const WEATHER_API_BASE = "https://api.openweathermap.org/data/2.5/weather";
 const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01/Accounts";
 
@@ -121,7 +123,14 @@ function doPost(e) {
       }
     }
     
-    // API Key authentication
+    // 1) Telegram webhook detection (before API-key checks)
+    const isTelegramWebhook = (e.parameter && (e.parameter.source === 'telegram' || e.parameter.src === 'tg'))
+                              || (postData && (postData.update_id || postData.message || postData.edited_message));
+    if (isTelegramWebhook) {
+      return handleTelegramWebhook_(e, postData);
+    }
+
+    // 2) API Key authentication for normal POST
     const apiKey = postData.apiKey || (e.parameter && e.parameter.apiKey);
     if (!validateApiKey_(apiKey)) {
       console.error("❌ Invalid or missing API key in POST:", apiKey);
@@ -146,6 +155,96 @@ function doPost(e) {
       status: "ERROR"
     });
   }
+}
+
+// ===================================================================================
+//  TELEGRAM WEBHOOK HANDLER
+// ===================================================================================
+
+function handleTelegramWebhook_(e, postData) {
+  try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const secretExpected = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
+    const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
+    if (!token) {
+      console.error("❌ TELEGRAM_BOT_TOKEN missing");
+      return createCorsResponse_({ status: "ERROR", error: "Bot token missing" });
+    }
+
+    // Verify secret header if configured
+    const secretHeader = (e && e.headers && (e.headers["X-Telegram-Bot-Api-Secret-Token"] || e.headers["x-telegram-bot-api-secret-token"])) || "";
+    if (secretExpected && secretHeader !== secretExpected) {
+      console.error("❌ Invalid telegram secret token");
+      return createCorsResponse_({ status: "FORBIDDEN" });
+    }
+
+    const update = postData || {};
+    const message = update.message || update.edited_message || {};
+    const chat = message.chat || {};
+    const chatId = String(chat.id || "");
+    const caption = String(message.caption || "").trim();
+    const text = String(message.text || "").trim();
+
+    // Whitelist
+    const allowedStr = scriptProperties.getProperty(ALLOWED_TELEGRAM_CHAT_IDS_KEY) || "";
+    const allowed = allowedStr.split(',').map(x => String(x).trim()).filter(Boolean);
+    if (allowed.length > 0 && !allowed.includes(chatId)) {
+      console.warn(`⚠️ Telegram chat not allowed: ${chatId}`);
+      return createCorsResponse_({ status: "FORBIDDEN" });
+    }
+
+    // Resolve clientID from caption/text tag #client:xxx (default mom)
+    let clientID = "mom";
+    const tagMatch = (caption || text).match(/#client:([a-zA-Z0-9_-]+)/);
+    if (tagMatch && tagMatch[1]) clientID = tagMatch[1];
+
+    // Photos array
+    const photos = message.photo || [];
+    if (!photos.length) {
+      console.log("No photo in telegram message; ignoring");
+      return createCorsResponse_({ status: "OK" });
+    }
+
+    // Pick largest photo
+    const best = photos.reduce((a, b) => ((a.file_size || 0) > (b.file_size || 0) ? a : b), photos[0]);
+    const fileId = best.file_id;
+
+    // getFile
+    const getFileUrl = `${TELEGRAM_API_BASE}${token}/getFile?file_id=${encodeURIComponent(fileId)}`;
+    const fileResp = UrlFetchApp.fetch(getFileUrl, { method: 'get', muteHttpExceptions: true });
+    const fileJson = JSON.parse(fileResp.getContentText());
+    if (!fileJson.ok) {
+      console.error("getFile failed:", fileResp.getContentText());
+      return createCorsResponse_({ status: "ERROR", error: "getFile failed" });
+    }
+    const filePath = fileJson.result.file_path;
+    const publicUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
+
+    // Append to Kuvat sheet
+    const sheet = SpreadsheetApp.openById(scriptProperties.getProperty(SHEET_ID_KEY));
+    const photoSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) || sheet.insertSheet(SHEET_NAMES.KUVAT);
+    if (photoSheet.getLastRow() === 0) {
+      photoSheet.getRange(1,1,1,3).setValues([["ClientID","URL","Caption"]]);
+      photoSheet.getRange(1,1,1,3).setFontWeight("bold");
+    }
+    const row = [clientID, publicUrl, caption.replace(/#client:[^\s]+/,'').trim()];
+    photoSheet.appendRow(row);
+
+    console.log(`✅ Telegram photo saved for ${clientID}`);
+    return createCorsResponse_({ status: "OK" });
+  } catch (err) {
+    console.error("Telegram webhook error:", err.toString());
+    return createCorsResponse_({ status: "ERROR", error: err.toString() });
+  }
+}
+
+/** Helper: create webhook URL for docs */
+function getTelegramSetWebhookUrl_() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
+  const secret = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
+  const execUrl = ScriptApp.getService().getUrl();
+  return `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(execUrl)}&secret_token=${encodeURIComponent(secret)}&drop_pending_updates=true`;
 }
 
 /**
