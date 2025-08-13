@@ -1,8 +1,8 @@
 // Service Worker for ReminderApp PWA
 // Versio 1.0.0 - Automaattiset päivitykset ja offline-tuki
 
-const CACHE_NAME = 'reminder-app-v1.0.0';
-const API_CACHE_NAME = 'reminder-api-v1.0.0';
+const CACHE_NAME = 'reminder-app-v1.0.1';
+const API_CACHE_NAME = 'reminder-api-v1.0.1';
 
 // Tiedostot jotka tallennetaan cache:een
 const STATIC_ASSETS = [
@@ -18,9 +18,8 @@ const STATIC_ASSETS = [
 ];
 
 // API endpointit joita tallennetaan väliaikaisesti
-const API_ENDPOINTS = [
-  'https://script.google.com/macros/s/'
-];
+// Poistettu GAS-URL, jotta SW ei koskaan estä tuoreita API-vastauksia
+const API_ENDPOINTS = [];
 
 // Service Worker asennus
 self.addEventListener('install', (event) => {
