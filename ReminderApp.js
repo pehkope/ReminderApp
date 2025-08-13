@@ -8,6 +8,7 @@
 //  CONSTANTS AND CONFIGURATION  
 // ===================================================================================
 const SHEET_ID_KEY = "SHEET_ID";
+const APP_VERSION = "v2.28.0"; // Päivitä tarvittaessa
 const TELEGRAM_BOT_TOKEN_KEY = "TELEGRAM_BOT_TOKEN";
 const WEATHER_API_KEY_KEY = "Weather_Api_Key";
 const TWILIO_FROM_NUMBER_KEY = "Twilio_Phone_Number";
@@ -324,6 +325,21 @@ function doGet(e) {
       return createCorsResponse_({ status: 'OK', now: new Date().toISOString() });
     }
 
+    // Version-info ilman authia
+    if (e && e.parameter && e.parameter.action === 'version') {
+      return createCorsResponse_({
+        status: 'OK',
+        version: APP_VERSION,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Health-details (ei vaadi avainta): tarkistaa asetukset ja sheet-yhteyden
+    if (e && e.parameter && e.parameter.action === 'health') {
+      const result = getHealthStatus_();
+      return createCorsResponse_(result);
+    }
+
     // API Key authentication
     const apiKey = e && e.parameter && e.parameter.apiKey;
     if (!validateApiKey_(apiKey)) {
@@ -357,6 +373,49 @@ function doGet(e) {
       status: "ERROR"
     });
   }
+}
+/**
+ * Palauttaa yksityiskohtaisen terveysraportin GAS-asetuksista ja Sheet-yhteydestä
+ */
+function getHealthStatus_() {
+  const started = new Date();
+  const props = PropertiesService.getScriptProperties();
+  const report = {
+    status: 'OK',
+    version: APP_VERSION,
+    startedAt: started.toISOString(),
+    checks: []
+  };
+  
+  function addCheck(name, ok, detail) {
+    report.checks.push({ name, ok, detail: detail || '' });
+    if (!ok) report.status = 'ERROR';
+  }
+  
+  // 1) Properties olemassa
+  const sheetId = props.getProperty(SHEET_ID_KEY);
+  addCheck('SHEET_ID_present', !!sheetId, sheetId ? 'configured' : 'missing');
+  addCheck('VALID_API_KEYS_present', !!props.getProperty('VALID_API_KEYS'), props.getProperty('VALID_API_KEYS') ? 'configured' : 'missing');
+  addCheck('TELEGRAM_BOT_TOKEN_present', !!props.getProperty(TELEGRAM_BOT_TOKEN_KEY), props.getProperty(TELEGRAM_BOT_TOKEN_KEY) ? 'configured' : 'missing');
+  
+  // 2) Sheet avaus ja välilehdet
+  try {
+    if (sheetId) {
+      const ss = SpreadsheetApp.openById(sheetId);
+      addCheck('Spreadsheet_open', !!ss, 'opened');
+      const tabs = [SHEET_NAMES.CONFIG, SHEET_NAMES.KUVAT];
+      tabs.forEach(tab => {
+        const exists = !!ss.getSheetByName(tab);
+        addCheck(`Tab_${tab}`, exists, exists ? 'exists' : 'missing');
+      });
+    }
+  } catch (err) {
+    addCheck('Spreadsheet_open', false, err.toString());
+  }
+  
+  report.finishedAt = new Date().toISOString();
+  report.elapsedMs = new Date() - started;
+  return report;
 }
 
 /**
