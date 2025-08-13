@@ -209,16 +209,21 @@ function handleTelegramWebhook_(e, postData) {
       return createCorsResponse_({ status: "OK" });
     }
 
-    // Photos array
+    // Handle photo or document(image/*)
+    let fileId = "";
     const photos = message.photo || [];
-    if (!photos.length) {
-      console.log("No photo in telegram message; ignoring");
-      return createCorsResponse_({ status: "OK" });
+    if (photos.length > 0) {
+      // Pick largest photo
+      const best = photos.reduce((a, b) => ((a.file_size || 0) > (b.file_size || 0) ? a : b), photos[0]);
+      fileId = best.file_id;
+    } else if (message.document && String(message.document.mime_type || "").startsWith("image/")) {
+      fileId = message.document.file_id;
     }
 
-    // Pick largest photo
-    const best = photos.reduce((a, b) => ((a.file_size || 0) > (b.file_size || 0) ? a : b), photos[0]);
-    const fileId = best.file_id;
+    if (!fileId) {
+      console.log("No image content (photo or image document) in telegram message; ignoring");
+      return createCorsResponse_({ status: "OK" });
+    }
 
     // getFile
     const getFileUrl = `${TELEGRAM_API_BASE}${token}/getFile?file_id=${encodeURIComponent(fileId)}`;
