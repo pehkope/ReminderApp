@@ -5,6 +5,7 @@
 @using System.Text.Json
 @using System.Text
 @inject NavigationManager Navigation
+@inject AppConfig AppConfig
 @inject IJSRuntime JSRuntime
 @inject TelegramService TelegramService
 @inject ApiService ApiService
@@ -70,6 +71,7 @@ else
     }
     
     private ViewMode CurrentView = ViewMode.StartDay;
+    private string currentClientId = "mom";
     private PeriodicTimer? timer;
     private PeriodicTimer? autoReturnTimer;
     private DateTime currentTime = DateTime.Now;
@@ -110,6 +112,23 @@ else
         // Update time once initially
         currentTime = DateTime.Now;
 
+        // Initialize client ID from query string or localStorage
+        InitializeClientIdFromQuery();
+        try
+        {
+            var storedClient = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "clientID");
+            if (!string.IsNullOrWhiteSpace(storedClient))
+            {
+                currentClientId = storedClient;
+                AppConfig.ApiSettings.DefaultClientId = currentClientId;
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "clientID", currentClientId);
+            }
+        }
+        catch {}
+
         // Determine initial view
         UpdateCurrentView();
 
@@ -146,6 +165,36 @@ else
         _ = StartPeriodicMessageCheck();
     }
 
+    private void InitializeClientIdFromQuery()
+    {
+        try
+        {
+            var uri = new Uri(Navigation.Uri);
+            var query = uri.Query.TrimStart('?');
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                foreach (var part in query.Split('&'))
+                {
+                    var kv = part.Split('=');
+                    if (kv.Length == 2)
+                    {
+                        var key = Uri.UnescapeDataString(kv[0]).ToLowerInvariant();
+                        var val = Uri.UnescapeDataString(kv[1]);
+                        if (key == "clientid" || key == "client")
+                        {
+                            if (!string.IsNullOrWhiteSpace(val))
+                            {
+                                currentClientId = val;
+                                AppConfig.ApiSettings.DefaultClientId = currentClientId;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch {}
+    }
+
     private void StartTimer()
     {
         timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
@@ -177,7 +226,7 @@ else
         Console.WriteLine("🔄 LoadData() aloitettu - haetaan uudet tiedot API:sta");
         statusMessage = "📡 Haetaan tietoja...";
         
-        var result = await ApiService.GetDataAsync("mom", maxRetries: initialFast ? 1 : 2, timeoutOverrideSeconds: initialFast ? 12 : null); // pidempi timeout käynnistyksessä
+        var result = await ApiService.GetDataAsync(currentClientId, maxRetries: initialFast ? 1 : 2, timeoutOverrideSeconds: initialFast ? 12 : null); // pidempi timeout käynnistyksessä
         
         if (result.IsSuccess && result.Data != null)
         {
@@ -852,7 +901,8 @@ else
     private async Task ReloadAfterCacheClear()
     {
         Console.WriteLine("🔄 Footer requested reload after cache clear");
-        await LoadData(initialFast: true);
+        // Haetaan heti täydet tiedot (ml. kuva) – fast= false
+        await LoadData(initialFast: false);
         StateHasChanged();
     }
 

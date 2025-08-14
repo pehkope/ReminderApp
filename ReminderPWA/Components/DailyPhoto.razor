@@ -24,6 +24,7 @@
     [Parameter] public string? ApiPhotoUrl { get; set; }
     [Parameter] public string? ApiPhotoCaption { get; set; }
     [Parameter] public EventCallback<PhotoClickArgs> OnPhotoClick { get; set; }
+    [Parameter] public string? FallbackUrl { get; set; }
 
     public class PhotoClickArgs
     {
@@ -53,6 +54,11 @@
         {
             return _effectiveUrl ?? ApiPhotoUrl;
         }
+        // Fallback from parent (e.g., profile or weekly photo)
+        if (!string.IsNullOrEmpty(FallbackUrl))
+        {
+            return AddCacheBuster(FallbackUrl);
+        }
         
         // Toissijaisesti frontend:n viikottainen simulaatio (backend ei ole vielä käytössä)
         var simulatedUrl = TestDataService.GetDefaultPhotoUrl();
@@ -70,6 +76,11 @@
     private static string AddCacheBuster(string? url)
     {
         if (string.IsNullOrWhiteSpace(url)) return "";
+        // Pakota https, jos linkki on vahingossa http
+        if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            url = "https://" + url.Substring("http://".Length);
+        }
         // Jos urlissa on jo v= tai _cb=, älä lisää uutta
         if (url.Contains("v=", StringComparison.OrdinalIgnoreCase) || url.Contains("_cb=", StringComparison.OrdinalIgnoreCase))
             return url;

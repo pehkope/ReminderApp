@@ -87,6 +87,8 @@ public class ApiService
                     if (response != null)
                     {
                         Console.WriteLine("✅ API kutsu onnistui");
+                        // Debug log for photo
+                        Console.WriteLine($"🖼️ Photo URL from API: '{response.DailyPhotoUrl}' Caption: '{response.DailyPhotoCaption}'");
                         return ApiResult<ReminderApiResponse>.Success(response);
                     }
                 }

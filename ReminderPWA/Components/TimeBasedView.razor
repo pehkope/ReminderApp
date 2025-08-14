@@ -32,6 +32,7 @@
         @* Päivän valokuva *@
         <DailyPhoto ApiPhotoUrl="@ApiResponse?.DailyPhotoUrl"
                    ApiPhotoCaption="@ApiResponse?.DailyPhotoCaption"
+                   FallbackUrl="@GetFallbackPhotoUrl()"
                    OnPhotoClick="OnPhotoClickHandler" />
         
         @* Footer toiminnot *@
@@ -153,6 +154,14 @@
             ViewMode.Night => $"Rentoutumista ja hyvän yön valmistelua.",
             _ => $"Nauti tästä hetkestä! {weather}"
         };
+    }
+
+    private string GetFallbackPhotoUrl()
+    {
+        var profile = ApiResponse?.ProfilePhoto?.Url;
+        if (!string.IsNullOrWhiteSpace(profile)) return profile!;
+        var firstWeekly = ApiResponse?.WeeklyPhotos?.FirstOrDefault()?.Url;
+        return firstWeekly ?? string.Empty;
     }
 
     private IEnumerable<DailyTask> GetFilteredTasks()
