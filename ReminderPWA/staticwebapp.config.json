@@ -1,6 +1,10 @@
 ﻿{
   "routes": [
     {
+      "route": "/ReminderPWA.styles.css",
+      "serve": "/ReminderTabletNew2.styles.css"
+    },
+    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200
