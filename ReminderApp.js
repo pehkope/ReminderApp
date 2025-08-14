@@ -2209,10 +2209,73 @@ function getDailyPhoto_(sheet, clientID) {
     // Get rotation settings
     const rotationSettings = getPhotoRotationSettings_(sheet, clientID);
     
-    // Method 1: Try Google Photos (photos.google.com)
-    if (albumId && albumId !== "YOUR_GOOGLE_PHOTOS_ALBUM_ID_HERE") {
+    // ENSISIJAISESTI: Lue aina Google Sheets 'Kuvat' jos siellä on rivejä (luotettavin ja nopein)
+    const photoSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) 
+                       || sheet.getSheetByName("Kuvat") 
+                       || sheet.getSheetByName("Photos");
+    if (!photoSheet) return { url: "", caption: "Ei kuvia saatavilla", debug: { reason: "no_photo_sheet" } };
+    
+    const allRows = photoSheet.getDataRange().getValues();
+    const clientLower = String(clientID || "").trim().toLowerCase();
+    // Etsi viimeisin sopiva rivi indeksein, jotta voidaan lukea myös kaavat/rikasteksti
+    let selectedRowIndex = -1;
+    for (let i = allRows.length - 1; i >= 1; i--) {
+      const rowClient = String(allRows[i][0] || '').trim().toLowerCase();
+      if (rowClient === clientLower || !rowClient || rowClient === '*' || rowClient === 'all' || rowClient === 'kaikki') { selectedRowIndex = i; break; }
+      // Jos mitään ei löydy, jatketaan myöhemmin "mikä tahansa URL -rivi" -fallbackilla
+    }
+    if (selectedRowIndex < 0) {
+      for (let i = allRows.length - 1; i >= 1; i--) {
+        for (let ci = 1; ci < Math.min(allRows[i].length, 26); ci++) {
+          const cell = String(allRows[i][ci] || '').trim();
+          if (/^https?:\/\//i.test(cell)) { selectedRowIndex = i; break; }
+        }
+        if (selectedRowIndex >= 0) break;
+      }
+    }
+    if (selectedRowIndex >= 0) {
+      const colCount = Math.min(photoSheet.getLastColumn(), 26);
+      const range = photoSheet.getRange(selectedRowIndex + 1, 1, 1, colCount);
+      const valuesRow = range.getValues()[0] || [];
+      const formulasRow = range.getFormulas()[0] || [];
+      const richRow = (range.getRichTextValues && range.getRichTextValues()[0]) ? range.getRichTextValues()[0] : [];
       
-      // Check if it's a Google Photos URL/ID
+      let url = '';
+      for (let ci = 1; ci < colCount; ci++) {
+        const raw = valuesRow[ci];
+        const formula = formulasRow[ci] || '';
+        const rich = richRow[ci] || null;
+        const extracted = extractUrlFromCell_(raw, formula, rich);
+        if (extracted) { url = extracted; break; }
+      }
+      
+      // Paranna Google Drive -thumbnailin tarkkuutta, jos leveys puuttuu
+      url = ensureHighResDriveThumb_(url, 2000);
+      // Cache-busting
+      if (url) {
+        const sep = url.includes('?') ? '&' : '?';
+        url = `${url}${sep}v=${Date.now()}`;
+      }
+      
+      // Caption
+      let caption = String(valuesRow[2] || '').trim();
+      if (!caption || /^https?:\/\//i.test(caption)) {
+        caption = String(valuesRow[3] || '').trim();
+      }
+      
+      if (url) {
+        return {
+          url,
+          caption: caption || '',
+          rotationInfo: `${rotationSettings.rotationInterval} rotation, latest photo row ${selectedRowIndex}/${allRows.length - 1}`,
+          debug: { source: 'sheet', selectedRowIndex, urlFound: true }
+        };
+      }
+      // Jos sheet-riviltä ei löytynyt, jatka muihin metodeihin
+    }
+    
+    // TOISSIJAisesti: albumi/drive vain jos asetettu
+    if (albumId && albumId !== "YOUR_GOOGLE_PHOTOS_ALBUM_ID_HERE") {
       if (albumId.includes('photos.google.com') || albumId.includes('photos.app.goo.gl')) {
         console.log("Attempting Google Photos integration...");
         const googlePhoto = getGooglePhotosAlbumImage_(albumId, clientID, rotationSettings);
@@ -2221,8 +2284,6 @@ function getDailyPhoto_(sheet, clientID) {
         }
         console.log("Google Photos failed, trying Google Drive method...");
       }
-      
-      // Method 2: Try Google Drive folder (drive.google.com)
       const drivePhoto = getGooglePhotosImage_(albumId, clientID, rotationSettings);
       if (drivePhoto.url) {
         console.log(`Using Google Drive for ${clientID}: ${drivePhoto.caption}`);
@@ -2230,53 +2291,8 @@ function getDailyPhoto_(sheet, clientID) {
       }
     }
     
-    // Method 3: Fallback to Google Sheets Kuvat tab (suomenkielinen)
-    const photoSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) 
-                       || sheet.getSheetByName("Kuvat") 
-                       || sheet.getSheetByName("Photos");
-    if (!photoSheet) return { url: "", caption: "Ei kuvia saatavilla", debug: { reason: "no_photo_sheet" } };
-
-    const allRows = photoSheet.getDataRange().getValues();
-    const clientLower = String(clientID || "").trim().toLowerCase();
-    // Ensin: tarkka osuma
-    let photos = allRows.filter((row, index) => {
-      if (index === 0) return false; // header
-      const rowClient = String(row[0] || "").trim().toLowerCase();
-      return rowClient === clientLower;
-    });
-    // Toiseksi: wildcard/kaikille (tyhjä, *, all, kaikki)
-    if (photos.length === 0) {
-      photos = allRows.filter((row, index) => {
-        if (index === 0) return false;
-        const rowClient = String(row[0] || "").trim().toLowerCase();
-        return !rowClient || rowClient === "*" || rowClient === "all" || rowClient === "kaikki";
-      });
-    }
-    // Kolmanneksi: mikä tahansa rivi, jossa on URL B..Z -sarakkeissa
-    if (photos.length === 0) {
-      photos = allRows.filter((row, index) => {
-        if (index === 0) return false;
-        for (let ci = 1; ci < Math.min(row.length, 26); ci++) {
-          const cell = String(row[ci] || "").trim();
-          if (/^https?:\/\//i.test(cell)) return true;
-        }
-        return false;
-      });
-    }
-
-    if (photos.length === 0) return { url: "", caption: "", debug: { reason: "no_rows_for_client" } };
-
-    // Näytä uusin kuva ensisijaisesti → viimeinen rivi
-    const selected = photos[photos.length - 1] || [];
-
-    // B-sarake oletuksena URL; jos tyhjä tai ei http, etsi B..Z (2..26) sarakkeista ensimmäinen http-linkki
-    let url = String(selected[1] || "").trim();
-    if (!url || !/^https?:\/\//i.test(url)) {
-      for (let ci = 1; ci < Math.min(selected.length, 26); ci++) { // laajennettu 6 -> 26
-        const cell = String(selected[ci] || "").trim();
-        if (/^https?:\/\//i.test(cell)) { url = cell; break; }
-      }
-    }
+    // Jos mikään ei tuottanut URL:ia
+    return { url: "", caption: "", debug: { reason: "no_url_found_after_all_methods" } };
 
     // Paranna Google Drive -thumbnailin tarkkuutta, jos leveys puuttuu
     url = ensureHighResDriveThumb_(url, 2000);
@@ -2293,12 +2309,7 @@ function getDailyPhoto_(sheet, clientID) {
     }
     // Caption tulee ensisijaisesti C-sarakkeesta (index 2). Ei oletustekstiä.
 
-    return {
-      url: url,
-      caption: caption || "",
-      rotationInfo: `${rotationSettings.rotationInterval} rotation, latest photo ${photos.length}/${photos.length}`,
-      debug: { selectedRowLength: selected.length, urlFound: !!url, clientID }
-    };
+    // (poistettu: vanha paluu – uusi logiikka yllä)
     
   } catch (error) {
     console.log('Error getting photo:', error.toString());
