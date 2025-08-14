@@ -2217,29 +2217,93 @@ function getDailyPhoto_(sheet, clientID) {
     
     const allRows = photoSheet.getDataRange().getValues();
     const clientLower = String(clientID || "").trim().toLowerCase();
-    // Etsi viimeisin sopiva rivi indeksein, jotta voidaan lukea myös kaavat/rikasteksti
-    let selectedRowIndex = -1;
-    for (let i = allRows.length - 1; i >= 1; i--) {
+    const rowHasUrl = (row) => {
+      if (!row) return false;
+      for (let ci = 1; ci < row.length; ci++) {
+        const cell = String(row[ci] || '').trim();
+        if (/^https?:\/\//i.test(cell)) return true;
+      }
+      return false;
+    };
+    
+    // Kokoa ehdokkaat (vain rivit, joilla on URL)
+    const clientCandidates = [];
+    const wildcardCandidates = [];
+    const anyCandidates = [];
+    for (let i = 1; i < allRows.length; i++) {
+      if (!rowHasUrl(allRows[i])) continue;
       const rowClient = String(allRows[i][0] || '').trim().toLowerCase();
-      if (rowClient === clientLower || !rowClient || rowClient === '*' || rowClient === 'all' || rowClient === 'kaikki') { selectedRowIndex = i; break; }
-      // Jos mitään ei löydy, jatketaan myöhemmin "mikä tahansa URL -rivi" -fallbackilla
+      if (rowClient === clientLower) clientCandidates.push(i);
+      else if (!rowClient || rowClient === '*' || rowClient === 'all' || rowClient === 'kaikki') wildcardCandidates.push(i);
+      else anyCandidates.push(i);
     }
-    if (selectedRowIndex < 0) {
-      for (let i = allRows.length - 1; i >= 1; i--) {
-        for (let ci = 1; ci < Math.min(allRows[i].length, 26); ci++) {
-          const cell = String(allRows[i][ci] || '').trim();
-          if (/^https?:\/\//i.test(cell)) { selectedRowIndex = i; break; }
+
+    // Valitse ensisijainen ehdokaslista
+    let candidates = clientCandidates.length ? clientCandidates : (wildcardCandidates.length ? wildcardCandidates : anyCandidates);
+    let selectedRowIndex = -1;
+    if (candidates.length > 0) {
+      // Valitse rivi joko viimeisin tai stabiilisti satunnainen rotationSettingsin mukaan
+      const pickStableIndex = (count) => {
+        // Määritä siemen: päivä/viikko/kuukausi
+        const now = new Date();
+        let periodKey = '';
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        if ((rotationSettings && String(rotationSettings.rotationInterval).toLowerCase() === 'weekly')) {
+          const onejan = new Date(now.getFullYear(),0,1);
+          const week = Math.ceil((((now - onejan) / 86400000) + onejan.getDay()+1)/7);
+          periodKey = `${yyyy}-W${week}`;
+        } else if (rotationSettings && String(rotationSettings.rotationInterval).toLowerCase() === 'monthly') {
+          periodKey = `${yyyy}-${mm}`;
+        } else {
+          periodKey = `${yyyy}-${mm}-${dd}`; // daily
         }
-        if (selectedRowIndex >= 0) break;
+        const s = `${clientID}|${periodKey}|${count}`;
+        let h = 0;
+        for (let k = 0; k < s.length; k++) { h = ((h << 5) - h) + s.charCodeAt(k); h |= 0; }
+        const idx = Math.abs(h) % count;
+        return idx;
+      };
+
+      if (rotationSettings && rotationSettings.randomize) {
+        const idx = pickStableIndex(candidates.length);
+        selectedRowIndex = candidates[idx];
+      } else {
+        // Viimeisin (suurin indeksi)
+        selectedRowIndex = candidates[candidates.length - 1];
       }
     }
     if (selectedRowIndex >= 0) {
-      const colCount = Math.min(photoSheet.getLastColumn(), 26);
+      const rowRaw = allRows[selectedRowIndex] || [];
+      let urlDirect = '';
+      for (let ci = 1; ci < rowRaw.length; ci++) {
+        const cell = String(rowRaw[ci] || '').trim();
+        if (/^https?:\/\//i.test(cell)) { urlDirect = cell; break; }
+      }
+      let captionDirect = String(rowRaw[2] || '').trim();
+      if (!captionDirect || /^https?:\/\//i.test(captionDirect)) {
+        captionDirect = String(rowRaw[3] || '').trim();
+      }
+      if (urlDirect) {
+        urlDirect = ensureHighResDriveThumb_(urlDirect, 2000);
+        const sep = urlDirect.includes('?') ? '&' : '?';
+        urlDirect = `${urlDirect}${sep}v=${Date.now()}`;
+        return {
+          url: urlDirect,
+          caption: captionDirect || '',
+          rotationInfo: `${rotationSettings.rotationInterval} rotation, latest photo row ${selectedRowIndex}/${allRows.length - 1}`,
+          debug: { source: 'sheet-direct-raw', selectedRowIndex, urlFound: true }
+        };
+      }
+
+      // Varalla: kokeile formula/richText -poimintaa
+      const colCount = photoSheet.getLastColumn();
       const range = photoSheet.getRange(selectedRowIndex + 1, 1, 1, colCount);
       const valuesRow = range.getValues()[0] || [];
       const formulasRow = range.getFormulas()[0] || [];
       const richRow = (range.getRichTextValues && range.getRichTextValues()[0]) ? range.getRichTextValues()[0] : [];
-      
+
       let url = '';
       for (let ci = 1; ci < colCount; ci++) {
         const raw = valuesRow[ci];
@@ -2248,27 +2312,19 @@ function getDailyPhoto_(sheet, clientID) {
         const extracted = extractUrlFromCellFallback_(raw, formula, rich);
         if (extracted) { url = extracted; break; }
       }
-      
-      // Paranna Google Drive -thumbnailin tarkkuutta, jos leveys puuttuu
       url = ensureHighResDriveThumb_(url, 2000);
-      // Cache-busting
       if (url) {
         const sep = url.includes('?') ? '&' : '?';
         url = `${url}${sep}v=${Date.now()}`;
-      }
-      
-      // Caption
-      let caption = String(valuesRow[2] || '').trim();
-      if (!caption || /^https?:\/\//i.test(caption)) {
-        caption = String(valuesRow[3] || '').trim();
-      }
-      
-      if (url) {
+        let caption = String(valuesRow[2] || '').trim();
+        if (!caption || /^https?:\/\//i.test(caption)) {
+          caption = String(valuesRow[3] || '').trim();
+        }
         return {
           url,
           caption: caption || '',
           rotationInfo: `${rotationSettings.rotationInterval} rotation, latest photo row ${selectedRowIndex}/${allRows.length - 1}`,
-          debug: { source: 'sheet', selectedRowIndex, urlFound: true }
+          debug: { source: 'sheet-formula-rich', selectedRowIndex, urlFound: true }
         };
       }
       // Jos sheet-riviltä ei löytynyt, jatka muihin metodeihin
@@ -2292,7 +2348,7 @@ function getDailyPhoto_(sheet, clientID) {
     }
     
     // Jos mikään ei tuottanut URL:ia
-    return { url: "", caption: "", debug: { reason: "no_url_found_after_all_methods" } };
+    return { url: "", caption: "", debug: { reason: "no_url_found_after_all_methods", lastColumn: (photoSheet && photoSheet.getLastColumn ? photoSheet.getLastColumn() : undefined) } };
 
     // Paranna Google Drive -thumbnailin tarkkuutta, jos leveys puuttuu
     url = ensureHighResDriveThumb_(url, 2000);
