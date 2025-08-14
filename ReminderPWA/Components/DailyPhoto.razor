@@ -34,12 +34,24 @@
     private string ImageUrl => GetImageUrl();
     private string Caption => GetImageCaption();
 
+    private string? _lastApiPhotoUrl;
+    private string? _effectiveUrl;
+
+    protected override void OnParametersSet()
+    {
+        if (!string.Equals(_lastApiPhotoUrl, ApiPhotoUrl, StringComparison.Ordinal))
+        {
+            _lastApiPhotoUrl = ApiPhotoUrl;
+            _effectiveUrl = AddCacheBuster(ApiPhotoUrl);
+        }
+    }
+
     private string GetImageUrl()
     {
         // Ensisijaisesti API:sta
         if (!string.IsNullOrEmpty(ApiPhotoUrl))
         {
-            return ApiPhotoUrl;
+            return _effectiveUrl ?? ApiPhotoUrl;
         }
         
         // Toissijaisesti frontend:n viikottainen simulaatio (backend ei ole vielä käytössä)
@@ -53,5 +65,27 @@
             return ApiPhotoCaption;
             
         return TestDataService.GetDefaultPhotoCaption();
+    }
+
+    private static string AddCacheBuster(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return "";
+        // Jos urlissa on jo v= tai _cb=, älä lisää uutta
+        if (url.Contains("v=", StringComparison.OrdinalIgnoreCase) || url.Contains("_cb=", StringComparison.OrdinalIgnoreCase))
+            return url;
+
+        // Lisää cache-buster tunnetuille kuvadomaineille tai jos ei ole queryä ollenkaan
+        var needsBuster = url.Contains("drive.google.com", StringComparison.OrdinalIgnoreCase)
+                       || url.Contains("googleusercontent.com", StringComparison.OrdinalIgnoreCase)
+                       || url.Contains("photos.google.com", StringComparison.OrdinalIgnoreCase)
+                       || url.Contains("photos.app.goo.gl", StringComparison.OrdinalIgnoreCase)
+                       || url.Contains("api.telegram.org", StringComparison.OrdinalIgnoreCase)
+                       || !url.Contains('?', StringComparison.Ordinal);
+
+        if (!needsBuster) return url;
+
+        var sep = url.Contains('?') ? '&' : '?';
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        return $"{url}{sep}_cb={ts}";
     }
 }
