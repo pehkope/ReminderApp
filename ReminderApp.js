@@ -2245,7 +2245,7 @@ function getDailyPhoto_(sheet, clientID) {
         const raw = valuesRow[ci];
         const formula = formulasRow[ci] || '';
         const rich = richRow[ci] || null;
-        const extracted = extractUrlFromCell_(raw, formula, rich);
+        const extracted = extractUrlFromCellFallback_(raw, formula, rich);
         if (extracted) { url = extracted; break; }
       }
       
@@ -2315,6 +2315,26 @@ function getDailyPhoto_(sheet, clientID) {
     console.log('Error getting photo:', error.toString());
     return {url: "", caption: "Kuvia ei voitu hakea", debug: { reason: "exception", error: error.toString() } };
   }
+}
+
+/**
+ * Extract URL from a cell value, formula or rich text
+ */
+function extractUrlFromCellFallback_(raw, formula, rich) {
+  try {
+    const str = String(raw || '').trim();
+    if (/^https?:\/\//i.test(str)) return str;
+    const f = String(formula || '').trim();
+    // Detect HYPERLINK("url", "text")
+    const hyp = f.match(/HYPERLINK\(\s*"([^"]+)"/i);
+    if (hyp && hyp[1]) return hyp[1];
+    // RichText: try getLinkUrl if available
+    if (rich && typeof rich.getLinkUrl === 'function') {
+      const link = rich.getLinkUrl();
+      if (link) return link;
+    }
+  } catch (__) {}
+  return '';
 }
 
 /**
