@@ -112,8 +112,8 @@ window.SwipeHandler = {
         
         // Call back to .NET
         try {
-            // Call the component instance method; attribute also maps name, but use method name for safety
-            config.dotNetRef.invokeMethodAsync('HandleSwipe', direction);
+            // Must match the JSInvokable identifier in SwipeContainer.razor
+            config.dotNetRef.invokeMethodAsync('OnSwipeDetected', direction);
         } catch (error) {
             console.error('❌ Error calling .NET swipe handler:', error);
         }
