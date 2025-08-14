@@ -808,6 +808,12 @@ function handleDataFetchAction_(e) {
       }
     }
     
+    // Parse greeting | activity tags from latestReminder (backwards compatible)
+    const parsedMsg = parseGreetingAndActivity_(latestReminder);
+
+    // Build evergreen activity suggestion (always visible)
+    const activitySuggestion = getActivitySuggestion_(sheet, clientID, timeOfDay, weather);
+
     const response = {
       clientID: clientID,
       timestamp: new Date().toISOString(),
@@ -820,6 +826,10 @@ function handleDataFetchAction_(e) {
       weather: weather,
       contacts: contacts,
       latestReminder: latestReminder,
+      greeting: activitySuggestion.greeting || parsedMsg.greeting || latestReminder || "",
+      activityText: activitySuggestion.activityText || parsedMsg.activityText || "",
+      activityTags: activitySuggestion.activityTags || parsedMsg.activityTags || [],
+      activityTimeOfDay: activitySuggestion.activityTimeOfDay || parsedMsg.activityTimeOfDay || "",
       dailyTasks: dailyTasks,
       weeklyPlan: getWeeklyPlan_(sheet, clientID),
       currentTimeOfDay: timeOfDay,
@@ -1263,6 +1273,101 @@ function getLatestReminder_(sheet, clientID) {
   } catch (error) {
     console.error("Error getting SMS greeting:", error.toString());
     return "Hyvää päivää kultaseni! 💕";
+  }
+}
+
+/**
+ * Parse "Greeting | Activity #tags" from a message (backwards compatible)
+ */
+function parseGreetingAndActivity_(message) {
+  try {
+    const result = { greeting: '', activityText: '', activityTags: [], activityTimeOfDay: '' };
+    const msg = String(message || '').trim();
+    if (!msg) return result;
+    const parts = msg.split('|');
+    if (parts.length >= 2) {
+      result.greeting = parts[0].trim();
+      const right = parts.slice(1).join('|').trim();
+      // Extract tags starting with #
+      const tagMatches = right.match(/#[a-zA-ZåäöÅÄÖ]+/g) || [];
+      result.activityTags = tagMatches.map(t => t.replace('#','').toLowerCase());
+      // time of day tags
+      if (result.activityTags.includes('aamu')) result.activityTimeOfDay = 'AAMU';
+      else if (result.activityTags.includes('päivä') || result.activityTags.includes('paiva')) result.activityTimeOfDay = 'PÄIVÄ';
+      else if (result.activityTags.includes('ilta')) result.activityTimeOfDay = 'ILTA';
+      else if (result.activityTags.includes('yö') || result.activityTags.includes('yo')) result.activityTimeOfDay = 'YÖ';
+      // Remove tags from activity text
+      result.activityText = right.replace(/#[^\s]+/g, '').trim();
+    } else {
+      result.greeting = msg;
+    }
+    return result;
+  } catch (__) { return { greeting: String(message||''), activityText: '', activityTags: [], activityTimeOfDay: '' }; }
+}
+
+/**
+ * Evergreen activity selector from Viestit sheet
+ * - Syntax: "Greeting | Activity #päivä/#aamu/#ilta/#yö #inside/#outside/#social"
+ * - Filters out food/medicine phrases
+ */
+function getActivitySuggestion_(sheet, clientID, timeOfDay, weather) {
+  try {
+    const result = { greeting: '', activityText: '', activityTags: [], activityTimeOfDay: '' };
+    const messagesSheet = sheet.getSheetByName(SHEET_NAMES.VIESTIT);
+    if (!messagesSheet) return result;
+    const data = messagesSheet.getDataRange().getValues();
+    if (!data || data.length <= 1) return result;
+
+    // Kieltolista – suodata RUOKA/LÄÄKE maininnat pois
+    const deny = [/\blääke/i, /\blääkkeet/i, /\bruoka/i, /\bsyö/i, /aamupala/i, /lounas/i, /päivällinen/i, /iltapala/i, /tabletti/i, /pilleri/i, /kapseli/i];
+    const to = (v) => String(v || '').trim();
+    const nowTod = String(timeOfDay || '').toUpperCase(); // AAMU/PÄIVÄ/ILTA/YÖ
+    const goodOutdoor = !!(weather && weather.isGoodForOutdoor === true);
+
+    const rows = [];
+    for (let i = 1; i < data.length; i++) {
+      const msg = to(data[i][1]); // oletus: viesti sarakkeessa B
+      if (!msg) continue;
+      if (deny.some(rx => rx.test(msg))) continue; // pudota ruoka/lääke viestit
+      rows.push(msg);
+    }
+    if (rows.length === 0) return result;
+
+    // Jaa aikaryhmiin ja kategorioihin
+    const parsed = rows.map(r => parseGreetingAndActivity_(r));
+    const matchTod = (p) => {
+      if (!p.activityTimeOfDay) return true; // jos ei määritetty, käy kaikkiin aikoihin
+      return p.activityTimeOfDay.toUpperCase() === nowTod;
+    };
+    const hasTag = (p, tag) => (p.activityTags || []).includes(tag);
+
+    const candidatesOutside = parsed.filter(p => matchTod(p) && hasTag(p, 'outside'));
+    const candidatesInside  = parsed.filter(p => matchTod(p) && hasTag(p, 'inside'));
+    const candidatesSocial  = parsed.filter(p => matchTod(p) && hasTag(p, 'social'));
+    const candidatesAny     = parsed.filter(p => matchTod(p));
+
+    let bucket = [];
+    if (goodOutdoor && candidatesOutside.length) bucket = candidatesOutside;
+    else if (candidatesInside.length) bucket = candidatesInside;
+    else if (candidatesSocial.length) bucket = candidatesSocial;
+    else bucket = candidatesAny;
+    if (bucket.length === 0) return result;
+
+    // Stabiili rotaatio (päivittäin) – siemen clientID+päivä
+    const todayKey = new Date().toISOString().slice(0,10);
+    const s = `${clientID}|${todayKey}|${bucket.length}`;
+    let h = 0; for (let k = 0; k < s.length; k++) { h = ((h << 5) - h) + s.charCodeAt(k); h |= 0; }
+    const pick = Math.abs(h) % bucket.length;
+    const chosen = bucket[pick];
+
+    return {
+      greeting: chosen.greeting || '',
+      activityText: chosen.activityText || '',
+      activityTags: chosen.activityTags || [],
+      activityTimeOfDay: chosen.activityTimeOfDay || ''
+    };
+  } catch (__) {
+    return { greeting: '', activityText: '', activityTags: [], activityTimeOfDay: '' };
   }
 }
 
