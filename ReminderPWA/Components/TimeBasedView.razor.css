@@ -280,6 +280,7 @@
     display: flex;
     justify-content: space-around;
     padding: 15px 10px 10px 10px; /* Pienempi padding */
+    z-index: 1000; /* varmista että klikkaukset eivät jää muiden elementtien alle */
 }
 
 .footer-action {
