@@ -790,15 +790,18 @@ function handleDataFetchAction_(e) {
     
     // Get settings from Config sheet
     const settings = getClientSettings_(sheet, clientID);
+    const debugRequested = !!(e && e.parameter && (e.parameter.debug === '1' || e.parameter.debug === 'true'));
     
     let dailyPhotoUrl = "";
     let dailyPhotoCaption = "Kuvat eivät ole vielä käytössä";
+    let dailyPhotoDebug = {};
     
     if (settings.usePhotos && !(e && e.parameter && e.parameter.fast === '1')) {
       try {
         const dailyPhoto = getDailyPhoto_(sheet, clientID);
         dailyPhotoUrl = dailyPhoto.url;
         dailyPhotoCaption = dailyPhoto.caption;
+        dailyPhotoDebug = dailyPhoto.debug || {};
       } catch (photoError) {
         console.warn("Photo service unavailable:", photoError.toString());
         dailyPhotoCaption = "Kuvat eivät ole käytettävissä tällä hetkellä";
@@ -819,7 +822,8 @@ function handleDataFetchAction_(e) {
       latestReminder: latestReminder,
       dailyTasks: dailyTasks,
       weeklyPlan: getWeeklyPlan_(sheet, clientID),
-      currentTimeOfDay: timeOfDay
+      currentTimeOfDay: timeOfDay,
+      dailyPhotoDebug: debugRequested ? dailyPhotoDebug : undefined
     };
     
     console.log("Returning response:", JSON.stringify(response, null, 2));
@@ -2230,7 +2234,7 @@ function getDailyPhoto_(sheet, clientID) {
     const photoSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) 
                        || sheet.getSheetByName("Kuvat") 
                        || sheet.getSheetByName("Photos");
-    if (!photoSheet) return { url: "", caption: "Ei kuvia saatavilla" };
+    if (!photoSheet) return { url: "", caption: "Ei kuvia saatavilla", debug: { reason: "no_photo_sheet" } };
 
     const allRows = photoSheet.getDataRange().getValues();
     const clientLower = String(clientID || "").trim().toLowerCase();
@@ -2260,7 +2264,7 @@ function getDailyPhoto_(sheet, clientID) {
       });
     }
 
-    if (photos.length === 0) return { url: "", caption: "" };
+    if (photos.length === 0) return { url: "", caption: "", debug: { reason: "no_rows_for_client" } };
 
     // Näytä uusin kuva ensisijaisesti → viimeinen rivi
     const selected = photos[photos.length - 1] || [];
@@ -2292,12 +2296,13 @@ function getDailyPhoto_(sheet, clientID) {
     return {
       url: url,
       caption: caption || "",
-      rotationInfo: `${rotationSettings.rotationInterval} rotation, latest photo ${photos.length}/${photos.length}`
+      rotationInfo: `${rotationSettings.rotationInterval} rotation, latest photo ${photos.length}/${photos.length}`,
+      debug: { selectedRowLength: selected.length, urlFound: !!url, clientID }
     };
     
   } catch (error) {
     console.log('Error getting photo:', error.toString());
-    return {url: "", caption: "Kuvia ei voitu hakea"};
+    return {url: "", caption: "Kuvia ei voitu hakea", debug: { reason: "exception", error: error.toString() } };
   }
 }
 

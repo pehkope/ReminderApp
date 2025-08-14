@@ -226,7 +226,7 @@ else
         Console.WriteLine("🔄 LoadData() aloitettu - haetaan uudet tiedot API:sta");
         statusMessage = "📡 Haetaan tietoja...";
         
-        var result = await ApiService.GetDataAsync(currentClientId, maxRetries: initialFast ? 1 : 2, timeoutOverrideSeconds: initialFast ? 12 : null); // pidempi timeout käynnistyksessä
+        var result = await ApiService.GetDataAsync(currentClientId, maxRetries: initialFast ? 1 : 2, timeoutOverrideSeconds: initialFast ? 12 : null, fast: initialFast); // kevyt haku ensin
         
         if (result.IsSuccess && result.Data != null)
         {
