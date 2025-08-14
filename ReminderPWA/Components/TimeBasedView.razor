@@ -144,8 +144,15 @@
 
     private string GetActivitySuggestion()
     {
+        try
+        {
+            var apiActivityProp = ApiResponse?.GetType().GetProperty("ActivityText");
+            var apiActivity = apiActivityProp?.GetValue(ApiResponse) as string;
+            if (!string.IsNullOrWhiteSpace(apiActivity)) return apiActivity!;
+        }
+        catch { /* ignore */ }
+
         var weather = ApiResponse?.Weather?.Description ?? "";
-        
         return TimeOfDay switch
         {
             ViewMode.Morning => $"Aamun lehden lukemista tai pieni ulkoilukierros. {weather}",
