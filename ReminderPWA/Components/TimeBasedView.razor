@@ -39,7 +39,7 @@
                      OnNavigateToContacts="OnNavigateToContacts"
                      OnStartExercise="OnStartExercise"
                       OnSendMessage="ShowTelegramFromFooter"
-                      OnClearCache="ClearCacheFromFooter"
+                       OnClearCache="ClearCacheFromFooter"
                       ShowSendMessage="false" />
     </div>
 </div>
@@ -60,6 +60,7 @@
     [Parameter] public EventCallback OnNavigateToContacts { get; set; }
     [Parameter] public EventCallback OnStartExercise { get; set; }
     [Parameter] public EventCallback OnShowTelegram { get; set; }
+    [Parameter] public EventCallback OnRequestReload { get; set; }
     [Parameter] public bool IsNewMessage { get; set; } = false;
 
     public enum ViewMode
@@ -197,6 +198,10 @@
             await JS.InvokeVoidAsync("localStorage.removeItem", "lastApiResponse");
             await JS.InvokeVoidAsync("localStorage.removeItem", "recentAcks");
             await JS.InvokeVoidAsync("console.log", "Cache cleared from footer");
+            if (OnRequestReload.HasDelegate)
+            {
+                await OnRequestReload.InvokeAsync();
+            }
         }
         catch {}
     }

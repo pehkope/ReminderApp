@@ -37,6 +37,7 @@ else
                    OnNavigateToContacts="GoToContactsAsync"
                    OnStartExercise="OnStartExerciseHandler"
                    OnShowTelegram="ShowTelegram"
+                   OnRequestReload="ReloadAfterCacheClear"
                    IsNewMessage="@IsNewMessage" />
 </SwipeContainer>
 }
@@ -735,6 +736,13 @@ else
                 await LoadData();
                 lastWeatherUpdate = DateTime.Now;
             }
+
+            // Päivitä kuva vähintään 15 minuutin välein, jos URL ei muutu muuten
+            if (DateTime.Now.Minute % 15 == 0 && DateTime.Now.Second < 2)
+            {
+                Console.WriteLine("🖼️ Kuva-autopäivitys 15 min välein");
+                await LoadData(initialFast: false);
+            }
         }
     }
 
@@ -839,6 +847,13 @@ else
         {
             isRetrying = false;
         }
+    }
+
+    private async Task ReloadAfterCacheClear()
+    {
+        Console.WriteLine("🔄 Footer requested reload after cache clear");
+        await LoadData(initialFast: true);
+        StateHasChanged();
     }
 
      public void Dispose()
