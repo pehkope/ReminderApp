@@ -1180,18 +1180,43 @@ function getClientSettings_(sheet, clientID) {
     }
     
     const data = configSheet.getDataRange().getValues();
-    
+    const headers = (data && data.length > 0) ? (data[0] || []) : [];
+    const norm = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, '');
+    const toBool = (v) => (v === true) || ['true','yes','1','x'].includes(String(v).trim().toLowerCase());
+    const findCol = (names) => {
+      for (let idx = 0; idx < headers.length; idx++) {
+        const h = norm(headers[idx]);
+        if (names.some(n => h === n || h.includes(n))) return idx;
+      }
+      return -1;
+    };
+    const photosIdxByHeader = findCol(['usephotos','photos','kuvat','kaytakuvia','käytäkuvia']);
+    const telegramIdxByHeader = findCol(['usetelegram','telegram','viestit']);
+
     for (let i = 1; i < data.length; i++) {
       const configClientID = String(data[i][0]).trim().toLowerCase();
       console.log(`🔍 Checking config row ${i}: "${configClientID}" vs "${clientID.toLowerCase()}"`);
-      // J-sarake oletus, mutta jos taulukkoa muutettu, tuetaan myös muita totuusarvoja
-      
-      if (configClientID === clientID.toLowerCase()) {
-        const rawPhotos = (data[i][9] !== undefined ? data[i][9] : data[i][3]);
-        const usePhotosResult = rawPhotos === true || String(rawPhotos).toLowerCase() === 'true' || String(rawPhotos).toLowerCase() === 'yes' || String(rawPhotos).toLowerCase() === '1';
 
-        const rawTelegram = (data[i][10] !== undefined ? data[i][10] : data[i][4]);
-        const useTelegramResult = rawTelegram === true || String(rawTelegram).toLowerCase() === 'true' || String(rawTelegram).toLowerCase() === 'yes' || String(rawTelegram).toLowerCase() === '1';
+      if (configClientID === clientID.toLowerCase()) {
+        // Lue usePhotos (otsikon perusteella tai tunnetut indeksit: W(22), J(9), D(3))
+        const candidatesPhotosIdx = [photosIdxByHeader, 22, 9, 3].filter(x => x >= 0);
+        let usePhotosResult = defaultSettings.usePhotos;
+        for (const ci of candidatesPhotosIdx) {
+          if (ci < data[i].length) {
+            const v = data[i][ci];
+            if (v !== undefined && v !== '') { usePhotosResult = toBool(v); break; }
+          }
+        }
+
+        // Lue useTelegram (otsikon perusteella tai tunnetut: K(10), E(4))
+        const candidatesTelegramIdx = [telegramIdxByHeader, 10, 4].filter(x => x >= 0);
+        let useTelegramResult = defaultSettings.useTelegram;
+        for (const ci of candidatesTelegramIdx) {
+          if (ci < data[i].length) {
+            const v = data[i][ci];
+            if (v !== undefined && v !== '') { useTelegramResult = toBool(v); break; }
+          }
+        }
 
         return {
           useTelegram: useTelegramResult || defaultSettings.useTelegram,
@@ -2208,21 +2233,42 @@ function getDailyPhoto_(sheet, clientID) {
     if (!photoSheet) return { url: "", caption: "Ei kuvia saatavilla" };
 
     const allRows = photoSheet.getDataRange().getValues();
-    const photos = allRows.filter((row, index) => {
+    const clientLower = String(clientID || "").trim().toLowerCase();
+    // Ensin: tarkka osuma
+    let photos = allRows.filter((row, index) => {
       if (index === 0) return false; // header
       const rowClient = String(row[0] || "").trim().toLowerCase();
-      return rowClient === String(clientID || "").trim().toLowerCase();
+      return rowClient === clientLower;
     });
+    // Toiseksi: wildcard/kaikille (tyhjä, *, all, kaikki)
+    if (photos.length === 0) {
+      photos = allRows.filter((row, index) => {
+        if (index === 0) return false;
+        const rowClient = String(row[0] || "").trim().toLowerCase();
+        return !rowClient || rowClient === "*" || rowClient === "all" || rowClient === "kaikki";
+      });
+    }
+    // Kolmanneksi: mikä tahansa rivi, jossa on URL B..Z -sarakkeissa
+    if (photos.length === 0) {
+      photos = allRows.filter((row, index) => {
+        if (index === 0) return false;
+        for (let ci = 1; ci < Math.min(row.length, 26); ci++) {
+          const cell = String(row[ci] || "").trim();
+          if (/^https?:\/\//i.test(cell)) return true;
+        }
+        return false;
+      });
+    }
 
     if (photos.length === 0) return { url: "", caption: "" };
 
     // Näytä uusin kuva ensisijaisesti → viimeinen rivi
     const selected = photos[photos.length - 1] || [];
 
-    // B-sarake oletuksena URL; jos tyhjä tai ei http, etsi 2..6 sarakkeista ensimmäinen http-linkki
+    // B-sarake oletuksena URL; jos tyhjä tai ei http, etsi B..Z (2..26) sarakkeista ensimmäinen http-linkki
     let url = String(selected[1] || "").trim();
     if (!url || !/^https?:\/\//i.test(url)) {
-      for (let ci = 1; ci < Math.min(selected.length, 6); ci++) {
+      for (let ci = 1; ci < Math.min(selected.length, 26); ci++) { // laajennettu 6 -> 26
         const cell = String(selected[ci] || "").trim();
         if (/^https?:\/\//i.test(cell)) { url = cell; break; }
       }
