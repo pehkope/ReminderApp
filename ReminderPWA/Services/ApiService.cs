@@ -15,7 +15,7 @@ public class ApiService
         _apiSettings = config.ApiSettings;
     }
 
-    public async Task<ApiResult<ReminderApiResponse>> GetDataAsync(string? clientId = null, int? maxRetries = null, int? timeoutOverrideSeconds = null)
+    public async Task<ApiResult<ReminderApiResponse>> GetDataAsync(string? clientId = null, int? maxRetries = null, int? timeoutOverrideSeconds = null, bool fast = false)
     {
         var actualClientId = clientId ?? _apiSettings.DefaultClientId;
         var actualMaxRetries = maxRetries ?? _apiSettings.MaxRetries;
@@ -30,7 +30,7 @@ public class ApiService
                 Console.WriteLine($"🔧 ApiKey: '{_apiSettings.ApiKey}'");
                 
                 // Fallback for Azure deployment if config loading fails
-                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbynt7qx1ycNqJH00hiGugrRECHbGP3emWYDPHDDOycqWCNLlRLq2cR-lZNvuYJQsvH-2Q/exec" : _apiSettings.BaseUrl;
+                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbwqvFc0uX5LURL_cHccibI15ymT6Mgcv7DWohhxkkHNRtvhh1tb-a2NwaKqoRKvmqZbJg/exec" : _apiSettings.BaseUrl;
                     
                 var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
                 
@@ -41,6 +41,11 @@ public class ApiService
                 var targetUrl = string.IsNullOrEmpty(apiKey) 
                     ? $"{baseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
                     : $"{baseUrl}?clientID={actualClientId}&apiKey={apiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+
+                if (fast)
+                {
+                    targetUrl += "&fast=1";
+                }
                 
                 // Direct API call - let's try without CORS proxy
                 var url = targetUrl;
