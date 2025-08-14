@@ -11,7 +11,22 @@
     }
   ],
   "navigationFallback": {
-    "rewrite": "/index.html"
+    "rewrite": "/index.html",
+    "exclude": [
+      "/_framework/*",
+      "/_content/*",
+      "/css/*",
+      "/js/*",
+      "/lib/*",
+      "/audio/*",
+      "/favicon.png",
+      "/icon-*.png",
+      "/manifest.json",
+      "/service-worker.js",
+      "/ReminderTabletNew2.styles.css",
+      "/*.wasm",
+      "/**/*.wasm"
+    ]
   },
   "mimeTypes": {
     ".dll": "application/octet-stream",
