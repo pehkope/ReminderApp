@@ -145,14 +145,16 @@ else
             await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "prefillTelegramChatId");
         }
         await LoadCachedDataIfAny();
-        await LoadData(initialFast: true);
+        // Jos asetettu, suorita heti heavy-haku ensilatauksessa
+        var preferHeavy = AppConfig.FeatureFlags.PreferHeavyOnFirstLoad;
+        await LoadData(initialFast: !preferHeavy);
         // Taustalla perusteellisempi päivitys (photo + weeklyPlan), pidempi timeout
         _ = Task.Run(async () =>
         {
             try
             {
                 await Task.Delay(200); // pieni hengähdys UI:lle
-                await LoadData(initialFast: false);
+                if (!preferHeavy) { await LoadData(initialFast: false); }
                 Console.WriteLine("🟢 Heavy refresh valmis");
             }
             catch (Exception ex)

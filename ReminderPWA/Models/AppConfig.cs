@@ -29,5 +29,6 @@ public class FeatureFlags
     public bool EnableTelegramIntegration { get; set; } = true;
     public bool EnableAudioNotifications { get; set; } = true;
     public bool EnablePhotoModal { get; set; } = true;
+    public bool PreferHeavyOnFirstLoad { get; set; } = false;
 }
 
