@@ -18,24 +18,6 @@
                 <div class="weather-info">
                     <span class="weather-temp">@Weather.Temperature</span>
                     <span class="weather-desc">@GetFinnishWeatherDescription(Weather.Description)</span>
-                    @* Sääneuvonta Weather.Description perusteella *@
-                    @{
-                        var isGoodForOutdoor = IsGoodForOutdoor(Weather.Description);
-                        var isRaining = IsRaining(Weather.Description);
-                        var isSnowing = IsSnowing(Weather.Description);
-                    }
-                    @if (isGoodForOutdoor)
-                    {
-                        <span class="weather-advice good-weather">☀️ Ulkoiluun sopiva!</span>
-                    }
-                    else if (isRaining)
-                    {
-                        <span class="weather-advice bad-weather">🌧️ Sisäpuolella mukavampaa</span>
-                    }
-                    else if (isSnowing)
-                    {
-                        <span class="weather-advice cold-weather">❄️ Sisällä lämpimämpää</span>
-                    }
                 </div>
             }
             else
