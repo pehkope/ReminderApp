@@ -1,4 +1,62 @@
 /**
+ * Meal suggestions from 'Ruoka-ajat' sheet
+ * Columns: A=ClientID, B=Aika (AAMU/PÄIVÄ/ILTA/YÖ), C=Ateria, D=Ehdotus (vaihtoehdot ' | '), E=Kellonaika (HH:mm), F=Tagit
+ */
+function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
+  try {
+    const mealsSheet = sheet.getSheetByName(SHEET_NAMES.RUOKA_AJAT);
+    if (!mealsSheet) return null;
+    const data = mealsSheet.getDataRange().getValues();
+    if (!data || data.length <= 1) return null;
+
+    const to = (v) => String(v || '').trim();
+    const tod = String(timeOfDay || '').toUpperCase();
+    const clientLower = String(clientID || '').trim().toLowerCase();
+
+    const candidates = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowClient = to(row[0]).toLowerCase();
+      const rowTod = to(row[1]).toUpperCase();
+      const mealType = to(row[2]);
+      const suggestion = to(row[3]);
+      const hhmm = to(row[4]);
+      if (!suggestion) continue;
+      if (rowClient && rowClient !== clientLower && rowClient !== '*') continue;
+      if (rowTod && rowTod !== tod) continue;
+      // Aikaikkuna: jos kellonaika annettu, salli ±90 min
+      let timeMatch = true;
+      if (hhmm && /^\d{1,2}:\d{2}$/.test(hhmm)) {
+        const [h, m] = hhmm.split(':').map(x => parseInt(x) || 0);
+        const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+        const diffMin = Math.abs((now - target) / 60000);
+        timeMatch = diffMin <= 90;
+      }
+      if (!timeMatch) continue;
+
+      const options = suggestion.split('|').map(s => to(s)).filter(s => s);
+      if (options.length === 0) continue;
+      candidates.push({ mealType, hhmm, options });
+    }
+    if (candidates.length === 0) return null;
+
+    // Valitse stabiilisti päivän mukaan 2–3 vaihtoehtoa
+    const todayKey = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const pickStable = (len, salt='') => { let h=0; const s=`${clientID}|${tod}|${todayKey}|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
+    const chosen = candidates[pickStable(candidates.length)];
+    const shuffledIdx = []; for (let i=0;i<chosen.options.length;i++) shuffledIdx.push(i);
+    // yksinkertainen deterministinen sekoitus
+    shuffledIdx.sort((a,b)=> (pickStable(chosen.options.length, String(a))-pickStable(chosen.options.length, String(b))));
+    const mealOptions = shuffledIdx.slice(0, Math.min(3, chosen.options.length)).map(i=>chosen.options[i]);
+
+    return {
+      nextMealType: chosen.mealType,
+      nextMealTime: chosen.hhmm,
+      mealOptions
+    };
+  } catch (__) { return null; }
+}
+/**
  * ReminderApp Backend for Google Apps Script - Version 2.0 Modular FIXED
  * Yhdistetty versio modulaarisista tiedostoista GAS:ia varten
  * Korjattu duplikaatti-ongelma ja optimoitu notifikaatiot
@@ -813,6 +871,7 @@ function handleDataFetchAction_(e) {
 
     // Build evergreen activity suggestion (always visible)
     const activitySuggestion = getActivitySuggestion_(sheet, clientID, timeOfDay, weather);
+    const mealSuggestion = getMealSuggestions_(sheet, clientID, timeOfDay, now);
 
     const response = {
       clientID: clientID,
@@ -835,6 +894,13 @@ function handleDataFetchAction_(e) {
       currentTimeOfDay: timeOfDay,
       dailyPhotoDebug: debugRequested ? dailyPhotoDebug : undefined
     };
+
+    // Meals
+    if (mealSuggestion) {
+      response.nextMealType = mealSuggestion.nextMealType || "";
+      response.nextMealTime = mealSuggestion.nextMealTime || "";
+      response.mealOptions = mealSuggestion.mealOptions || [];
+    }
     
     console.log("Returning response:", JSON.stringify(response, null, 2));
     
@@ -1326,7 +1392,11 @@ function getActivitySuggestion_(sheet, clientID, timeOfDay, weather) {
 
     const rows = [];
     for (let i = 1; i < data.length; i++) {
-      const msg = to(data[i][1]); // oletus: viesti sarakkeessa B
+      const row = data[i];
+      // Tuki: jos A-sarake EI ole päivämäärä, käytä A:ta viestinä; muuten käytä B:tä
+      const cellA = row[0];
+      const isDateA = (cellA && Object.prototype.toString.call(cellA) === '[object Date]' && !isNaN(cellA));
+      const msg = !isDateA && to(cellA) ? to(cellA) : to(row[1]);
       if (!msg) continue;
       if (deny.some(rx => rx.test(msg))) continue; // pudota ruoka/lääke viestit
       rows.push(msg);
@@ -1758,9 +1828,10 @@ function testMedicineMessages() {
  */
 function getImportantMessage_(sheet) {
   try {
-    const messagesSheet = sheet.getSheetByName(SHEET_NAMES.VIESTIT);
+    // Lue ajastetut tärkeät viestit 'Tapaamiset' -välilehdeltä
+    const messagesSheet = sheet.getSheetByName(SHEET_NAMES.TAPAAMISET);
     if (!messagesSheet) {
-      console.log("No 'Viestit' sheet found");
+      console.log("No 'Tapaamiset' sheet found");
       return "";
     }
     

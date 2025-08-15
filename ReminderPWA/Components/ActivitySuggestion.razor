@@ -1,0 +1,19 @@
+<div class="activity-card">
+    <div class="activity-header">
+        <span class="icon">✨</span>
+        <span class="title">Puuhaa nyt</span>
+        @if (!string.IsNullOrWhiteSpace(TimeOfDayText))
+        {
+            <span class="tod">@TimeOfDayText</span>
+        }
+    </div>
+    <div class="activity-text">@Text</div>
+</div>
+
+@code {
+    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public string? TimeOfDayText { get; set; }
+}
+
+
+

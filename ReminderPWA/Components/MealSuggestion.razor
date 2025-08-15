@@ -1,0 +1,25 @@
+@code {
+    [Parameter] public string? NextMealType { get; set; }
+    [Parameter] public string? NextMealTime { get; set; }
+    [Parameter] public IEnumerable<string>? MealOptions { get; set; }
+}
+
+@if (MealOptions != null && MealOptions.Any())
+{
+    <div class="meal-card">
+        <div class="meal-header">
+            <span class="icon">🍽️</span>
+            <span class="title">Ruokaehdotus</span>
+            @if (!string.IsNullOrWhiteSpace(NextMealType)) { <span class="type">@NextMealType</span> }
+            @if (!string.IsNullOrWhiteSpace(NextMealTime)) { <span class="time">@NextMealTime</span> }
+        </div>
+        <ul class="meal-list">
+            @foreach (var opt in MealOptions)
+            {
+                <li>@opt</li>
+            }
+        </ul>
+    </div>
+}
+
+
