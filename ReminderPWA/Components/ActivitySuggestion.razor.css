@@ -1,0 +1,21 @@
+.activity-card {
+    background: rgba(255,255,255,0.98);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.activity-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+.activity-header .icon { font-size: 1.1rem; }
+.activity-header .title { text-transform: uppercase; letter-spacing: .5px; }
+.activity-header .tod { margin-left: auto; font-weight: 600; opacity: .75; }
+.activity-text { font-size: 1.05rem; line-height: 1.35; }
+
+
+

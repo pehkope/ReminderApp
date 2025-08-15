@@ -29,6 +29,20 @@
         @* Tärkeä viesti (jos on) *@
         <ImportantBanner ImportantMessage="@ApiResponse?.ImportantMessage" />
         
+        @* AINA näkyvä puuhaa-kortti *@
+        @if (!string.IsNullOrWhiteSpace(GetApiActivityText()))
+        {
+            <ActivitySuggestion Text="@GetApiActivityText()" TimeOfDayText="@GetTimeOfDayText()" />
+        }
+
+        @* Ruokaehdotus ateriaikkunassa *@
+        @if (HasMealSuggestions())
+        {
+            <MealSuggestion NextMealType="@GetApiString("NextMealType")"
+                            NextMealTime="@GetApiString("NextMealTime")"
+                            MealOptions="@GetApiStringArray("MealOptions")" />
+        }
+
         @* Päivän valokuva *@
         <DailyPhoto ApiPhotoUrl="@ApiResponse?.DailyPhotoUrl"
                    ApiPhotoCaption="@ApiResponse?.DailyPhotoCaption"
@@ -161,6 +175,47 @@
             ViewMode.Night => $"Rentoutumista ja hyvän yön valmistelua.",
             _ => $"Nauti tästä hetkestä! {weather}"
         };
+    }
+
+    private string GetApiActivityText()
+    {
+        try
+        {
+            var prop = ApiResponse?.GetType().GetProperty("ActivityText");
+            var text = prop?.GetValue(ApiResponse) as string;
+            return text ?? string.Empty;
+        }
+        catch { return string.Empty; }
+    }
+
+    private bool HasMealSuggestions()
+    {
+        return GetApiStringArray("MealOptions").Any();
+    }
+
+    private string GetApiString(string name)
+    {
+        try
+        {
+            var prop = ApiResponse?.GetType().GetProperty(name);
+            var val = prop?.GetValue(ApiResponse) as string;
+            return val ?? string.Empty;
+        }
+        catch { return string.Empty; }
+    }
+
+    private IEnumerable<string> GetApiStringArray(string name)
+    {
+        try
+        {
+            var prop = ApiResponse?.GetType().GetProperty(name);
+            var val = prop?.GetValue(ApiResponse) as System.Collections.IEnumerable;
+            if (val == null) return Enumerable.Empty<string>();
+            var list = new List<string>();
+            foreach (var x in val) if (x is string s && !string.IsNullOrWhiteSpace(s)) list.Add(s);
+            return list;
+        }
+        catch { return Enumerable.Empty<string>(); }
     }
 
     private string GetFallbackPhotoUrl()
