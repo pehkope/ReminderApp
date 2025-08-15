@@ -13,6 +13,22 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
     const tod = String(timeOfDay || '').toUpperCase();
     const clientLower = String(clientID || '').trim().toLowerCase();
 
+    // Oletusikkunat (paikallisaika)
+    const defaultWindows = {
+      AAMU: { start: { h:8, m:0 }, end: { h:9, m:0 } },
+      PÄIVÄ: { start: { h:11, m:0 }, end: { h:14, m:0 } },
+      PAIVA: { start: { h:11, m:0 }, end: { h:14, m:0 } }, // varmuuden vuoksi
+      ILTA: { start: { h:17, m:0 }, end: { h:18, m:0 } },
+      YÖ:   { start: { h:21, m:0 }, end: { h:22, m:0 } },
+      YO:   { start: { h:21, m:0 }, end: { h:22, m:0 } }
+    };
+
+    const inWindow = (n, win) => {
+      const s = new Date(n.getFullYear(), n.getMonth(), n.getDate(), win.start.h, win.start.m, 0, 0);
+      const e = new Date(n.getFullYear(), n.getMonth(), n.getDate(), win.end.h, win.end.m, 0, 0);
+      return n >= s && n <= e;
+    };
+
     const candidates = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
@@ -24,13 +40,27 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       if (!suggestion) continue;
       if (rowClient && rowClient !== clientLower && rowClient !== '*') continue;
       if (rowTod && rowTod !== tod) continue;
-      // Aikaikkuna: jos kellonaika annettu, salli ±90 min
+      // Aikaikkuna tulkinta:
+      // 1) Range "HH:MM-HH:MM" → sisällä = true
+      // 2) Yksittäinen "HH:MM" → ±90 min
+      // 3) Tyhjä → käytä oletusikkunaa rowTod (tai nykyinen tod)
       let timeMatch = true;
-      if (hhmm && /^\d{1,2}:\d{2}$/.test(hhmm)) {
-        const [h, m] = hhmm.split(':').map(x => parseInt(x) || 0);
-        const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
-        const diffMin = Math.abs((now - target) / 60000);
-        timeMatch = diffMin <= 90;
+      if (hhmm) {
+        const rangeMatch = hhmm.match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+        if (rangeMatch) {
+          const sh = parseInt(rangeMatch[1])||0, sm = parseInt(rangeMatch[2])||0;
+          const eh = parseInt(rangeMatch[3])||0, em = parseInt(rangeMatch[4])||0;
+          timeMatch = inWindow(now, { start:{h:sh,m:sm}, end:{h:eh,m:em} });
+        } else if (/^\d{1,2}:\d{2}$/.test(hhmm)) {
+          const [h, m] = hhmm.split(':').map(x => parseInt(x) || 0);
+          const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+          const diffMin = Math.abs((now - target) / 60000);
+          timeMatch = diffMin <= 90;
+        }
+      } else {
+        const winKey = rowTod || tod;
+        const win = defaultWindows[winKey] || null;
+        timeMatch = win ? inWindow(now, win) : true;
       }
       if (!timeMatch) continue;
 
@@ -47,7 +77,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
     const shuffledIdx = []; for (let i=0;i<chosen.options.length;i++) shuffledIdx.push(i);
     // yksinkertainen deterministinen sekoitus
     shuffledIdx.sort((a,b)=> (pickStable(chosen.options.length, String(a))-pickStable(chosen.options.length, String(b))));
-    const mealOptions = shuffledIdx.slice(0, Math.min(3, chosen.options.length)).map(i=>chosen.options[i]);
+    const mealOptions = shuffledIdx.slice(0, Math.min(5, chosen.options.length)).map(i=>chosen.options[i]);
 
     return {
       nextMealType: chosen.mealType,
