@@ -1637,8 +1637,8 @@ function getFoodReminders_(sheet, clientID, timeOfDay, currentHour) {
       const reminderClientID = String(data[i][0]).trim().toLowerCase();
       const mealTime = String(data[i][1]).trim(); // AAMU/PÄIVÄ/ILTA/YÖ
       const mealType = String(data[i][2]).trim(); // Aamupala/Lounas/Päivällinen/Pieni ilta  
-      const mealClock = String(data[i][3] || '').trim(); // 08:00, 12:00, 18:00
-      const suggestion = String(data[i][4] || '').trim(); // Valinnainen ehdotus
+      const mealClock = String(data[i][4] || '').trim(); // 08:00, 12:00, 18:00 (uusi malli)
+      const suggestion = String(data[i][3] || '').trim(); // Ehdotuslista " | " (ei näytetä taskissa)
       
       console.log(`📋 Rivi ${i}: ClientID="${reminderClientID}", Aika="${mealTime}", Ateria="${mealType}", Kello="${mealClock}", Ehdotus="${suggestion}"`);
       
@@ -1647,10 +1647,9 @@ function getFoodReminders_(sheet, clientID, timeOfDay, currentHour) {
       if (reminderClientID === clientID.toLowerCase() && 
           mealTime.toUpperCase() === timeOfDay.toUpperCase()) {
         
-        // Rakenna ruokamuistutus: Ateria + kellonaika + (valinnainen ehdotus)
+        // Rakenna taskiin vain selkeä muistutus: Ateria + kellonaika (ei koko ehdotuslistaa)
         let reminder = getFoodEmoji_(mealType) + " " + mealType;
         if (mealClock) reminder += ` ${mealClock}`;
-        if (suggestion) reminder += ` - ${suggestion}`;
         
         console.log(`✅ Lisätään ruokamuistutus: "${reminder}"`);
         reminders.push(reminder);
