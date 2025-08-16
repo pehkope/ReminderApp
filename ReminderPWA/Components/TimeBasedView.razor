@@ -29,11 +29,7 @@
         @* Tärkeä viesti (jos on) *@
         <ImportantBanner ImportantMessage="@ApiResponse?.ImportantMessage" />
         
-        @* AINA näkyvä puuhaa-kortti *@
-        @if (!string.IsNullOrWhiteSpace(GetApiActivityText()))
-        {
-            <ActivitySuggestion Text="@GetApiActivityText()" TimeOfDayText="@GetTimeOfDayText()" />
-        }
+        @* Poistettu erillinen "Puuhaa nyt" -kortti. Puuhaa näytetään tehtäväkorttina. *@
 
         @* Ruokaehdotus ateriaikkunassa *@
         @if (HasMealSuggestions())
@@ -158,13 +154,7 @@
 
     private string GetActivitySuggestion()
     {
-        try
-        {
-            var apiActivityProp = ApiResponse?.GetType().GetProperty("ActivityText");
-            var apiActivity = apiActivityProp?.GetValue(ApiResponse) as string;
-            if (!string.IsNullOrWhiteSpace(apiActivity)) return apiActivity!;
-        }
-        catch { /* ignore */ }
+        // Fallback-tekstiä tarvitaan harvoin, koska PUUHAA renderöidään tehtävissä.
 
         var weather = ApiResponse?.Weather?.Description ?? "";
         return TimeOfDay switch
@@ -177,46 +167,12 @@
         };
     }
 
-    private string GetApiActivityText()
-    {
-        try
-        {
-            var prop = ApiResponse?.GetType().GetProperty("ActivityText");
-            var text = prop?.GetValue(ApiResponse) as string;
-            return text ?? string.Empty;
-        }
-        catch { return string.Empty; }
-    }
+    // Ei erillistä activity-korttia enää
 
-    private bool HasMealSuggestions()
-    {
-        return GetApiStringArray("MealOptions").Any();
-    }
+    private bool HasMealSuggestions() => (ApiResponse?.MealOptions?.Any() ?? false);
 
-    private string GetApiString(string name)
-    {
-        try
-        {
-            var prop = ApiResponse?.GetType().GetProperty(name);
-            var val = prop?.GetValue(ApiResponse) as string;
-            return val ?? string.Empty;
-        }
-        catch { return string.Empty; }
-    }
-
-    private IEnumerable<string> GetApiStringArray(string name)
-    {
-        try
-        {
-            var prop = ApiResponse?.GetType().GetProperty(name);
-            var val = prop?.GetValue(ApiResponse) as System.Collections.IEnumerable;
-            if (val == null) return Enumerable.Empty<string>();
-            var list = new List<string>();
-            foreach (var x in val) if (x is string s && !string.IsNullOrWhiteSpace(s)) list.Add(s);
-            return list;
-        }
-        catch { return Enumerable.Empty<string>(); }
-    }
+    private string GetApiString(string name) => string.Empty; // ei tarvita enää
+    private IEnumerable<string> GetApiStringArray(string name) => Enumerable.Empty<string>();
 
     private string GetFallbackPhotoUrl()
     {
