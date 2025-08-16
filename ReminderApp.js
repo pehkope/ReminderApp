@@ -29,6 +29,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       return n >= s && n <= e;
     };
 
+    const debug = { tod: tod, phase: 'collect', candidates: 0, fallbackRows: 0, defaultUsed: false };
     const candidates = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
@@ -68,6 +69,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       if (options.length === 0) continue;
       candidates.push({ mealType, hhmm, options });
     }
+    debug.candidates = candidates.length;
     if (candidates.length === 0) {
       // Fallback: valitse seuraavan ateriaikkunan ehdotus, vaikka ei oltaisi sen sisällä
       const order = ['AAMU','PÄIVÄ','ILTA','YÖ'];
@@ -93,8 +95,26 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
           fallbackRows.push({ mealType, hhmm, options });
         }
       }
+      debug.fallbackRows = fallbackRows.length;
 
-      if (fallbackRows.length === 0) return null;
+      if (fallbackRows.length === 0) {
+        // Viimeinen fallback: tarjoa järkevät perusvaihtoehdot ajan mukaan
+        debug.phase = 'defaults';
+        debug.defaultUsed = true;
+        const defaults = {
+          AAMU: { type: 'aamupala', time: '08:00-09:00', options: ['kaurapuuro marjoilla', 'jugurtti ja banaani', 'leipä + juusto', 'smoothie'] },
+          'PÄIVÄ': { type: 'lounas', time: '11:00-14:00', options: ['keitto + leipä', 'kanasalaatti', 'uunilohi ja perunat', 'kasvispasta'] },
+          ILTA: { type: 'päivällinen', time: '17:00-18:00', options: ['kasvismunakas', 'kana-riisi', 'tomaattipasta', 'lohisalaatti'] },
+          'YÖ': { type: 'yöpala', time: '20:00-21:30', options: ['leipä + maito', 'croissant', 'hedelmä & jugurtti'] }
+        };
+        const def = defaults[tod] || defaults['PÄIVÄ'];
+        return {
+          nextMealType: def.type,
+          nextMealTime: def.time,
+          mealOptions: def.options,
+          debug
+        };
+      }
 
       const todayKey = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const pickStable = (len, salt='') => { let h=0; const s=`${clientID}|${tod}|${todayKey}|fallback|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
@@ -106,7 +126,8 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       return {
         nextMealType: chosen.mealType,
         nextMealTime: chosen.hhmm,
-        mealOptions
+        mealOptions,
+        debug
       };
     }
 
@@ -119,10 +140,12 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
     shuffledIdx.sort((a,b)=> (pickStable(chosen.options.length, String(a))-pickStable(chosen.options.length, String(b))));
     const mealOptions = shuffledIdx.slice(0, Math.min(5, chosen.options.length)).map(i=>chosen.options[i]);
 
+    debug.phase = 'window';
     return {
       nextMealType: chosen.mealType,
       nextMealTime: chosen.hhmm,
-      mealOptions
+      mealOptions,
+      debug
     };
   } catch (__) { return null; }
 }
