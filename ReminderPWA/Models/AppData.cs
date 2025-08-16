@@ -56,6 +56,28 @@ public class ReminderApiResponse
 
     [JsonPropertyName("weeklyPlan")]
     public WeeklyPlan WeeklyPlan { get; set; } = new();
+
+    // Uudet kentät: puuhaa ja ruokaehdotukset
+    [JsonPropertyName("greeting")]
+    public string? Greeting { get; set; }
+
+    [JsonPropertyName("activityText")]
+    public string? ActivityText { get; set; }
+
+    [JsonPropertyName("activityTags")]
+    public List<string>? ActivityTags { get; set; }
+
+    [JsonPropertyName("activityTimeOfDay")]
+    public string? ActivityTimeOfDay { get; set; }
+
+    [JsonPropertyName("nextMealType")]
+    public string? NextMealType { get; set; }
+
+    [JsonPropertyName("nextMealTime")]
+    public string? NextMealTime { get; set; }
+
+    [JsonPropertyName("mealOptions")]
+    public List<string>? MealOptions { get; set; }
 }
 
 /// <summary>
