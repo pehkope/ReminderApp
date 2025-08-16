@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ruokaehdotus testisivu</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 16px; background:#f7f7fb; }
+    h1 { margin: 0 0 12px; }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding: 12px 14px; box-shadow: 0 4px 10px rgba(0,0,0,.04); }
+    .hdr { display:flex; align-items:center; gap:10px; margin-bottom:8px; font-weight:700; }
+    .hdr .icon { font-size: 1.1rem; }
+    .pill { display:inline-block; background:#eef2ff; color:#3730a3; padding:2px 8px; border-radius: 12px; margin-left:auto; }
+    ul { margin:8px 0 0; padding-left: 18px; }
+    li { margin: 4px 0; }
+    .actions { display:flex; gap:10px; align-items:center; margin: 8px 0 16px; }
+    .btn { padding:6px 12px; border:none; border-radius:6px; cursor:pointer; background:#0d6efd; color:#fff; }
+    .btn:disabled { opacity:.6; cursor:default; }
+    .err { color:#b91c1c; font-weight:600; }
+    .meta { color:#555; font-size:.9rem; }
+    .taskpill { display:inline-block; background:#eee; padding:2px 8px; border-radius:12px; margin: 0 6px 6px 0; }
+    .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.85rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🧪 Ruokaehdotus – HTML testisivu</h1>
+    <div class="actions">
+      <button id="btnReload" class="btn">Päivitä</button>
+      <button id="btnCfg" class="btn" style="background:#6b7280">Asetukset</button>
+      <span id="error" class="err"></span>
+    </div>
+
+    <div id="cfg" class="card" style="display:none; max-width:680px;">
+      <div class="hdr"><span class="icon">⚙️</span><span>Asetukset (tallennetaan selaimen muistiin)</span></div>
+      <div style="display:grid; grid-template-columns: 1fr; gap:8px;">
+        <label>Base URL (GAS /exec)
+          <input id="cfgBase" style="width:100%" placeholder="https://script.google.com/.../exec" />
+        </label>
+        <label>API key
+          <input id="cfgKey" style="width:100%" placeholder="reminder-tablet-2024" />
+        </label>
+        <label>Client ID
+          <input id="cfgClient" style="width:100%" placeholder="mom" />
+        </label>
+        <div>
+          <button id="btnSaveCfg" class="btn">Tallenna</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading">Ladataan…</div>
+    <div id="content" style="display:none">
+      <div class="row">
+        <div class="card">
+          <div class="hdr"><span class="icon">🍽️</span><span>Lista (3–5 ehdotusta)</span><span id="pillList" class="pill"></span></div>
+          <ul id="list"></ul>
+        </div>
+        <div class="card">
+          <div class="hdr"><span class="icon">🍽️</span><span>Yksi vaihtoehto (stabiili)</span><span id="pillSingle" class="pill"></span></div>
+          <ul id="single"></ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="hdr"><span class="icon">🧩</span><span>RUOKA-tehtäväkortit (backend)</span></div>
+        <div id="tasks"></div>
+      </div>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="card">
+          <div class="hdr"><span class="icon">🧭</span><span>Meta</span></div>
+          <div class="meta" id="meta"></div>
+        </div>
+        <div class="card">
+          <div class="hdr"><span class="icon">📦</span><span>Viimeisin API‑vastaus</span></div>
+          <pre id="json" class="mono" style="max-height:320px; overflow:auto;"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const qs = (k, d='') => new URL(location.href).searchParams.get(k) || d;
+    // Sama malli kuin debug-*.html: hardkodatut oletukset toimivat myös file://-avauksessa
+    const DEFAULT_BASE = 'https://script.google.com/macros/s/AKfycbyYqYN0iC-ltKYbgdJ3dHp3P3dgWY0J37umadAX1ghqI8crxrnGzeJnVazvzUfRRSCFog/exec';
+    const DEFAULT_KEY = 'reminder-tablet-2024';
+    const DEFAULT_CLIENT = 'mom';
+
+    function getStored() {
+      return {
+        base: localStorage.getItem('mealtest.base') || '',
+        key: localStorage.getItem('mealtest.key') || '',
+        client: localStorage.getItem('mealtest.client') || 'mom'
+      };
+    }
+
+    async function loadConfig() {
+      // Yritä ensin absoluuttista polkua, kun sivu on hostattu
+      try {
+        const respAbs = await fetch('/appsettings.Production.json', { cache: 'no-store' });
+        if (respAbs.ok) return respAbs.json();
+      } catch (e) { /* ignore */ }
+
+      // Yritä sitten suhteellista polkua (esim. jos hostataan alihakemistosta)
+      try {
+        const respRel = await fetch('appsettings.Production.json', { cache: 'no-store' });
+        if (respRel.ok) return respRel.json();
+      } catch (e) { /* ignore */ }
+
+      // Fallback 1: lue asetukset URL-parametreista (toimii myös file://)
+      {
+        const base = qs('base', '');
+        const key = qs('key', '');
+        const client = qs('client', 'mom');
+        if (base && key) {
+          return { ApiSettings: { BaseUrl: base, ApiKey: key, DefaultClientId: client } };
+        }
+      }
+
+      // Fallback 2: selaimen muisti (file:// ilman parametreja)
+      const s = getStored();
+      if (s.base && s.key) {
+        return { ApiSettings: { BaseUrl: s.base, ApiKey: s.key, DefaultClientId: s.client } };
+      }
+
+      // Fallback 3: kovakoodatut oletukset (kuten debug-*.html tiedostoissa)
+      return { ApiSettings: { BaseUrl: DEFAULT_BASE, ApiKey: DEFAULT_KEY, DefaultClientId: DEFAULT_CLIENT } };
+    }
+
+    function stablePick(arr, seed) {
+      if (!arr || !arr.length) return [];
+      let h=0; for (let i=0;i<seed.length;i++){ h=((h<<5)-h)+seed.charCodeAt(i); h|=0; }
+      const idx = Math.abs(h) % arr.length;
+      return [arr[idx]];
+    }
+
+    async function load() {
+      $('error').textContent='';
+      $('loading').style.display='block';
+      $('content').style.display='none';
+      try {
+        const cfg = await loadConfig();
+        const base = (cfg.ApiSettings && cfg.ApiSettings.BaseUrl) ? cfg.ApiSettings.BaseUrl : qs('base', '');
+        const client = qs('client', (cfg.ApiSettings && cfg.ApiSettings.DefaultClientId) || 'mom');
+        const key = qs('key', (cfg.ApiSettings && cfg.ApiSettings.ApiKey) || '');
+
+        if (!base || !key) {
+          const err = new Error('MISSING_CONFIG');
+          err.code = 'MISSING_CONFIG';
+          throw err;
+        }
+        const url = `${base}?clientID=${encodeURIComponent(client)}&apiKey=${encodeURIComponent(key)}&fast=0&debug=1&_t=${Date.now()}`;
+
+        const r = await fetch(url, { cache:'no-store' });
+        const data = await r.json();
+        $('json').textContent = JSON.stringify(data,null,2);
+
+        if (!r.ok || data.status === 'UNAUTHORIZED' || data.error) throw new Error(data.error || data.status || 'API error');
+
+        // pills
+        $('pillList').textContent = `${data.nextMealType||''} ${data.nextMealTime||''}`.trim();
+        $('pillSingle').textContent = `${data.nextMealType||''} ${data.nextMealTime||''}`.trim();
+
+        // list model
+        const list = data.mealOptions || [];
+        if (!('mealOptions' in data)) {
+          $('list').innerHTML = '<li><em>API ei palauta mealOptions‑kenttää – käytössä oleva GAS ei sisällä ruokaehdotuksia?</em></li>';
+        }
+        $('list').innerHTML = list.map(x=>`<li>${x}</li>`).join('') || '<li><em>Ei ehdotuksia</em></li>';
+
+        // single model (stabiili)
+        const one = stablePick(list, `${data.clientID}|${data.nextMealType}|${new Date().toISOString().slice(0,10)}`);
+        $('single').innerHTML = one.map(x=>`<li>${x}</li>`).join('') || '<li><em>Ei ehdotuksia</em></li>';
+
+        // tasks RUOKA
+        const tasks = (data.dailyTasks||[]).filter(t=>String(t.type||'').toUpperCase()==='RUOKA');
+        $('tasks').innerHTML = tasks.map(t=>`<span class="taskpill">${t.description} (${t.timeOfDay})</span>`).join('') || '<em>Ei RUOKA-tehtäviä</em>';
+
+        $('meta').textContent = `client=${data.clientID}, timeOfDay=${data.currentTimeOfDay}`;
+
+        $('loading').style.display='none';
+        $('content').style.display='block';
+      } catch (e) {
+        $('loading').style.display='none';
+        $('content').style.display='none';
+        if ((e && (e.code === 'MISSING_CONFIG' || e.message === 'MISSING_CONFIG'))) {
+          $('error').textContent = 'Asetukset puuttuvat. Avaa Asetukset ja syötä Base URL + API key.';
+          $('cfg').style.display='block';
+          // Esitäytä mahdollisilla parametreilla
+          $('cfgBase').value = qs('base', getStored().base);
+          $('cfgKey').value = qs('key', getStored().key);
+          $('cfgClient').value = qs('client', getStored().client || 'mom');
+        } else {
+          $('error').textContent = e.message || String(e);
+        }
+      }
+    }
+
+    $('btnReload').addEventListener('click', load);
+    $('btnCfg').addEventListener('click', () => {
+      const v = $('cfg').style.display === 'none' ? 'block' : 'none';
+      $('cfg').style.display = v;
+      if (v === 'block') {
+        const s = getStored();
+        $('cfgBase').value = qs('base', s.base);
+        $('cfgKey').value = qs('key', s.key);
+        $('cfgClient').value = qs('client', s.client);
+      }
+    });
+    $('btnSaveCfg').addEventListener('click', () => {
+      localStorage.setItem('mealtest.base', $('cfgBase').value.trim());
+      localStorage.setItem('mealtest.key', $('cfgKey').value.trim());
+      localStorage.setItem('mealtest.client', $('cfgClient').value.trim() || 'mom');
+      $('cfg').style.display='none';
+      load();
+    });
+    load();
+  </script>
+</body>
+</html>
+
+

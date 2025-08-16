@@ -1,0 +1,113 @@
+@page "/meal-test"
+@using ReminderTabletNew2.Models
+@using ReminderTabletNew2.Services
+@inject ApiService ApiService
+
+<div class="mealtest-wrap">
+    <h2>🧪 Ruokaehdotus – testisivu</h2>
+
+    <div class="actions">
+        <button class="btn btn-primary" @onclick="Reload">Päivitä nyt</button>
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <span class="err">@error</span>
+        }
+    </div>
+
+    @if (loading)
+    {
+        <p>Ladataan…</p>
+    }
+    else if (api == null)
+    {
+        <p>Ei dataa.</p>
+    }
+    else
+    {
+        <div class="grid">
+            <div class="col">
+                <h4>Lista (3–5 ehdotusta)</h4>
+                <MealSuggestion NextMealType="@api.NextMealType"
+                                NextMealTime="@api.NextMealTime"
+                                MealOptions="@api.MealOptions" />
+            </div>
+            <div class="col">
+                <h4>Yksi vaihtoehto (stabiili/päiväkohtainen)</h4>
+                <MealSuggestion NextMealType="@api.NextMealType"
+                                NextMealTime="@api.NextMealTime"
+                                MealOptions="@GetSingleOption()" />
+            </div>
+        </div>
+
+        <div class="debug">
+            <h5>Debug</h5>
+            <p><strong>Aika:</strong> @api.CurrentTimeOfDay | <strong>Tyyppi:</strong> @api.NextMealType @(" "+api.NextMealTime)</p>
+            <p><strong>Ehdotuksia:</strong> @(api.MealOptions?.Count ?? 0)</p>
+            <p><strong>RUOKA-tehtävät:</strong>
+                @foreach (var t in (api.DailyTasks ?? new()).Where(x => string.Equals(x.Type, "RUOKA", StringComparison.OrdinalIgnoreCase)))
+                {
+                    <span class="pill">@t.Description (@t.TimeOfDay)</span>
+                }
+            </p>
+        </div>
+    }
+</div>
+
+@code {
+    private ReminderApiResponse? api;
+    private bool loading = true;
+    private string error = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true; error = string.Empty;
+        var res = await ApiService.GetDataAsync(timeoutOverrideSeconds: 30, fast: false);
+        if (res.IsSuccess && res.Data != null)
+        {
+            api = res.Data;
+        }
+        else
+        {
+            error = res.ErrorMessage;
+        }
+        loading = false;
+        StateHasChanged();
+    }
+
+    private async Task Reload()
+    {
+        await Load();
+    }
+
+    private IEnumerable<string> GetSingleOption()
+    {
+        var opts = api?.MealOptions ?? new List<string>();
+        if (opts.Count == 0) return opts;
+        // stabiili indeksi päivän mukaan
+        var key = DateTime.Now.ToString("yyyy-MM-dd");
+        var seed = ($"{api?.ClientID}|{api?.NextMealType}|{key}");
+        var hash = seed.Aggregate(0, (h, c) => unchecked(((h << 5) - h) + c));
+        var idx = Math.Abs(hash) % opts.Count;
+        return new[] { opts[idx] };
+    }
+}
+
+<style>
+    .mealtest-wrap { padding: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; }
+    .col { background: #f8f9fa; padding: 12px; border-radius: 8px; }
+    .actions { margin: 8px 0 16px; display:flex; gap:12px; align-items:center; }
+    .err { color: #d9534f; font-weight: 600; }
+    .pill { display:inline-block; background:#eee; padding:2px 8px; border-radius:12px; margin-right:6px; }
+    h4 { margin-top: 0; }
+    .btn { padding:6px 12px; border:none; border-radius:6px; }
+    .btn-primary { background:#0d6efd; color:#fff; }
+    .btn-secondary { background:#6c757d; color:#fff; }
+</style>
+
+

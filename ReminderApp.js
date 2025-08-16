@@ -68,7 +68,47 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       if (options.length === 0) continue;
       candidates.push({ mealType, hhmm, options });
     }
-    if (candidates.length === 0) return null;
+    if (candidates.length === 0) {
+      // Fallback: valitse seuraavan ateriaikkunan ehdotus, vaikka ei oltaisi sen sisällä
+      const order = ['AAMU','PÄIVÄ','ILTA','YÖ'];
+      const curIdx = Math.max(0, order.indexOf(tod));
+      const nextIdx = (curIdx + 1) % order.length;
+      const tryTods = [order[nextIdx], 'AAMU','PÄIVÄ','ILTA','YÖ'];
+
+      let fallbackRows = [];
+      for (let k = 0; k < tryTods.length && fallbackRows.length === 0; k++) {
+        const targetTod = tryTods[k];
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          const rowClient = to(row[0]).toLowerCase();
+          const rowTod = to(row[1]).toUpperCase();
+          const mealType = to(row[2]);
+          const suggestion = to(row[3]);
+          const hhmm = to(row[4]);
+          if (!suggestion) continue;
+          if (rowClient && rowClient !== clientLower && rowClient !== '*') continue;
+          if (rowTod && rowTod !== targetTod) continue;
+          const options = suggestion.split('|').map(s => to(s)).filter(s => s);
+          if (options.length === 0) continue;
+          fallbackRows.push({ mealType, hhmm, options });
+        }
+      }
+
+      if (fallbackRows.length === 0) return null;
+
+      const todayKey = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const pickStable = (len, salt='') => { let h=0; const s=`${clientID}|${tod}|${todayKey}|fallback|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
+      const chosen = fallbackRows[pickStable(fallbackRows.length)];
+      const shuffledIdx = []; for (let i=0;i<chosen.options.length;i++) shuffledIdx.push(i);
+      shuffledIdx.sort((a,b)=> (pickStable(chosen.options.length, String(a))-pickStable(chosen.options.length, String(b))));
+      const mealOptions = shuffledIdx.slice(0, Math.min(5, chosen.options.length)).map(i=>chosen.options[i]);
+
+      return {
+        nextMealType: chosen.mealType,
+        nextMealTime: chosen.hhmm,
+        mealOptions
+      };
+    }
 
     // Valitse stabiilisti päivän mukaan 2–3 vaihtoehtoa
     const todayKey = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
@@ -922,6 +962,10 @@ function handleDataFetchAction_(e) {
       dailyTasks: dailyTasks,
       weeklyPlan: getWeeklyPlan_(sheet, clientID),
       currentTimeOfDay: timeOfDay,
+      // Meals: oletusarvot aina mukana vastauksessa
+      nextMealType: "",
+      nextMealTime: "",
+      mealOptions: [],
       dailyPhotoDebug: debugRequested ? dailyPhotoDebug : undefined
     };
 
