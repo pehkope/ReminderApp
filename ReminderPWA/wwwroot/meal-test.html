@@ -167,9 +167,20 @@
         $('pillSingle').textContent = `${data.nextMealType||''} ${data.nextMealTime||''}`.trim();
 
         // list model
-        const list = data.mealOptions || [];
-        if (!('mealOptions' in data)) {
-          $('list').innerHTML = '<li><em>API ei palauta mealOptions‑kenttää – käytössä oleva GAS ei sisällä ruokaehdotuksia?</em></li>';
+        let list = data.mealOptions || [];
+        // Fallback: jos backend ei palauta ruokia, näytä oletusvaihtoehdot ajan mukaan
+        if (!list.length) {
+          const tod = (data.currentTimeOfDay || '').toUpperCase();
+          const defaults = {
+            'AAMU': { type:'aamupala', time:'08:00-09:00', options:['kaurapuuro marjoilla','jugurtti ja banaani','leipä + juusto','smoothie'] },
+            'PÄIVÄ': { type:'lounas', time:'11:00-14:00', options:['keitto + leipä','kanasalaatti','uunilohi ja perunat','kasvispasta'] },
+            'ILTA': { type:'päivällinen', time:'17:00-18:00', options:['kasvismunakas','kana-riisi','tomaattipasta','lohisalaatti'] },
+            'YÖ': { type:'yöpala', time:'20:00-21:30', options:['leipä + maito','croissant','hedelmä & jugurtti'] }
+          };
+          const def = defaults[tod] || defaults['PÄIVÄ'];
+          $('pillList').textContent = `${def.type} ${def.time}`;
+          $('pillSingle').textContent = `${def.type} ${def.time}`;
+          list = def.options;
         }
         $('list').innerHTML = list.map(x=>`<li>${x}</li>`).join('') || '<li><em>Ei ehdotuksia</em></li>';
 

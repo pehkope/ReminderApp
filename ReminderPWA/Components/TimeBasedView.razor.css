@@ -1,6 +1,6 @@
 /* MODERN MOBILE DESIGN for ReminderApp */
 .mobile-container {
-    max-width: 980px; /* leveämpi, mahtuu paremmin tabletille */
+    max-width: 980px;
     margin: auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #EAE6F3; /* Light purple background */
@@ -9,7 +9,7 @@
     flex-direction: column;
     transition: all 0.5s ease;
     /* Jätä tilaa alapalkille jotta violetti tausta ei jatku sen alle */
-    padding-bottom: 110px; /* ~footerin korkeus */
+    padding-bottom: 86px; /* pienempi footerin varaus */
     background-clip: content-box; /* älä maalaa taustaa padding-alueelle */
 }
 
@@ -240,10 +240,10 @@
 /* Photo and Footer */
 .main-photo {
     width: 100%;
-    height: auto;
-    flex: 1 1 200px;            /* hieman pienempi lähtökorkeus */
-    max-height: 30vh;           /* pienempi yläraja → enemmän tilaa korteille */
-    min-height: 180px;          /* alarajaa hieman alas */
+    /* Joustava: saa kutistua tarvittaessa */
+    flex: 0 1 auto;
+    height: clamp(130px, 22vh, 280px);
+    aspect-ratio: 4 / 3; /* säilytä mittasuhde */
     display: flex;
     align-items: center;
     justify-content: center;

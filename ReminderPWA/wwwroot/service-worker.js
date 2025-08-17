@@ -1,8 +1,8 @@
 // Service Worker for ReminderApp PWA
 // Versio 1.0.0 - Automaattiset päivitykset ja offline-tuki
 
-const CACHE_NAME = 'reminder-app-v1.0.2';
-const API_CACHE_NAME = 'reminder-api-v1.0.2';
+const CACHE_NAME = 'reminder-app-v1.0.4';
+const API_CACHE_NAME = 'reminder-api-v1.0.4';
 
 // Tiedostot jotka tallennetaan cache:een
 const STATIC_ASSETS = [

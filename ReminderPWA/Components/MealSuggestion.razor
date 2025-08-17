@@ -1,7 +1,18 @@
+@using ReminderTabletNew2.Models
+
 @code {
     [Parameter] public string? NextMealType { get; set; }
     [Parameter] public string? NextMealTime { get; set; }
     [Parameter] public IEnumerable<string>? MealOptions { get; set; }
+    [Parameter] public AppConfig? Config { get; set; }
+
+    private bool showList { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        // Listan oletusnäkyvyys feature flagin perusteella
+        showList = Config?.FeatureFlags?.ShowMealOptionsList ?? false;
+    }
 }
 
 @if (MealOptions != null && MealOptions.Any())
@@ -13,12 +24,23 @@
             @if (!string.IsNullOrWhiteSpace(NextMealType)) { <span class="type">@NextMealType</span> }
             @if (!string.IsNullOrWhiteSpace(NextMealTime)) { <span class="time">@NextMealTime</span> }
         </div>
-        <ul class="meal-list">
-            @foreach (var opt in MealOptions)
-            {
-                <li>@opt</li>
-            }
-        </ul>
+
+        @if (showList)
+        {
+            <ul class="meal-list">
+                @foreach (var opt in MealOptions)
+                {
+                    <li>@opt</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <ul class="meal-list">
+                <li>@MealOptions.First()</li>
+            </ul>
+            <button class="toggle-btn" @onclick="(() => showList = true)">Näytä vaihtoehdot</button>
+        }
     </div>
 }
 
