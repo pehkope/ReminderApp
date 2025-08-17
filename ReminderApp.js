@@ -1145,18 +1145,19 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     const medicineReminders = getMedicineReminders_(sheet, clientID, timeOfDay, currentHour);
     
     if (medicineReminders.length > 0) {
-      // Löytyi muistutuksia sheet:stä - näytetään vain ensimmäinen
-      const firstReminder = medicineReminders[0];
-      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, firstReminder.replace("💊 ", ""), today);
-      console.log(`📋 Adding SINGLE LÄÄKKEET task from sheet: "${firstReminder}" with timeOfDay: "${finalTimeOfDay}"`);
-      
-      tasks.push({
-        type: "LÄÄKKEET", 
-        description: firstReminder.replace("💊 ", ""),
-        timeOfDay: finalTimeOfDay,
-        requiresAck: true,
-        isAckedToday: isAcked,
-        acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
+      // Näytä kaikki kyseisen vuorokaudenajan lääkkeet (deduplikointi tehty getMedicineReminders_ sisällä)
+      medicineReminders.forEach(rem => {
+        const desc = rem.replace("💊 ", "");
+        const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, desc, today);
+        console.log(`📋 Adding LÄÄKKEET task from sheet: "${desc}" with timeOfDay: "${finalTimeOfDay}"`);
+        tasks.push({
+          type: "LÄÄKKEET",
+          description: desc,
+          timeOfDay: finalTimeOfDay,
+          requiresAck: true,
+          isAckedToday: isAcked,
+          acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
+        });
       });
     } else {
       // Ei sheet-merkintää tälle vuorokaudenaikalle → EI näytetä lääkkeitä.
