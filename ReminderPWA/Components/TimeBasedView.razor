@@ -34,9 +34,18 @@
         @* Ruokaehdotus ateriaikkunassa *@
         @if (HasMealSuggestions())
         {
-            <MealSuggestion NextMealType="@GetApiString("NextMealType")"
-                            NextMealTime="@GetApiString("NextMealTime")"
-                            MealOptions="@GetApiStringArray("MealOptions")" />
+            <MealSuggestion NextMealType="@ApiResponse?.NextMealType"
+                            NextMealTime="@ApiResponse?.NextMealTime"
+                            MealOptions="@ApiResponse?.MealOptions"
+                            Config="@new AppConfig { FeatureFlags = new FeatureFlags { ShowMealOptionsList = false } }" />
+        }
+        else
+        {
+            <!-- Fallback ruokaehdotus, jos backend ei palauta -->
+            <MealSuggestion NextMealType="@(GetTimeOfDayText() switch { "Aamu" => "aamupala", "Päivä" => "lounas", "Ilta" => "päivällinen", _ => "yöpala" })"
+                            NextMealTime="@(GetTimeOfDayText() switch { "Aamu" => "08:00-09:00", "Päivä" => "11:00-14:00", "Ilta" => "17:00-18:00", _ => "20:00-21:30" })"
+                            MealOptions="@(new [] { "kaurapuuro marjoilla", "kanasalaatti", "tomaattipasta" })"
+                            Config="@new AppConfig { FeatureFlags = new FeatureFlags { ShowMealOptionsList = false } }" />
         }
 
         @* Päivän valokuva *@

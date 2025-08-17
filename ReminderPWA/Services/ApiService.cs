@@ -30,7 +30,7 @@ public class ApiService
                 Console.WriteLine($"🔧 ApiKey: '{_apiSettings.ApiKey}'");
                 
                 // Fallback for Azure deployment if config loading fails
-                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbyWT4cSHAGCH6F-HHN86Xg7MBNCOm9ERvBKd8BAFPa_P6tb_xfi8jhTAgwkiVuCAuJMsw/exec" : _apiSettings.BaseUrl;
+                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbytpAiSJ8KTWsTYyLGpaLvU45EG_xLHQwcgWJFWSY2TAHQRCzWCtwBb2k9mTXGDCu8kCQ/exec" : _apiSettings.BaseUrl;
                     
                 var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
                 
