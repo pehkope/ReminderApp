@@ -1145,33 +1145,22 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     const medicineReminders = getMedicineReminders_(sheet, clientID, timeOfDay, currentHour);
     
     if (medicineReminders.length > 0) {
-      // Löytyi muistutuksia sheet:stä - OTTA VAIN ENSIMMÄINEN
-      const firstReminder = medicineReminders[0]; // VAIN YKSI LÄÄKE
+      // Löytyi muistutuksia sheet:stä - näytetään vain ensimmäinen
+      const firstReminder = medicineReminders[0];
       const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, firstReminder.replace("💊 ", ""), today);
       console.log(`📋 Adding SINGLE LÄÄKKEET task from sheet: "${firstReminder}" with timeOfDay: "${finalTimeOfDay}"`);
       
       tasks.push({
         type: "LÄÄKKEET", 
-        description: firstReminder.replace("💊 ", ""), // Poista emoji jos on
+        description: firstReminder.replace("💊 ", ""),
         timeOfDay: finalTimeOfDay,
-        requiresAck: true, // 💊 LÄÄKKEET VAATII KUITTAUKSEN
+        requiresAck: true,
         isAckedToday: isAcked,
         acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
       });
     } else {
-      // Ei löytynyt muistutuksia sheet:stä, lisää default LÄÄKKEET tehtävä
-      const defaultMedDesc = "Muista ottaa päivän lääkkeet";
-      const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, defaultMedDesc, today);
-      console.log(`📋 Adding default LÄÄKKEET task: "${defaultMedDesc}" with timeOfDay: "${finalTimeOfDay}"`);
-      
-      tasks.push({
-        type: "LÄÄKKEET",
-        description: defaultMedDesc,
-        timeOfDay: finalTimeOfDay,
-        requiresAck: true, // 💊 LÄÄKKEET VAATII KUITTAUKSEN
-        isAckedToday: isAcked,
-        acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
-      });
+      // Ei sheet-merkintää tälle vuorokaudenaikalle → EI näytetä lääkkeitä.
+      console.log(`ℹ️ No medicine reminder for ${clientID} at ${finalTimeOfDay} – skipping default medicine task.`);
     }
     
     // 3. PUUHAA tehtävät - uusi älykäs sääperusteinen ehdotus
