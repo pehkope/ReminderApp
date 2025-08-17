@@ -1,17 +1,15 @@
-@using ReminderTabletNew2.Models
-
 @code {
     [Parameter] public string? NextMealType { get; set; }
     [Parameter] public string? NextMealTime { get; set; }
     [Parameter] public IEnumerable<string>? MealOptions { get; set; }
-    [Parameter] public AppConfig? Config { get; set; }
+    [Parameter] public bool ShowListInitially { get; set; } = false;
 
     private bool showList { get; set; }
 
     protected override void OnParametersSet()
     {
-        // Listan oletusnäkyvyys feature flagin perusteella
-        showList = Config?.FeatureFlags?.ShowMealOptionsList ?? false;
+        // Listan oletusnäkyvyys
+        showList = ShowListInitially;
     }
 }
 
