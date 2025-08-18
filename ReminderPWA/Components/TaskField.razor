@@ -13,15 +13,14 @@
                     <span class="task-text">@task.Type.ToUpper(): @(task.Description ?? task.Message)</span>
                     @if (IsFoodTask(task) && MealOptions != null && MealOptions.Any())
                     {
-                        <div style="margin-left:12px; font-size:.95rem; opacity:.9;">
-                            @MealOptions.First()
+                        <div style="margin-left:12px; font-size:.95rem; opacity:.9; display:flex; align-items:center; gap:8px;">
+                            <span>@(selectedMealOption ?? MealOptions.First())</span>
+                            <button class="icon-button" title="Vaihda vaihtoehto" @onclick="ToggleMealList">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
                         </div>
                     }
                 </div>
-                @if (IsFoodTask(task) && MealOptions != null && MealOptions.Any())
-                {
-                    <button class="ok-button" style="background:#6c5ce7" @onclick="ToggleMealList">Näytä vaihtoehdot</button>
-                }
                 @if (ShouldShowOkButton(task))
                 {
                     <button class="ok-button" @onclick="() => OnTaskAcknowledge.InvokeAsync(task)">OK</button>
@@ -33,12 +32,13 @@
             </div>
             @if (IsFoodTask(task) && showMealList && MealOptions != null && MealOptions.Any())
             {
-                <ul style="margin:6px 0 0 28px;">
+                <div style="margin:6px 0 0 28px; display:flex; gap:8px; flex-wrap:wrap;">
                     @foreach (var opt in MealOptions)
                     {
-                        <li>@opt</li>
+                        <button class="ok-button" style="padding:6px 10px; background:#eef; color:#333; border-radius:10px; border:1px solid #ccd; font-weight:600;"
+                                @onclick="() => SelectMealOption(opt)">@opt</button>
                     }
-                </ul>
+                </div>
             }
         }
     }
@@ -63,6 +63,7 @@
     [Parameter] public IEnumerable<string>? MealOptions { get; set; }
 
     private bool showMealList = false;
+    private string? selectedMealOption;
 
     private bool ShouldShowOkButton(DailyTask task)
     {
@@ -78,6 +79,21 @@
     private void ToggleMealList()
     {
         showMealList = !showMealList;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (selectedMealOption == null && MealOptions != null && MealOptions.Any())
+        {
+            selectedMealOption = MealOptions.First();
+        }
+    }
+
+    private void SelectMealOption(string opt)
+    {
+        selectedMealOption = opt;
+        showMealList = false;
+        StateHasChanged();
     }
 
     private string GetTaskIconClass(string taskType)

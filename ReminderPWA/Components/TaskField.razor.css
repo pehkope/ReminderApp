@@ -148,3 +148,14 @@
     font-size: 0.9rem;
     letter-spacing: 0.5px;
 }
+
+/* Pieni ikonipainike vaihtoehdoille */
+.icon-button {
+    border: 1px solid #d0d2ff;
+    background: #eef0ff;
+    color: #4a4fda;
+    border-radius: 10px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.icon-button i { font-size: 0.9rem; }
