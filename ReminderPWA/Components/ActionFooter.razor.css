@@ -1,10 +1,12 @@
 /* Footer toiminnot */
 .footer-bar {
     position: fixed;
-    left: 0;
-    right: 0;
     bottom: 0;
-    margin: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 860px;
+    margin: 0 auto;
     background: linear-gradient(180deg, transparent 0%, rgba(136, 136, 136, 0.9) 35%, rgba(119, 119, 119, 0.95) 100%);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
@@ -36,14 +38,14 @@
 }
 
 .action-icon-wrapper {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1rem;
+    font-size: 0.95rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     border: 2px solid rgba(255, 255, 255, 0.3);
     -webkit-backdrop-filter: blur(12px);
