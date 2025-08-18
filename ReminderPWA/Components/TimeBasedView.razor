@@ -23,7 +23,7 @@
         <TaskField 
             Tasks="GetFilteredTasks()" 
             TimeOfDayText="@GetTimeOfDayText()" 
-            DefaultActivityText="@GetActivitySuggestion()"
+            DefaultActivityText=""
             NextMealType="@ApiResponse?.NextMealType"
             NextMealTime="@ApiResponse?.NextMealTime"
             MealOptions="@ApiResponse?.MealOptions"
@@ -149,20 +149,7 @@
         return string.Empty;
     }
 
-    private string GetActivitySuggestion()
-    {
-        // Fallback-tekstiä tarvitaan harvoin, koska PUUHAA renderöidään tehtävissä.
-
-        var weather = ApiResponse?.Weather?.Description ?? "";
-        return TimeOfDay switch
-        {
-            ViewMode.Morning => $"Aamun lehden lukemista tai pieni ulkoilukierros. {weather}",
-            ViewMode.Day => $"Ihanaa päiväsaikaa - ehkä ulkoilua tai käsitöitä? {weather}",
-            ViewMode.Evening => $"Aivojumppa yhdessä tai rauhallista television katselua.",
-            ViewMode.Night => $"Rentoutumista ja hyvän yön valmistelua.",
-            _ => $"Nauti tästä hetkestä! {weather}"
-        };
-    }
+    private string GetActivitySuggestion() => string.Empty; // Ei näytetä fallback-tekstiä (PUUHAA tulee tehtävissä)
 
     // Ei erillistä activity-korttia enää
 
