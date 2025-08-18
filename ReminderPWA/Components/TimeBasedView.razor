@@ -221,6 +221,10 @@
 
     private bool IsTaskRelevantForTime(DailyTask task)
     {
+        // Näytetään RUOKA ja PUUHAA aina kaikissa näkymissä (konsistentti linja)
+        var upperType = (task.Type ?? "").ToUpperInvariant();
+        if (upperType == "RUOKA" || upperType == "PUUHAA") return true;
+
         // Ensisijaisesti käytetään task.TimeOfDay API:sta
         if (!string.IsNullOrEmpty(task.TimeOfDay))
         {
