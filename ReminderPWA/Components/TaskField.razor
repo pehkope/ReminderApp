@@ -11,7 +11,17 @@
                 <div class="task-details">
                     <i class="task-icon @GetTaskIconClass(task.Type)"></i>
                     <span class="task-text">@task.Type.ToUpper(): @(task.Description ?? task.Message)</span>
+                    @if (IsFoodTask(task) && MealOptions != null && MealOptions.Any())
+                    {
+                        <div style="margin-left:12px; font-size:.95rem; opacity:.9;">
+                            @MealOptions.First()
+                        </div>
+                    }
                 </div>
+                @if (IsFoodTask(task) && MealOptions != null && MealOptions.Any())
+                {
+                    <button class="ok-button" style="background:#6c5ce7" @onclick="ToggleMealList">Näytä vaihtoehdot</button>
+                }
                 @if (ShouldShowOkButton(task))
                 {
                     <button class="ok-button" @onclick="() => OnTaskAcknowledge.InvokeAsync(task)">OK</button>
@@ -21,6 +31,15 @@
                     <span class="acked-pill">(✅ KUITATTU)</span>
                 }
             </div>
+            @if (IsFoodTask(task) && showMealList && MealOptions != null && MealOptions.Any())
+            {
+                <ul style="margin:6px 0 0 28px;">
+                    @foreach (var opt in MealOptions)
+                    {
+                        <li>@opt</li>
+                    }
+                </ul>
+            }
         }
     }
     else
@@ -39,11 +58,26 @@
     [Parameter] public string TimeOfDayText { get; set; } = "AAMU";
     [Parameter] public string DefaultActivityText { get; set; } = "Ei tehtäviä tänään";
     [Parameter] public EventCallback<DailyTask> OnTaskAcknowledge { get; set; }
+    [Parameter] public string? NextMealType { get; set; }
+    [Parameter] public string? NextMealTime { get; set; }
+    [Parameter] public IEnumerable<string>? MealOptions { get; set; }
+
+    private bool showMealList = false;
 
     private bool ShouldShowOkButton(DailyTask task)
     {
         // ✅ Käytetään RequiresAck kenttää API:sta
         return task.RequiresAck && !task.IsAckedToday;
+    }
+
+    private bool IsFoodTask(DailyTask task)
+    {
+        return task.Type.Equals("RUOKA", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void ToggleMealList()
+    {
+        showMealList = !showMealList;
     }
 
     private string GetTaskIconClass(string taskType)

@@ -1,6 +1,7 @@
 /* Emergency global UI styles (non-scoped) to stabilize layout in production */
 /* Typography */
 html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:#EAE6F3; }
+html, body { text-size-adjust: 100%; }
 
 /* Header */
 .header-section { padding: 10px 25px 5px 25px; color:#333; text-align:center; }
@@ -11,6 +12,7 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 
 /* Content area */
 .content-area { padding:0 20px; display:flex; flex-direction:column; gap:8px; flex:1 1 auto; }
+.content-area { padding-bottom: 0 !important; gap: 8px !important; }
 
 /* Notification */
 .notification-wrapper { position:relative; padding-top:10px; margin:8px 0; }
@@ -40,8 +42,18 @@ html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 .action-icon-wrapper { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:1.1rem; box-shadow:0 4px 12px rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.3); }
 
 /* Photo */
-.main-photo { width:100%; height: clamp(130px, 20vh, 300px); display:flex; align-items:center; justify-content:center; border-radius:8px; margin:10px 0; background:#f5f5f5; position:relative; overflow:hidden; }
-.main-photo img { width:100%; height:100%; object-fit:contain; }
+.main-photo { width:100%; height: clamp(120px, 18vh, 260px); display:flex; align-items:center; justify-content:center; border-radius:8px; margin:8px 0 0 0; background:#EAE6F3; position:relative; overflow:hidden; }
+.main-photo img { width:100%; height:100%; object-fit:contain; display:block; }
+
+/* Piilota vanhan bundlen erillinen ruokaehdotus-kortti */
+.meal-card { display: none !important; }
+
+/* Tiivistä alareuna */
+.mobile-container { padding-bottom: 56px !important; }
+.footer-bar { position: fixed !important; left:0; right:0; bottom:0; }
+
+/* Safari text-align match-parent normalisointi */
+th { text-align: match-parent; }
 .photo-caption-overlay { position:absolute; left:0; right:0; bottom:0; padding:8px 12px; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.7) 100%); color:#fff; font-size:.95rem; text-align:center; }
 
 /* Utility */
