@@ -97,24 +97,22 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       }
       debug.fallbackRows = fallbackRows.length;
 
-      if (fallbackRows.length === 0) {
-        // Viimeinen fallback: tarjoa järkevät perusvaihtoehdot ajan mukaan
-        debug.phase = 'defaults';
-        debug.defaultUsed = true;
-        const defaults = {
-          AAMU: { type: 'aamupala', time: '08:00-09:00', options: ['kaurapuuro marjoilla', 'jugurtti ja banaani', 'leipä + juusto', 'smoothie'] },
-          'PÄIVÄ': { type: 'lounas', time: '11:00-14:00', options: ['keitto + leipä', 'kanasalaatti', 'uunilohi ja perunat', 'kasvispasta'] },
-          ILTA: { type: 'päivällinen', time: '17:00-18:00', options: ['kasvismunakas', 'kana-riisi', 'tomaattipasta', 'lohisalaatti'] },
-          'YÖ': { type: 'yöpala', time: '20:00-21:30', options: ['leipä + maito', 'croissant', 'hedelmä & jugurtti'] }
-        };
-        const def = defaults[tod] || defaults['PÄIVÄ'];
-        return {
-          nextMealType: def.type,
-          nextMealTime: def.time,
-          mealOptions: def.options,
-          debug
-        };
-      }
+      // Palauta nykyhetken oletus aina (konsistentti UX)
+      debug.phase = 'defaults';
+      debug.defaultUsed = true;
+      const defaults = {
+        AAMU: { type: 'aamupala', time: '08:00-09:00', options: ['kaurapuuro marjoilla', 'jugurtti ja banaani', 'leipä + juusto', 'smoothie'] },
+        'PÄIVÄ': { type: 'lounas', time: '11:00-14:00', options: ['keitto + leipä', 'kanasalaatti', 'uunilohi ja perunat', 'kasvispasta'] },
+        ILTA: { type: 'päivällinen', time: '17:00-18:00', options: ['kasvismunakas', 'kana-riisi', 'tomaattipasta', 'lohisalaatti'] },
+        'YÖ': { type: 'yöpala', time: '20:00-21:30', options: ['leipä + maito', 'croissant', 'hedelmä & jugurtti'] }
+      };
+      const def = defaults[tod] || defaults['PÄIVÄ'];
+      return {
+        nextMealType: def.type,
+        nextMealTime: def.time,
+        mealOptions: def.options,
+        debug
+      };
 
       const todayKey = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const pickStable = (len, salt='') => { let h=0; const s=`${clientID}|${tod}|${todayKey}|fallback|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
