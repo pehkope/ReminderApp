@@ -1,7 +1,7 @@
 @using ReminderTabletNew2.Services
 @using ReminderTabletNew2.Models
 
-<div class="main-photo photo-clickable" @onclick="() => OnPhotoClick.InvokeAsync(new PhotoClickArgs { ImageUrl = ImageUrl, Caption = Caption })">
+<div class="main-photo">
     @if (!string.IsNullOrEmpty(ImageUrl))
     {
         <img src="@ImageUrl" alt="@Caption" title="@Caption" style="width: 100%; height: 100%; object-fit: contain;" 
@@ -9,10 +9,7 @@
              @onload="@(() => LoggingService.LogImageLoad(ImageUrl, true))"
              @onerror="@(() => LoggingService.LogImageLoad(ImageUrl, false))" />
 
-        @if (!string.IsNullOrWhiteSpace(Caption))
-        {
-            <div class="photo-caption-overlay">@Caption</div>
-        }
+        @* Caption overlay poistettu *@
     }
     else
     {
