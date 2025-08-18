@@ -4,22 +4,20 @@
     const footer = document.querySelector('.footer-bar');
     if (!container || !footer) return;
 
-    // Get container center relative to viewport
     const rect = container.getBoundingClientRect();
-    const footerWidth = footer.offsetWidth;
-    const centerX = rect.left + rect.width / 2;
-    const left = Math.round(centerX - footerWidth / 2);
+    // Korttien leveys = kontti - 40px (content-area padding 20px per puoli)
+    const targetWidth = Math.max(0, rect.width - 40);
+    const left = Math.round(rect.left + 20);
 
-    // Lock footer horizontally to container center
+    footer.style.position = 'fixed';
     footer.style.left = left + 'px';
     footer.style.right = 'auto';
-    footer.style.transform = 'translateX(0)';
+    footer.style.transform = 'none';
+    footer.style.width = targetWidth + 'px';
   }
 
-  window.addEventListener('load', () => {
-    centerFooter();
-    setTimeout(centerFooter, 100); // after fonts/layout
-  });
+  const onReady = () => { centerFooter(); setTimeout(centerFooter, 100); };
+  window.addEventListener('load', onReady);
   window.addEventListener('resize', centerFooter);
   window.addEventListener('orientationchange', centerFooter);
 })();
