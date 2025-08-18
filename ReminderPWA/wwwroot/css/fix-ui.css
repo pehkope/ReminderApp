@@ -37,13 +37,14 @@ html, body { text-size-adjust: 100%; }
 .ok-button:hover { background:#4a3d82; transform:scale(1.05); }
 
 /* Footer */
-.footer-bar { position:fixed; left:0; right:0; bottom:0; width:100%; background:linear-gradient(180deg, transparent 0%, rgba(136,136,136,.9) 35%, rgba(119,119,119,.95) 100%); border-top-left-radius:18px; border-top-right-radius:18px; display:flex; justify-content:space-evenly; padding:8px 10px calc(12px + env(safe-area-inset-bottom, 0px)); z-index:1000; }
+.footer-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width: min(860px, calc(100% - 40px)); background:linear-gradient(180deg, transparent 0%, rgba(136,136,136,.9) 35%, rgba(119,119,119,.95) 100%); border-top-left-radius:18px; border-top-right-radius:18px; display:flex; justify-content:space-evenly; padding:8px 10px calc(12px + env(safe-area-inset-bottom, 0px)); z-index:1000; }
 .footer-action { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:.8rem; font-weight:600; color:white; text-shadow:0 2px 4px rgba(0,0,0,.6); }
 .action-icon-wrapper { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:1.1rem; box-shadow:0 4px 12px rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.3); }
 
 /* Photo */
 .main-photo { width:100%; height: clamp(120px, 18vh, 260px); display:flex; align-items:center; justify-content:center; border-radius:8px; margin:8px 0 0 0; background:#EAE6F3; position:relative; overflow:hidden; }
-.main-photo img { width:100%; height:100%; object-fit:contain; display:block; }
+.main-photo::before { content:""; position:absolute; inset:0; background:#EAE6F3; z-index:0; }
+.main-photo img { position:relative; z-index:1; width:100%; height:100%; object-fit:contain; display:block; background:#EAE6F3; box-shadow:none; }
 
 /* Piilota vanhan bundlen erillinen ruokaehdotus-kortti */
 .meal-card { display: none !important; }
@@ -54,7 +55,7 @@ html, body { text-size-adjust: 100%; }
 
 /* Safari text-align match-parent normalisointi */
 th { text-align: match-parent; }
-.photo-caption-overlay { position:absolute; left:0; right:0; bottom:0; padding:8px 12px; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.7) 100%); color:#fff; font-size:.95rem; text-align:center; }
+.photo-caption-overlay { position:absolute; left:0; right:0; bottom:0; padding:8px 12px; background:transparent; color:#333; font-size:.95rem; text-align:center; }
 
 /* Utility */
 .mobile-container { background-color:#EAE6F3; min-height:100vh; display:flex; flex-direction:column; }

@@ -2,8 +2,8 @@
 .footer-bar {
     position: fixed;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
     width: calc(100% - 40px);
     max-width: 860px;
     margin: 0 auto;

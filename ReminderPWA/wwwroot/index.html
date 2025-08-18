@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="ReminderTabletNew2.styles.css?v=20250814" />
     <!-- Emergency global UI styles to stabilize prod in case of scoped CSS mismatch -->
-    <link rel="stylesheet" href="css/fix-ui.css?v=20250814" />
+    <link rel="stylesheet" href="css/fix-ui.css?v=20250818" />
     <link rel="icon" type="image/png" href="favicon.png?v=14" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
@@ -60,7 +60,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    const registration = await navigator.serviceWorker.register('/service-worker.js?v=20');
+                    const registration = await navigator.serviceWorker.register('/service-worker.js?v=31');
                     console.log('✅ Service Worker registered successfully:', registration);
                     
                     // Kuuntele päivityksiä
@@ -78,7 +78,7 @@
                     const regs = await navigator.serviceWorker.getRegistrations();
                     regs.forEach(r => {
                         if (!r.active) return;
-                        if (!r.active.scriptURL.includes('v=20')) {
+                        if (!r.active.scriptURL.includes('v=31')) {
                             r.unregister();
                         }
                     });

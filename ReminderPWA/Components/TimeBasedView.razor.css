@@ -9,7 +9,7 @@
     flex-direction: column;
     transition: all 0.5s ease;
     /* Jätä tilaa alapalkille jotta violetti tausta ei jatku sen alle */
-    padding-bottom: 60px; /* pienempi footerin varaus */
+    padding-bottom: 52px; /* pienempi footerin varaus, lähempänä kuvaa */
     background-clip: content-box; /* älä maalaa taustaa padding-alueelle */
 }
 
@@ -241,7 +241,7 @@
 .main-photo {
     width: 100%;
     flex: 0 1 auto;
-    height: clamp(120px, 18vh, 260px);
+    height: clamp(220px, 35vh, 420px); /* enemmän korkeutta jotta sivureunojen violetit kaistat pienenee */
     display: block;
     border-radius: 8px;
     margin: 0;
