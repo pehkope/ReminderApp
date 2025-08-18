@@ -241,7 +241,7 @@
 .main-photo {
     width: 100%;
     flex: 0 1 auto;
-    height: clamp(220px, 35vh, 420px); /* enemmän korkeutta jotta sivureunojen violetit kaistat pienenee */
+    height: clamp(280px, 42vh, 520px); /* täyttää enemmän, ei sivukaistoja */
     display: block;
     border-radius: 8px;
     margin: 0;
@@ -254,10 +254,10 @@
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover; /* täyttö, ei valkoisia sivuja */
     border-radius: 8px;
     box-shadow: none;
-    background: #EAE6F3; /* reunoihin sama väri */
+    background: #EAE6F3;
 }
 
 .no-photo {
