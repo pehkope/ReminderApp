@@ -37,7 +37,7 @@ html, body { text-size-adjust: 100%; }
 .ok-button:hover { background:#4a3d82; transform:scale(1.05); }
 
 /* Footer */
-.footer-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width: min(860px, calc(100% - 40px)); background:linear-gradient(180deg, transparent 0%, rgba(136,136,136,.9) 35%, rgba(119,119,119,.95) 100%); border-top-left-radius:18px; border-top-right-radius:18px; display:flex; justify-content:space-evenly; padding:8px 10px calc(12px + env(safe-area-inset-bottom, 0px)); z-index:1000; }
+.footer-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width: min(820px, calc(100% - 32px)); background:linear-gradient(180deg, transparent 0%, rgba(136,136,136,.9) 35%, rgba(119,119,119,.95) 100%); border-top-left-radius:18px; border-top-right-radius:18px; display:flex; justify-content:space-evenly; padding:6px 10px calc(10px + env(safe-area-inset-bottom, 0px)); z-index:1000; }
 .footer-action { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:.8rem; font-weight:600; color:white; text-shadow:0 2px 4px rgba(0,0,0,.6); }
 .action-icon-wrapper { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:1.1rem; box-shadow:0 4px 12px rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.3); }
 
@@ -50,7 +50,7 @@ html, body { text-size-adjust: 100%; }
 .meal-card { display: none !important; }
 
 /* Tiivistä alareuna */
-.mobile-container { padding-bottom: 56px !important; }
+.mobile-container { padding-bottom: 44px !important; }
 .footer-bar { position: fixed !important; left:0; right:0; bottom:0; }
 
 /* Safari text-align match-parent normalisointi */
