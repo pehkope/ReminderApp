@@ -7,15 +7,20 @@
     justify-content: center;
     border-radius: 8px;
     margin: 15px 0; /* Normaali marginaali ylös ja alas */
-    background-color: #f5f5f5;
+    background-color: #EAE6F3;
     position: relative;
     overflow: hidden;
-    border: 2px solid transparent; /* poistettu näkyvä debug-reunus */
+    border: 0;
 }
 
 .main-photo img {
-    border-radius: 8px; /* Kuvan pyöristetyt kulmat */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Varjo */
+    border-radius: 0;
+    box-shadow: none;
+    width: calc(100% + 2px);
+    height: calc(100% + 2px);
+    margin: -1px;
+    object-fit: cover;
+    background: #EAE6F3;
 }
 
 .no-photo {

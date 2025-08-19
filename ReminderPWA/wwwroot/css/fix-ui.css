@@ -37,21 +37,21 @@ html, body { text-size-adjust: 100%; }
 .ok-button:hover { background:#4a3d82; transform:scale(1.05); }
 
 /* Footer */
-.footer-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width: min(820px, calc(100% - 32px)); background:linear-gradient(180deg, transparent 0%, rgba(136,136,136,.9) 35%, rgba(119,119,119,.95) 100%); border-top-left-radius:18px; border-top-right-radius:18px; display:flex; justify-content:space-evenly; padding:6px 10px calc(10px + env(safe-area-inset-bottom, 0px)); z-index:1000; }
-.footer-action { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:.8rem; font-weight:600; color:white; text-shadow:0 2px 4px rgba(0,0,0,.6); }
+.footer-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width: calc(100% - 40px); max-width: 980px; background:#ffffff; border-top-left-radius:18px; border-top-right-radius:18px; display:flex; justify-content:space-evenly; padding:6px 10px calc(10px + env(safe-area-inset-bottom, 0px)); z-index:1000; }
+.footer-action { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:.8rem; font-weight:600; color:#333; text-shadow:none; }
 .action-icon-wrapper { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:1.1rem; box-shadow:0 4px 12px rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.3); }
 
 /* Photo */
 .main-photo { width:100%; height: clamp(120px, 18vh, 260px); display:flex; align-items:center; justify-content:center; border-radius:8px; margin:8px 0 0 0; background:#EAE6F3; position:relative; overflow:hidden; }
 .main-photo::before { content:""; position:absolute; inset:0; background:#EAE6F3; z-index:0; }
-.main-photo img { position:relative; z-index:1; width:100%; height:100%; object-fit:contain; display:block; background:#EAE6F3; box-shadow:none; }
+.main-photo img { position:relative; z-index:1; width: calc(100% + 2px); height: calc(100% + 2px); margin:-1px; object-fit:cover; display:block; background:#EAE6F3; box-shadow:none; border-radius:0; }
 
 /* Piilota vanhan bundlen erillinen ruokaehdotus-kortti */
 .meal-card { display: none !important; }
 
 /* Tiivistä alareuna */
 .mobile-container { padding-bottom: 44px !important; }
-.footer-bar { position: fixed !important; left:0; right:0; bottom:0; }
+.footer-bar { position: fixed !important; left:50% !important; transform: translateX(-50%) !important; right:auto !important; }
 
 /* Safari text-align match-parent normalisointi */
 th { text-align: match-parent; }
