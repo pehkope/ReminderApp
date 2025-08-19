@@ -254,10 +254,10 @@
 
 .main-photo img {
     display: block;
-    width: calc(100% + 2px);
-    height: calc(100% + 2px);
-    margin: -1px;
-    object-fit: cover; /* täyttö, ei valkoisia sivuja */
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    object-fit: contain;
     border-radius: 0;
     box-shadow: none;
     background: #EAE6F3;
