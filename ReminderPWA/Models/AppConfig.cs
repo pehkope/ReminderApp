@@ -18,7 +18,7 @@ public class ApiSettings
 
 public class AppInfo
 {
-    public string Version { get; set; } = "1.0.0";
+    public string Version { get; set; } = "1.0.9";
     public string BuildDate { get; set; } = "";
     public string Environment { get; set; } = "Development";
 }
