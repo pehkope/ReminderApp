@@ -55,7 +55,7 @@ html, body { text-size-adjust: 100%; }
 
 /* Safari text-align match-parent normalisointi */
 th { text-align: match-parent; }
-.photo-caption-overlay { position:absolute; left:0; right:0; bottom:0; padding:8px 12px; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.7) 100%); color:#fff; font-size:.95rem; text-align:center; z-index:2; }
+.photo-caption-overlay { position:absolute; left:50%; transform:translateX(-50%); bottom:8px; padding:6px 10px; background:rgba(0,0,0,.6); color:#fff; font-size:.95rem; text-align:center; z-index:2; border-radius:8px; max-width:calc(100% - 24px); }
 
 /* Utility */
 .mobile-container { background-color:#EAE6F3; min-height:100vh; display:flex; flex-direction:column; }
