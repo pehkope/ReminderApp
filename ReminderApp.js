@@ -963,7 +963,7 @@ function handleDataFetchAction_(e) {
     // Build evergreen activity suggestion (always visible)
     const activitySuggestion = getActivitySuggestion_(sheet, clientID, timeOfDay, weather);
     const mealSuggestion = getMealSuggestions_(sheet, clientID, timeOfDay, now);
-
+    
     const response = {
       clientID: clientID,
       timestamp: new Date().toISOString(),
@@ -1148,14 +1148,14 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
         const desc = rem.replace("💊 ", "");
         const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, desc, today);
         console.log(`📋 Adding LÄÄKKEET task from sheet: "${desc}" with timeOfDay: "${finalTimeOfDay}"`);
-        tasks.push({
-          type: "LÄÄKKEET",
+      tasks.push({
+        type: "LÄÄKKEET", 
           description: desc,
-          timeOfDay: finalTimeOfDay,
+        timeOfDay: finalTimeOfDay,
           requiresAck: true,
-          isAckedToday: isAcked,
-          acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
-        });
+        isAckedToday: isAcked,
+        acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "LÄÄKKEET", timeOfDay, today) : null
+      });
       });
     } else {
       // Ei sheet-merkintää tälle vuorokaudenaikalle → EI näytetä lääkkeitä.
@@ -1357,11 +1357,11 @@ function getClientSettings_(sheet, clientID) {
     };
     const photosIdxByHeader = findCol(['usephotos','photos','kuvat','kaytakuvia','käytäkuvia']);
     const telegramIdxByHeader = findCol(['usetelegram','telegram','viestit']);
-
+    
     for (let i = 1; i < data.length; i++) {
       const configClientID = String(data[i][0]).trim().toLowerCase();
       console.log(`🔍 Checking config row ${i}: "${configClientID}" vs "${clientID.toLowerCase()}"`);
-
+      
       if (configClientID === clientID.toLowerCase()) {
         // Lue usePhotos (otsikon perusteella tai tunnetut indeksit: W(22), J(9), D(3))
         const candidatesPhotosIdx = [photosIdxByHeader, 22, 9, 3].filter(x => x >= 0);
