@@ -154,7 +154,7 @@ public class ApiService
         try
         {
             // Fallback for Azure deployment if config loading fails
-            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycby7rF7JGJ8pJzGVLkywkHl39TnOML4atIotuglfpbBDmwtglHOYV_KEvGj45ecCfBUR2w/exec" : _apiSettings.BaseUrl;
+            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbyAF2IRpxWDs39MhGRvcdzFV54W5-c6P-sOyoViiy8lvdBiYdLL5lxS7-ohALLhzAPq5w/exec" : _apiSettings.BaseUrl;
                 
             var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;

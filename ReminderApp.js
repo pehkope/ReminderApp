@@ -468,6 +468,11 @@ function handlePostAcknowledgement_(postData, e) {
 function doGet(e) {
   try {
     console.log("doGet called with parameters:", e ? JSON.stringify(e.parameter || {}, null, 2) : "no parameters");
+    // Init authorization without API key: call once with ?init=1
+    if (e && e.parameter && e.parameter.init === '1') {
+      try { initAuth(); } catch (initErr) { console.error('initAuth error:', initErr.toString()); }
+      return createCorsResponse_({ status: 'OK', init: 'done', timestamp: new Date().toISOString() });
+    }
     
     // Health check: fast ping without auth
     if (e && e.parameter && e.parameter.action === 'ping') {
@@ -565,6 +570,24 @@ function getHealthStatus_() {
   report.finishedAt = new Date().toISOString();
   report.elapsedMs = new Date() - started;
   return report;
+}
+
+/**
+ * Global initAuth for first-time Drive/Sheets authorization and basic smoke test
+ */
+function initAuth() {
+  const props = PropertiesService.getScriptProperties();
+  const name = props.getProperty('PHOTOS_SHEET_NAME') || 'Kuvat';
+  const ss = SpreadsheetApp.openById(props.getProperty('SPREADSHEET_ID'));
+  const sh = ss.getSheetByName(name) || ss.insertSheet(name);
+  if (sh.getLastRow() === 0) {
+    sh.appendRow(["Timestamp","From","Caption","DriveFileId","PublicUrl","ClientID","Active"]);
+  }
+  sh.appendRow([new Date(), 'INIT', 'Auth OK', '', '', 'mom', true]);
+
+  const folder = DriveApp.getFolderById(props.getProperty('PHOTOS_FOLDER_ID'));
+  const f = folder.createFile(Utilities.newBlob('ok','text/plain','auth-ok.txt'));
+  f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 }
 
 /**
@@ -3378,4 +3401,7 @@ function getSMSTervehdys_(smsSheet, timeOfDay) {
     console.error("Error reading SMS greetings:", error.toString());
     return null;
   }
+
+  // (removed nested initAuth)
+  
 }
