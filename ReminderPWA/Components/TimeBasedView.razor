@@ -142,12 +142,20 @@
                 message.Contains("Welcome") || 
                 message.Contains("tervetuloa"))
             {
-                return string.Empty;
+                // putoa kuvatekstiin
             }
-            
-            return message;
+            else
+            {
+                return message;
+            }
         }
 
+        // Jos varsinaista viestiä ei ole, näytä Telegram-kuvan kuvateksti viestikentässä
+        if (!string.IsNullOrWhiteSpace(ApiResponse?.DailyPhotoCaption))
+        {
+            return ApiResponse!.DailyPhotoCaption;
+        }
+        
         return string.Empty;
     }
 
