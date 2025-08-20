@@ -258,6 +258,14 @@ function doOptions(e) {
 function doPost(e) {
   try {
     console.log("doPost called with:", JSON.stringify(e, null, 2));
+    // HARD LOG: ensure WebhookLogs tab is created whenever doPost is hit
+    try {
+      const propsHL = PropertiesService.getScriptProperties();
+      const ssHL = SpreadsheetApp.openById(propsHL.getProperty(SHEET_ID_KEY));
+      const shHL = ssHL.getSheetByName('WebhookLogs') || ssHL.insertSheet('WebhookLogs');
+      if (shHL.getLastRow() === 0) shHL.appendRow(['Timestamp','Note','PostDataType']);
+      shHL.appendRow([new Date(), 'HIT', (e && e.postData && e.postData.type) || 'no-postData']);
+    } catch(__) {}
     // Lightweight webhook visibility log
     try { appendWebhookLog_("POST_HIT", (e && e.postData && e.postData.type) || "no-postData"); } catch(__) {}
     
