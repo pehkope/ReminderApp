@@ -258,6 +258,8 @@ function doOptions(e) {
 function doPost(e) {
   try {
     console.log("doPost called with:", JSON.stringify(e, null, 2));
+    // Lightweight webhook visibility log
+    try { appendWebhookLog_("POST_HIT", (e && e.postData && e.postData.type) || "no-postData"); } catch(__) {}
     
     // Parse POST body
     let postData = {};
@@ -266,6 +268,7 @@ function doPost(e) {
         postData = JSON.parse(e.postData.contents);
       } catch (parseError) {
         console.error("Failed to parse POST data:", parseError.toString());
+        try { appendWebhookLog_("POST_PARSE_ERROR", String(parseError)); } catch(__) {}
         return createCorsResponse_({
           error: "Invalid JSON in POST body",
           status: "ERROR"
@@ -279,6 +282,9 @@ function doPost(e) {
     if (isTelegramWebhook) {
       return handleTelegramWebhook_(e, postData);
     }
+
+    // Not a telegram webhook; log minimal info and continue to API auth path
+    try { appendWebhookLog_("POST_NOT_TELEGRAM", JSON.stringify(e.parameter || {})); } catch(__) {}
 
     // 2) API Key authentication for normal POST
     const apiKey = postData.apiKey || (e.parameter && e.parameter.apiKey);
@@ -384,6 +390,7 @@ function handleTelegramWebhook_(e, postData) {
     const fileJson = JSON.parse(fileResp.getContentText());
     if (!fileJson.ok) {
       console.error("getFile failed:", fileResp.getContentText());
+      try { appendWebhookLog_("GETFILE_FAILED", fileResp.getContentText()); } catch(__) {}
       return createCorsResponse_({ status: "ERROR", error: "getFile failed" });
     }
     const filePath = fileJson.result.file_path;
@@ -398,6 +405,7 @@ function handleTelegramWebhook_(e, postData) {
     }
     const row = [clientID, publicUrl, caption.replace(/#client:[^\s]+/,'').trim()];
     photoSheet.appendRow(row);
+    try { appendWebhookLog_("PHOTO_ROW_APPENDED", `client:${clientID}`); } catch(__) {}
 
     console.log(`✅ Telegram photo saved for ${clientID}`);
     try { sendTelegramMessage_(token, chatId, `Kiitos! Kuva vastaanotettu asiakkaalle "${clientID}".`); } catch (__) {}
