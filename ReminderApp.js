@@ -325,6 +325,7 @@ function handleTelegramWebhook_(e, postData) {
     const secretHeader = (e && e.headers && (e.headers["X-Telegram-Bot-Api-Secret-Token"] || e.headers["x-telegram-bot-api-secret-token"])) || "";
     if (secretExpected && secretHeader !== secretExpected) {
       console.error("❌ Invalid telegram secret token");
+      try { appendWebhookLog_("SECRET_MISMATCH", `chat:${chatId}`); } catch(__) {}
       return createCorsResponse_({ status: "FORBIDDEN" });
     }
 
@@ -343,6 +344,7 @@ function handleTelegramWebhook_(e, postData) {
       console.warn(`⚠️ Telegram chat not allowed: ${chatId}`);
       // Yritä kohtelias vastaus, jotta lähettäjä löytää oman chat id:n
       try { sendTelegramMessage_(token, chatId, `Hei! Tunnisteesi (chat id) on ${chatId}. Pyydä ylläpitoa lisäämään se sallittuihin lähettäjiin.`); } catch (__) {}
+      try { appendWebhookLog_("CHAT_NOT_ALLOWED", `chat:${chatId}`); } catch(__) {}
       return createCorsResponse_({ status: "FORBIDDEN" });
     }
 
@@ -372,6 +374,7 @@ function handleTelegramWebhook_(e, postData) {
 
     if (!fileId) {
       console.log("No image content (photo or image document) in telegram message; ignoring");
+      try { appendWebhookLog_("NO_IMAGE_CONTENT", `chat:${chatId}`); } catch(__) {}
       return createCorsResponse_({ status: "OK" });
     }
 
@@ -488,6 +491,12 @@ function doGet(e) {
       });
     }
 
+    // Luo WebhookLogs ja lisää testirivi
+    if (e && e.parameter && e.parameter.action === 'logtest') {
+      try { appendWebhookLog_('TEST', 'manual'); } catch (err) { console.error('logtest error:', err.toString()); }
+      return createCorsResponse_({ status: 'OK', action: 'logtest' });
+    }
+
     // Health-details (ei vaadi avainta): tarkistaa asetukset ja sheet-yhteyden
     if (e && e.parameter && e.parameter.action === 'health') {
       const result = getHealthStatus_();
@@ -570,6 +579,18 @@ function getHealthStatus_() {
   report.finishedAt = new Date().toISOString();
   report.elapsedMs = new Date() - started;
   return report;
+}
+
+/**
+ * Append a simple webhook log row for debugging
+ */
+function appendWebhookLog_(type, detail) {
+  const props = PropertiesService.getScriptProperties();
+  const ss = SpreadsheetApp.openById(props.getProperty(SHEET_ID_KEY));
+  const name = 'WebhookLogs';
+  const sh = ss.getSheetByName(name) || ss.insertSheet(name);
+  if (sh.getLastRow() === 0) sh.appendRow(['Timestamp','Type','Detail']);
+  sh.appendRow([new Date(), type, detail || '']);
 }
 
 /**
