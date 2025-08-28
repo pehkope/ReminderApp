@@ -498,6 +498,37 @@ function handleTelegramWebhook_(e, postData) {
     photoSheet.appendRow(row);
     try { appendWebhookLog_("PHOTO_ROW_APPENDED", `client:${clientID}`); } catch(__) {}
 
+    // Sanitize recent rows: convert any lingering Telegram file URLs to Drive links
+    try {
+      const maxScan = Math.min(50, photoSheet.getLastRow() - 1);
+      if (maxScan > 0) {
+        const startRow = photoSheet.getLastRow() - maxScan + 1; // inclusive
+        const range = photoSheet.getRange(startRow, 1, maxScan, Math.max(4, photoSheet.getLastColumn()));
+        const vals = range.getValues();
+        const updates = [];
+        for (var r = 0; r < vals.length; r++) {
+          var urlCell = String(vals[r][1] || "");
+          if (/^https?:\/\/api\.telegram\.org\/file\/bot/.test(urlCell)) {
+            try {
+              var blob = UrlFetchApp.fetch(urlCell).getBlob();
+              var name = 'photo_' + new Date().getTime() + '_' + r + '.jpg';
+              var df = folder.createFile(blob.setName(name));
+              try { if (typeof df.setDescription === 'function' && dedupeKey) { df.setDescription(String(dedupeKey)); } } catch (__) {}
+              df.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+              var newUrl = 'https://drive.google.com/uc?export=view&id=' + df.getId();
+              vals[r][1] = newUrl;
+              if (vals[r].length >= 4) { vals[r][3] = dedupeKey || vals[r][3]; }
+              updates.push(true);
+            } catch (__) { /* ignore row */ }
+          }
+        }
+        if (updates.length) {
+          range.setValues(vals);
+          try { appendWebhookLog_('SANITIZED_TELEGRAM_URLS', String(updates.length)); } catch (__) {}
+        }
+      }
+    } catch (sanitizeErr) { console.warn('Sanitize error:', sanitizeErr.toString()); }
+
     // Cleanup Sheet: remove lingering telegram file URLs to avoid sheet growth
     try {
       const dataRange = photoSheet.getDataRange();
