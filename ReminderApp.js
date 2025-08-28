@@ -168,6 +168,7 @@ const GOOGLE_PHOTOS_ALBUM_ID_KEY = "Google_Photos_Album_ID";
 const HELSINKI_TIMEZONE = "Europe/Helsinki";
 const TELEGRAM_API_BASE = "https://api.telegram.org/bot";
 const TELEGRAM_WEBHOOK_SECRET_KEY = "TELEGRAM_WEBHOOK_SECRET";
+const TELEGRAM_PHOTOS_FOLDER_ID_KEY = "TELEGRAM_PHOTOS_FOLDER_ID";
 const ALLOWED_TELEGRAM_CHAT_IDS_KEY = "ALLOWED_TELEGRAM_CHAT_IDS"; // comma separated
 const WEATHER_API_BASE = "https://api.openweathermap.org/data/2.5/weather";
 const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01/Accounts";
@@ -402,16 +403,45 @@ function handleTelegramWebhook_(e, postData) {
       return createCorsResponse_({ status: "ERROR", error: "getFile failed" });
     }
     const filePath = fileJson.result.file_path;
-    const publicUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
+    // Secure: download from Telegram, upload to Drive, store Drive link
+    const downloadUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
+    const photoBlob = UrlFetchApp.fetch(downloadUrl).getBlob();
 
-    // Append to Kuvat sheet
+    // Resolve Drive target folder
+    let folder = null;
+    const configuredFolderId = scriptProperties.getProperty(TELEGRAM_PHOTOS_FOLDER_ID_KEY) || "";
+    if (configuredFolderId) {
+      try { folder = DriveApp.getFolderById(configuredFolderId); } catch (__) { folder = null; }
+    }
+    if (!folder) {
+      folder = DriveApp.createFolder('ReminderPhotos');
+      try { scriptProperties.setProperty(TELEGRAM_PHOTOS_FOLDER_ID_KEY, folder.getId()); } catch (__) {}
+    }
+
+    const suggestedName = (String(filePath).split('/').pop()) || (`photo_${new Date().getTime()}.jpg`);
+    const driveFile = folder.createFile(photoBlob.setName(suggestedName));
+    driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    const driveUrl = `https://drive.google.com/uc?export=view&id=${driveFile.getId()}`;
+
+    // Append to Kuvat sheet (dedupe by URL)
     const sheet = SpreadsheetApp.openById(scriptProperties.getProperty(SHEET_ID_KEY));
     const photoSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) || sheet.insertSheet(SHEET_NAMES.KUVAT);
     if (photoSheet.getLastRow() === 0) {
       photoSheet.getRange(1,1,1,3).setValues([["ClientID","URL","Caption"]]);
       photoSheet.getRange(1,1,1,3).setFontWeight("bold");
     }
-    const row = [clientID, publicUrl, caption.replace(/#client:[^\s]+/,'').trim()];
+    // Dedupe URL column (B)
+    const urlColumnIndex = 2;
+    const lastRow = photoSheet.getLastRow();
+    if (lastRow > 1) {
+      const existing = photoSheet.getRange(2, urlColumnIndex, lastRow - 1, 1).getValues().map(function(r){ return String(r[0] || ""); });
+      if (existing.indexOf(driveUrl) !== -1) {
+        try { appendWebhookLog_("DUPLICATE_URL_SKIPPED", driveUrl); } catch (__) {}
+        try { sendTelegramMessage_(token, chatId, "Kuva vastaanotettu aiemmin, ei lisätty duplikaattina."); } catch (__) {}
+        return createCorsResponse_({ status: "OK" });
+      }
+    }
+    const row = [clientID, driveUrl, caption.replace(/#client:[^\s]+/,'').trim()];
     photoSheet.appendRow(row);
     try { appendWebhookLog_("PHOTO_ROW_APPENDED", `client:${clientID}`); } catch(__) {}
 
