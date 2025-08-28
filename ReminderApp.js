@@ -424,7 +424,26 @@ function handleTelegramWebhook_(e, postData) {
     }
 
     const suggestedName = (String(filePath).split('/').pop()) || (`photo_${new Date().getTime()}.jpg`);
-    const driveFile = folder.createFile(photoBlob.setName(suggestedName));
+    // Reuse existing file by dedupeKey (FileUID/hash) if present in folder
+    let driveFile = null;
+    try {
+      if (dedupeKey) {
+        const it = folder.getFiles();
+        while (it.hasNext()) {
+          const f = it.next();
+          try {
+            if (typeof f.getDescription === 'function' && String(f.getDescription() || '') === String(dedupeKey)) {
+              driveFile = f;
+              break;
+            }
+          } catch (__) {}
+        }
+      }
+    } catch (__) {}
+    if (!driveFile) {
+      driveFile = folder.createFile(photoBlob.setName(suggestedName));
+      try { if (typeof driveFile.setDescription === 'function' && dedupeKey) { driveFile.setDescription(String(dedupeKey)); } } catch (__) {}
+    }
     driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     const driveUrl = `https://drive.google.com/uc?export=view&id=${driveFile.getId()}`;
 
@@ -479,7 +498,7 @@ function handleTelegramWebhook_(e, postData) {
     photoSheet.appendRow(row);
     try { appendWebhookLog_("PHOTO_ROW_APPENDED", `client:${clientID}`); } catch(__) {}
 
-    // Cleanup: remove lingering telegram file URLs to avoid sheet growth
+    // Cleanup Sheet: remove lingering telegram file URLs to avoid sheet growth
     try {
       const dataRange = photoSheet.getDataRange();
       const values = dataRange.getValues();
@@ -497,6 +516,26 @@ function handleTelegramWebhook_(e, postData) {
         try { appendWebhookLog_("TELEGRAM_URL_ROWS_REMOVED", String(rowsToDelete.length)); } catch (__) {}
       }
     } catch (cleanupErr) { console.warn('Cleanup error:', cleanupErr.toString()); }
+
+    // Cleanup Drive: remove older duplicates of same file (by FileUID/hash) in the folder
+    try {
+      if (dedupeKey) {
+        const files = folder.getFiles();
+        const keepId = driveFile.getId();
+        const toRemove = [];
+        while (files.hasNext()) {
+          const f = files.next();
+          if (f.getId() === keepId) { continue; }
+          try {
+            if (typeof f.getDescription === 'function' && String(f.getDescription() || '') === String(dedupeKey)) {
+              toRemove.push(f);
+            }
+          } catch (__) {}
+        }
+        toRemove.forEach(function(f){ try { f.setTrashed(true); } catch (__) {} });
+        if (toRemove.length) { try { appendWebhookLog_("DRIVE_DUPLICATES_TRASHED", String(toRemove.length)); } catch (__) {} }
+      }
+    } catch (driveCleanupErr) { console.warn('Drive cleanup error:', driveCleanupErr.toString()); }
 
     console.log(`✅ Telegram photo saved for ${clientID}`);
     try { sendTelegramMessage_(token, chatId, `Kiitos! Kuva vastaanotettu asiakkaalle "${clientID}".`); } catch (__) {}
