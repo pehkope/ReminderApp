@@ -378,13 +378,16 @@ function handleTelegramWebhook_(e, postData) {
 
     // Handle photo or document(image/*)
     let fileId = "";
+    let fileUniqueId = "";
     const photos = message.photo || [];
     if (photos.length > 0) {
       // Pick largest photo
       const best = photos.reduce((a, b) => ((a.file_size || 0) > (b.file_size || 0) ? a : b), photos[0]);
       fileId = best.file_id;
+      fileUniqueId = String(best.file_unique_id || "");
     } else if (message.document && String(message.document.mime_type || "").startsWith("image/")) {
       fileId = message.document.file_id;
+      fileUniqueId = String(message.document.file_unique_id || "");
     }
 
     if (!fileId) {
@@ -402,6 +405,8 @@ function handleTelegramWebhook_(e, postData) {
       try { appendWebhookLog_("GETFILE_FAILED", fileResp.getContentText()); } catch(__) {}
       return createCorsResponse_({ status: "ERROR", error: "getFile failed" });
     }
+    // Ensure we have file_unique_id
+    try { if (!fileUniqueId && fileJson && fileJson.result && fileJson.result.file_unique_id) { fileUniqueId = String(fileJson.result.file_unique_id); } } catch (__) {}
     const filePath = fileJson.result.file_path;
     // Secure: download from Telegram, upload to Drive, store Drive link
     const downloadUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
@@ -427,8 +432,16 @@ function handleTelegramWebhook_(e, postData) {
     const sheet = SpreadsheetApp.openById(scriptProperties.getProperty(SHEET_ID_KEY));
     const photoSheet = sheet.getSheetByName(SHEET_NAMES.KUVAT) || sheet.insertSheet(SHEET_NAMES.KUVAT);
     if (photoSheet.getLastRow() === 0) {
-      photoSheet.getRange(1,1,1,3).setValues([["ClientID","URL","Caption"]]);
-      photoSheet.getRange(1,1,1,3).setFontWeight("bold");
+      photoSheet.getRange(1,1,1,4).setValues([["ClientID","URL","Caption","FileUID"]]);
+      photoSheet.getRange(1,1,1,4).setFontWeight("bold");
+    } else {
+      // Ensure FileUID header exists in column D
+      try {
+        const header = photoSheet.getRange(1,1,1,Math.max(4, photoSheet.getLastColumn())).getValues()[0];
+        if (!header[3]) {
+          photoSheet.getRange(1,4).setValue("FileUID");
+        }
+      } catch (__) {}
     }
     // Dedupe URL column (B)
     const urlColumnIndex = 2;
@@ -441,9 +454,49 @@ function handleTelegramWebhook_(e, postData) {
         return createCorsResponse_({ status: "OK" });
       }
     }
-    const row = [clientID, driveUrl, caption.replace(/#client:[^\s]+/,'').trim()];
+    // Dedupe by FileUID or content hash in column D
+    let dedupeKey = "";
+    if (fileUniqueId) {
+      dedupeKey = "uid:" + fileUniqueId;
+    } else {
+      try {
+        var hashBytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, photoBlob.getBytes());
+        var hashHex = hashBytes.map(function(b){ b = (b < 0) ? b + 256 : b; var s = b.toString(16); return s.length === 1 ? '0' + s : s; }).join('');
+        dedupeKey = "sha256:" + hashHex;
+      } catch (__) {}
+    }
+    if (dedupeKey && lastRow > 1 && photoSheet.getLastColumn() >= 4) {
+      try {
+        const existingKeys = photoSheet.getRange(2, 4, lastRow - 1, 1).getValues().map(function(r){ return String(r[0] || ""); });
+        if (existingKeys.indexOf(dedupeKey) !== -1) {
+          try { appendWebhookLog_("DUPLICATE_UID_SKIPPED", dedupeKey); } catch (__) {}
+          try { sendTelegramMessage_(token, chatId, "Sama kuva on jo tallennettu, ei lisätty uudelleen."); } catch (__) {}
+          return createCorsResponse_({ status: "OK" });
+        }
+      } catch (__) {}
+    }
+    const row = [clientID, driveUrl, caption.replace(/#client:[^\s]+/,'').trim(), dedupeKey];
     photoSheet.appendRow(row);
     try { appendWebhookLog_("PHOTO_ROW_APPENDED", `client:${clientID}`); } catch(__) {}
+
+    // Cleanup: remove lingering telegram file URLs to avoid sheet growth
+    try {
+      const dataRange = photoSheet.getDataRange();
+      const values = dataRange.getValues();
+      const rowsToDelete = [];
+      for (var i = values.length - 1; i >= 1; i--) { // skip header
+        var urlCell = String(values[i][1] || "");
+        if (/^https?:\/\/api\.telegram\.org\/file\/bot/i.test(urlCell)) {
+          if (urlCell !== driveUrl) {
+            rowsToDelete.push(i + 1); // 1-based index
+          }
+        }
+      }
+      if (rowsToDelete.length > 0) {
+        rowsToDelete.forEach(function(r){ photoSheet.deleteRow(r); });
+        try { appendWebhookLog_("TELEGRAM_URL_ROWS_REMOVED", String(rowsToDelete.length)); } catch (__) {}
+      }
+    } catch (cleanupErr) { console.warn('Cleanup error:', cleanupErr.toString()); }
 
     console.log(`✅ Telegram photo saved for ${clientID}`);
     try { sendTelegramMessage_(token, chatId, `Kiitos! Kuva vastaanotettu asiakkaalle "${clientID}".`); } catch (__) {}
