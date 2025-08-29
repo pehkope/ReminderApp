@@ -351,6 +351,20 @@ function handleTelegramWebhook_(e, postData) {
     const caption = String(message.caption || "").trim();
     const text = String(message.text || "").trim();
 
+    // Idempotence guard based on update/message id to avoid duplicate processing
+    try {
+      const cache = CacheService.getScriptCache();
+      const uniqueKey = `tg:${String(update.update_id || '')}:${String(message.message_id || '')}`;
+      if (uniqueKey.length > 10) {
+        const hit = cache.get(uniqueKey);
+        if (hit === '1') {
+          try { appendWebhookLog_('IDEMPOTENT_SKIP', uniqueKey); } catch (__) {}
+          return createCorsResponse_({ status: 'OK' });
+        }
+        cache.put(uniqueKey, '1', 3600);
+      }
+    } catch (__) {}
+
     // Whitelist
     const allowedStr = scriptProperties.getProperty(ALLOWED_TELEGRAM_CHAT_IDS_KEY) || "";
     const allowed = allowedStr.split(',').map(x => String(x).trim()).filter(Boolean);
@@ -585,6 +599,102 @@ function getTelegramSetWebhookUrl_() {
   const execUrl = ScriptApp.getService().getUrl();
   return `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(execUrl)}&secret_token=${encodeURIComponent(secret)}&drop_pending_updates=true`;
 }
+
+/** Admin: call to set Telegram webhook to current deployment */
+function adminSetWebhook() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
+  const secret = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
+  if (!token) throw new Error('TELEGRAM_BOT_TOKEN missing');
+  const execUrl = ScriptApp.getService().getUrl();
+  const url = `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(execUrl)}&secret_token=${encodeURIComponent(secret)}&drop_pending_updates=true`;
+  const resp = UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true });
+  Logger.log(resp.getContentText());
+  return resp.getContentText();
+}
+
+/** Admin: delete Telegram webhook and drop pending updates */
+function adminDeleteWebhook() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
+  if (!token) throw new Error('TELEGRAM_BOT_TOKEN missing');
+  const url = `https://api.telegram.org/bot${token}/deleteWebhook?drop_pending_updates=true`;
+  const resp = UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true });
+  Logger.log(resp.getContentText());
+  return resp.getContentText();
+}
+
+/** Admin: get Telegram webhook info */
+function adminGetWebhookInfo() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
+  if (!token) throw new Error('TELEGRAM_BOT_TOKEN missing');
+  const url = `https://api.telegram.org/bot${token}/getWebhookInfo`;
+  const resp = UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true });
+  Logger.log(resp.getContentText());
+  return resp.getContentText();
+}
+
+/** Admin: set photos folder id property */
+function adminSetPhotosFolderProperty(folderId) {
+  if (!folderId) throw new Error('folderId required');
+  const scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperty(TELEGRAM_PHOTOS_FOLDER_ID_KEY, String(folderId));
+  return { ok: true, folderId };
+}
+
+// =============================
+// Script Properties Admin Utils
+// =============================
+function adminPropsSet(key, value) {
+  if (!key) throw new Error('key required');
+  const sp = PropertiesService.getScriptProperties();
+  sp.setProperty(String(key), String(value || ''));
+  return { ok: true, key: String(key) };
+}
+
+function adminPropsGet(key) {
+  if (!key) throw new Error('key required');
+  const sp = PropertiesService.getScriptProperties();
+  return { key: String(key), value: sp.getProperty(String(key)) };
+}
+
+function adminPropsList() {
+  const sp = PropertiesService.getScriptProperties();
+  return sp.getProperties();
+}
+
+function adminPropsDelete(key) {
+  if (!key) throw new Error('key required');
+  const sp = PropertiesService.getScriptProperties();
+  sp.deleteProperty(String(key));
+  return { ok: true, key: String(key) };
+}
+
+function adminPropsExport() {
+  const sp = PropertiesService.getScriptProperties();
+  const props = sp.getProperties();
+  return JSON.stringify(props, null, 2);
+}
+
+function adminPropsImport(jsonString, overwrite) {
+  if (!jsonString) throw new Error('jsonString required');
+  const sp = PropertiesService.getScriptProperties();
+  const obj = JSON.parse(jsonString);
+  const current = sp.getProperties();
+  Object.keys(obj).forEach(function(k){
+    if (overwrite || !(k in current)) {
+      sp.setProperty(k, String(obj[k]));
+    }
+  });
+  return { ok: true, imported: Object.keys(obj).length };
+}
+
+// Convenience setters for common keys
+function adminSetSheetId(sheetId) { return adminPropsSet(SHEET_ID_KEY, sheetId); }
+function adminSetTelegramToken(token) { return adminPropsSet(TELEGRAM_BOT_TOKEN_KEY, token); }
+function adminSetTelegramSecret(secret) { return adminPropsSet(TELEGRAM_WEBHOOK_SECRET_KEY, secret); }
+function adminSetAllowedChats(csv) { return adminPropsSet(ALLOWED_TELEGRAM_CHAT_IDS_KEY, csv); }
 
 /**
  * Handle POST acknowledgment requests
