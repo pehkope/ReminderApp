@@ -5,6 +5,10 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "GAS_BASE_URL": "https://script.google.com/macros/s/REPLACE/exec",
     "GAS_API_KEY": "replace-in-production",
-    "ALLOWED_ORIGINS": "*"
+    "ALLOWED_ORIGINS": "*",
+    "TWILIO_ACCOUNT_SID": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "TWILIO_API_KEY_SID": "SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "TWILIO_API_KEY_SECRET": "replace",
+    "TWILIO_TWIML_APP_SID": "APxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   }
 }

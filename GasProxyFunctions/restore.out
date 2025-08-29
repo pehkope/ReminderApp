@@ -1,0 +1,3 @@
+  Determining projects to restore...
+C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxyFunctions.csproj : warning NU1603: GasProxyFunctions depends on Twilio (>= 6.6.2) but Twilio 6.6.2 was not found. Twilio 6.7.0 was resolved instead.
+  All projects are up-to-date for restore.
