@@ -1,0 +1,17 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\Program.cs(1,51): error CS0234: The type or namespace name 'OpenApi' does not exist in the namespace 'Microsoft.Azure.Functions.Worker.Extensions' (are you missing an assembly reference?) [C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxyFunctions.csproj]
+C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\Proxy\GasForwarder.cs(12,48): error CS0246: The type or namespace name 'IConfiguration' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxyFunctions.csproj]
+C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxy.cs(12,51): error CS0246: The type or namespace name 'IConfiguration' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxyFunctions.csproj]
+
+Build FAILED.
+
+C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\Program.cs(1,51): error CS0234: The type or namespace name 'OpenApi' does not exist in the namespace 'Microsoft.Azure.Functions.Worker.Extensions' (are you missing an assembly reference?) [C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxyFunctions.csproj]
+C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\Proxy\GasForwarder.cs(12,48): error CS0246: The type or namespace name 'IConfiguration' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxyFunctions.csproj]
+C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxy.cs(12,51): error CS0246: The type or namespace name 'IConfiguration' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\ppehkonen\source\repos\ReminderApp\GasProxyFunctions\GasProxyFunctions.csproj]
+    0 Warning(s)
+    3 Error(s)
+
+Time Elapsed 00:00:02.78
+
+Workload updates are available. Run `dotnet workload list` for more information.

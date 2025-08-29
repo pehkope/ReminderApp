@@ -1,5 +1,5 @@
 using System.Net;
-using System.Web;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace GasProxyFunctions.Proxy;
 
@@ -19,19 +19,21 @@ public class GasForwarder
     public async Task<HttpResponseMessage> ForwardGetAsync(HttpRequestMessage incoming)
     {
         var uri = incoming.RequestUri ?? new Uri("/");
-        var query = HttpUtility.ParseQueryString(uri.Query);
-
-        // Inject apiKey if not present
-        if (string.IsNullOrWhiteSpace(query["apiKey"]) && !string.IsNullOrEmpty(_gasApiKey))
+        var parsed = QueryHelpers.ParseQuery(uri.Query);
+        var queryParams = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in parsed)
         {
-            query.Set("apiKey", _gasApiKey);
+            // Use last value if multiple
+            queryParams[kv.Key] = kv.Value.LastOrDefault();
         }
 
-        // Build target query
-        var queryPairs = query.AllKeys
-            .Where(k => k != null)
-            .Select(k => $"{WebUtility.UrlEncode(k!)}={WebUtility.UrlEncode(query[k])}");
-        var targetUrl = $"{_gasBaseUrl}?{string.Join("&", queryPairs)}";
+        // Inject apiKey if not present
+        if (!queryParams.ContainsKey("apiKey") && !string.IsNullOrEmpty(_gasApiKey))
+        {
+            queryParams["apiKey"] = _gasApiKey;
+        }
+
+        var targetUrl = QueryHelpers.AddQueryString(_gasBaseUrl, queryParams!);
 
         var request = new HttpRequestMessage(HttpMethod.Get, targetUrl);
         return await _httpClient.SendAsync(request);
