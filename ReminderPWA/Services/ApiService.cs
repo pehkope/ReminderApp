@@ -27,7 +27,9 @@ public class ApiService
             {
                 Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
                 Console.WriteLine($"🔧 BaseUrl: '{_apiSettings.BaseUrl}'");
-                Console.WriteLine($"🔧 ApiKey: '{_apiSettings.ApiKey}'");
+                // Älä tulosta paljasta API-avainta lokeihin
+                var maskedConfiguredKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "" : "***";
+                Console.WriteLine($"🔧 ApiKey configured: '{(string.IsNullOrEmpty(maskedConfiguredKey) ? "(empty)" : maskedConfiguredKey)}'");
                 
                 // Fallback for Azure deployment if config loading fails
                 var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzCuxVNiSxDSnPD99-RyDnC8bJ_ui93F7uCJsrfwXS2exOqiKsWYticRbauFjhjPpMc/exec" : _apiSettings.BaseUrl;
@@ -35,7 +37,8 @@ public class ApiService
                 var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
                 
                 Console.WriteLine($"🔧 Using BaseUrl: '{baseUrl}'");
-                Console.WriteLine($"🔧 Using ApiKey: '{apiKey}'");
+                var maskedRuntimeKey = string.IsNullOrEmpty(apiKey) ? "" : "***";
+                Console.WriteLine($"🔧 Using ApiKey: '{(string.IsNullOrEmpty(maskedRuntimeKey) ? "(empty)" : maskedRuntimeKey)}'");
                 
                 // Build the Google Apps Script URL
                 var targetUrl = string.IsNullOrEmpty(apiKey) 
@@ -50,8 +53,11 @@ public class ApiService
                 // Direct API call - let's try without CORS proxy
                 var url = targetUrl;
                 
-                Console.WriteLine($"🌐 Target URL: {targetUrl}");
-                Console.WriteLine($"🌐 Request URL: {url}");
+                // Maskataan avain urleista
+                var safeTargetUrl = string.IsNullOrEmpty(apiKey) ? targetUrl : targetUrl.Replace(apiKey, "***");
+                var safeUrl = string.IsNullOrEmpty(apiKey) ? url : url.Replace(apiKey, "***");
+                Console.WriteLine($"🌐 Target URL: {safeTargetUrl}");
+                Console.WriteLine($"🌐 Request URL: {safeUrl}");
                 
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
                 
@@ -153,19 +159,32 @@ public class ApiService
     {
         try
         {
-            // Fallback for Azure deployment if config loading fails
-            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbyxH-rrZt0iA5a8NigTeXD_gCb4goW98Gng37jYZ4-TWDngx4dKajpzdgs6-uEMQTfYQw/exec" : _apiSettings.BaseUrl;
-                
+            // Fallback URL + asetukset
+            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl)
+                ? "https://script.google.com/macros/s/AKfycbzCuxVNiSxDSnPD99-RyDnC8bJ_ui93F7uCJsrfwXS2exOqiKsWYticRbauFjhjPpMc/exec"
+                : _apiSettings.BaseUrl;
             var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
 
-            Console.WriteLine($"🔘 Lähetetään kuittaus GET pyyntönä (CORS välttämiseksi): {taskType} - {description} ({timeOfDay})");
+            Console.WriteLine($"🔘 Lähetetään kuittaus GET-pyynnöllä (CORS-välttämiseksi): {taskType} ({timeOfDay})");
 
-            // 🔧 CORS VÄLIAIKAINEN KORJAUS: Käytetään GET pyyntöä POST:in sijaan
-            // Google Apps Script CORS ei toimi POST pyynnöillä, mutta GET toimii
-            var fullUrl = $"{baseUrl}?action=acknowledge&apiKey={apiKey}&clientID={clientId}&taskType={taskType}&timeOfDay={timeOfDay}&description={Uri.EscapeDataString(description)}&timestamp={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}";
+            // Rakennetaan URL turvallisesti
+            var query = new List<string>
+            {
+                $"action=acknowledge",
+                string.IsNullOrEmpty(apiKey) ? "" : $"apiKey={Uri.EscapeDataString(apiKey)}",
+                $"clientID={Uri.EscapeDataString(clientId)}",
+                $"taskType={Uri.EscapeDataString(taskType)}",
+                $"timeOfDay={Uri.EscapeDataString(timeOfDay)}",
+                $"description={Uri.EscapeDataString(description)}",
+                $"timestamp={Uri.EscapeDataString(DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}"
+            }.Where(q => !string.IsNullOrEmpty(q));
 
-            Console.WriteLine($"📤 GET URL: {fullUrl}");
+            var fullUrl = $"{baseUrl}?{string.Join("&", query)}";
+
+            // Älä paljasta avainta lokeissa
+            var safeLogUrl = string.IsNullOrEmpty(apiKey) ? fullUrl : fullUrl.Replace(apiKey, "***");
+            Console.WriteLine($"📤 GET URL: {safeLogUrl}");
 
             var response = await _httpClient.GetAsync(fullUrl);
             
