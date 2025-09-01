@@ -35,6 +35,15 @@
     private string ImageUrl => GetImageUrl();
     private string Caption => GetImageCaption();
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Console.WriteLine($"🖼️ DailyPhoto initialized - ApiPhotoUrl: '{ApiPhotoUrl}', ApiPhotoCaption: '{ApiPhotoCaption}'");
+            Console.WriteLine($"🖼️ DailyPhoto effective URL: '{ImageUrl}', Caption: '{Caption}'");
+        }
+    }
+
     private string? _lastApiPhotoUrl;
     private string? _effectiveUrl;
 
@@ -44,7 +53,10 @@
         {
             _lastApiPhotoUrl = ApiPhotoUrl;
             var sanitized = SanitizeUrl(ApiPhotoUrl) ?? ApiPhotoUrl; // säilytä aiempi käytös, jos sanitointi ei pysty varmistamaan
-            _effectiveUrl = AddCacheBuster(sanitized);
+            var cacheBustered = AddCacheBuster(sanitized);
+            _effectiveUrl = cacheBustered;
+
+            Console.WriteLine($"🖼️ DailyPhoto parameters changed - Original: '{ApiPhotoUrl}' -> Sanitized: '{sanitized}' -> Final: '{cacheBustered}'");
         }
     }
 
