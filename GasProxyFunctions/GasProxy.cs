@@ -34,6 +34,7 @@ public class GasProxy
         response.Headers.Add("Access-Control-Allow-Origin", _allowedOrigins);
         response.Headers.Add("Access-Control-Allow-Methods", "GET, OPTIONS");
         response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+        response.Headers.Add("X-Content-Type-Options", "nosniff");
 
         var contentType = upstreamResponse.Content.Headers.ContentType?.ToString();
         if (string.IsNullOrWhiteSpace(contentType))
