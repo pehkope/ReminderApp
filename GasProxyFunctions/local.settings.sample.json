@@ -9,6 +9,7 @@
     "TWILIO_ACCOUNT_SID": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "TWILIO_API_KEY_SID": "SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "TWILIO_API_KEY_SECRET": "replace",
-    "TWILIO_TWIML_APP_SID": "APxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    "TWILIO_TWIML_APP_SID": "APxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "TWILIO_CALLER_ID": "+358xxxxxxxxx"
   }
 }

@@ -2,6 +2,7 @@
 @using ReminderTabletNew2.Services
 @inject ApiService ApiService
 @using ReminderTabletNew2.Models
+@inject AppConfig Config
 @using System.Text.Json
 @inject NavigationManager Navigation
 @inject Microsoft.JSInterop.IJSRuntime JS
@@ -37,9 +38,15 @@
                     </div>
                     @if (!string.IsNullOrWhiteSpace(contact.Phone))
                     {
-                        <a class="call-button" href="@($"tel:{contact.Phone}")">
+                        <button class="call-button" @onclick="() => OnCall(contact.Phone)">
                             📞 Soita
-                        </a>
+                        </button>
+                        @if (!twilioReady)
+                        {
+                            <a class="call-button" href="@($"tel:{contact.Phone}")">
+                                ☎️ Soita (puhelin)
+                            </a>
+                        }
                     }
                     else
                     {
@@ -66,10 +73,31 @@
 
 @code {
     private ReminderApiResponse? apiResponse;
+    private bool twilioReady = false;
+    private string? callStatus;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("twilioVoice.init", Config.Twilio.TokenUrl, Config.Twilio.DefaultIdentity);
+                twilioReady = true;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                twilioReady = false;
+                callStatus = $"Twilio ei alustunut: {ex.Message}";
+                StateHasChanged();
+            }
+        }
     }
 
     private async Task LoadData()
@@ -78,7 +106,22 @@
         {
             var result = await ApiService.GetDataAsync("mom", maxRetries: 1, timeoutOverrideSeconds: 6);
             if (result.IsSuccess)
+            {
                 apiResponse = result.Data;
+            }
+            else
+            {
+                Console.WriteLine($"Contacts API error: {result.ErrorCode} - {result.ErrorMessage}");
+                // Fallback emergency contacts when API returns failure without exception
+                apiResponse = new ReminderApiResponse
+                {
+                    Contacts = new List<Contact>
+                    {
+                        new Contact { Name = "Hätänumero", Phone = "112" },
+                        new Contact { Name = "Perhe (varanumero)", Phone = "+358401234567" }
+                    }
+                };
+            }
             
             // If no contacts from API, add temporary test contacts
             if (apiResponse?.Contacts?.Any() != true)
@@ -100,6 +143,19 @@
                 
                 Console.WriteLine("Added temporary test contacts");
             }
+
+            // Lisää Petrin testinumero varmistetusti listaan, jos puuttuu
+            try
+            {
+                const string testNumber = "+358400607737";
+                var hasNumber = apiResponse?.Contacts?.Any(c => string.Equals(c.Phone, testNumber, StringComparison.OrdinalIgnoreCase)) == true;
+                if (apiResponse != null && apiResponse.Contacts != null && !hasNumber)
+                {
+                    apiResponse.Contacts.Insert(0, new Contact { Name = "Petri (testi)", Phone = testNumber, Relationship = "Poika" });
+                    Console.WriteLine("Inserted Petri test contact for quick call testing");
+                }
+            }
+            catch {}
         }
         catch (Exception ex)
         {
@@ -117,7 +173,24 @@
         }
     }
 
-    // Direct tel: link used in markup
+    private async Task OnCall(string phone)
+    {
+        try
+        {
+            if (!twilioReady)
+            {
+                // Fallback puhelinlinkki jos Twilio ei ole valmis
+                await JS.InvokeVoidAsync("window.open", $"tel:{phone}", "_self");
+                return;
+            }
+            await JS.InvokeVoidAsync("twilioVoice.call", phone);
+            callStatus = $"Soitetaan: {phone}";
+        }
+        catch (Exception ex)
+        {
+            callStatus = $"Virhe soitossa: {ex.Message}";
+        }
+    }
 
     private async Task MessageContact(Contact contact)
     {

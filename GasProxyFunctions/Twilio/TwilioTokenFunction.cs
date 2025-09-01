@@ -2,6 +2,8 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using System.Net;
 using Twilio.Jwt.AccessToken;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace GasProxyFunctions.Twilio;
 
@@ -16,12 +18,14 @@ public class TwilioTokenFunction
 
     [Function("TwilioToken")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "twilio/token")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "twilio/token")] HttpRequestData req)
     {
         var accountSid = _config["TWILIO_ACCOUNT_SID"];
         var apiKey = _config["TWILIO_API_KEY_SID"];
         var apiSecret = _config["TWILIO_API_KEY_SECRET"];
-        var voiceIdentity = req.Query["identity"].FirstOrDefault() ?? "mom";
+        var parsed = QueryHelpers.ParseQuery(req.Url.Query);
+        var voiceIdentity = parsed.TryGetValue("identity", out var identityVals) ? identityVals.ToString() : "mom";
+        var allowedOrigins = _config["ALLOWED_ORIGINS"] ?? "*";
 
         if (string.IsNullOrWhiteSpace(accountSid) || string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(apiSecret))
         {
@@ -39,7 +43,11 @@ public class TwilioTokenFunction
         var token = new Token(accountSid, apiKey, apiSecret, voiceIdentity, grants: new HashSet<IGrant> { grant });
 
         var ok = req.CreateResponse(HttpStatusCode.OK);
-        await ok.WriteAsJsonAsync(new { token = token.ToJwt() });
+        ok.Headers.Add("Access-Control-Allow-Origin", allowedOrigins);
+        ok.Headers.Add("Access-Control-Allow-Methods", "GET, OPTIONS");
+        ok.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+        ok.Headers.Add("Content-Type", "application/json; charset=utf-8");
+        await ok.WriteStringAsync(System.Text.Json.JsonSerializer.Serialize(new { token = token.ToJwt() }), System.Text.Encoding.UTF8);
         return ok;
     }
 }

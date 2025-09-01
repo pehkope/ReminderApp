@@ -67,6 +67,13 @@ public class ApiService
                 Console.WriteLine($"🔍 HTTP Headers: {string.Join(", ", httpResponse.Headers.Select(h => $"{h.Key}={string.Join(",", h.Value)}"))}");
                 
                 var responseText = await httpResponse.Content.ReadAsStringAsync();
+                // Korjaa mahdollinen UTF-8 mojibake (Ã¤/Ã¶) jos lähde on väärin merkitty
+                var repaired = EncodingHelpers.TryRepairUtf8Mojibake(responseText);
+                if (!object.ReferenceEquals(repaired, responseText))
+                {
+                    Console.WriteLine("🔧 Korjattu merkistö mojibake → UTF-8");
+                    responseText = repaired;
+                }
                 
                 Console.WriteLine($"📋 API vastaus pituus: {responseText.Length} merkkiä");
                 Console.WriteLine($"📋 API vastaus alku: {responseText.Substring(0, Math.Min(500, responseText.Length))}...");
@@ -97,6 +104,7 @@ public class ApiService
                     var response = System.Text.Json.JsonSerializer.Deserialize<ReminderApiResponse>(responseText);
                     if (response != null)
                     {
+                        NormalizeMojibake(response);
                         Console.WriteLine("✅ API kutsu onnistui");
                         // Debug log for photo
                         Console.WriteLine($"🖼️ Photo URL from API: '{response.DailyPhotoUrl}' Caption: '{response.DailyPhotoCaption}'");
@@ -238,3 +246,103 @@ public class ApiResult<T>
         };
     }
 } 
+
+static class EncodingHelpers
+{
+    public static string TryRepairUtf8Mojibake(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        // Heuristiikka: jos esiintyy "Ã" tai "Â", koetetaan korjausta
+        if (input.Contains("Ã") || input.Contains("Â") || input.Contains("��"))
+        {
+            try
+            {
+                var bytes = System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(input);
+                var repaired = System.Text.Encoding.UTF8.GetString(bytes);
+                return repaired;
+            }
+            catch { }
+        }
+        return input;
+    }
+}
+
+static class ApiResponseNormalizer
+{
+    public static void NormalizeMojibake(ReminderApiResponse data)
+    {
+        if (data == null) return;
+        // Yleiset päänäkymän tekstit
+        if (!string.IsNullOrEmpty(data.ImportantMessage))
+            data.ImportantMessage = EncodingHelpers.TryRepairUtf8Mojibake(data.ImportantMessage);
+        if (!string.IsNullOrEmpty(data.DailyPhotoCaption))
+            data.DailyPhotoCaption = EncodingHelpers.TryRepairUtf8Mojibake(data.DailyPhotoCaption);
+        if (!string.IsNullOrEmpty(data.LatestReminder))
+            data.LatestReminder = EncodingHelpers.TryRepairUtf8Mojibake(data.LatestReminder);
+        if (data.Weather != null && !string.IsNullOrEmpty(data.Weather.Description))
+            data.Weather.Description = EncodingHelpers.TryRepairUtf8Mojibake(data.Weather.Description);
+        if (!string.IsNullOrEmpty(data.Greeting))
+            data.Greeting = EncodingHelpers.TryRepairUtf8Mojibake(data.Greeting);
+        if (!string.IsNullOrEmpty(data.ActivityText))
+            data.ActivityText = EncodingHelpers.TryRepairUtf8Mojibake(data.ActivityText);
+
+        // Tulevat tapahtumat
+        if (data.UpcomingAppointments != null)
+        {
+            foreach (var a in data.UpcomingAppointments)
+            {
+                if (a == null) continue;
+                if (!string.IsNullOrEmpty(a.Message)) a.Message = EncodingHelpers.TryRepairUtf8Mojibake(a.Message);
+                if (!string.IsNullOrEmpty(a.Location)) a.Location = EncodingHelpers.TryRepairUtf8Mojibake(a.Location);
+                if (!string.IsNullOrEmpty(a.Type)) a.Type = EncodingHelpers.TryRepairUtf8Mojibake(a.Type);
+            }
+        }
+
+        // Päivän tehtävät
+        if (data.DailyTasks != null)
+        {
+            foreach (var t in data.DailyTasks)
+            {
+                if (t == null) continue;
+                if (!string.IsNullOrEmpty(t.Message)) t.Message = EncodingHelpers.TryRepairUtf8Mojibake(t.Message);
+                if (!string.IsNullOrEmpty(t.Description)) t.Description = EncodingHelpers.TryRepairUtf8Mojibake(t.Description);
+                if (!string.IsNullOrEmpty(t.Type)) t.Type = EncodingHelpers.TryRepairUtf8Mojibake(t.Type);
+            }
+        }
+
+        // Yhteystiedot
+        if (data.Contacts != null)
+        {
+            foreach (var c in data.Contacts)
+            {
+                if (c == null) continue;
+                if (!string.IsNullOrEmpty(c.Name)) c.Name = EncodingHelpers.TryRepairUtf8Mojibake(c.Name);
+                if (!string.IsNullOrEmpty(c.Relationship)) c.Relationship = EncodingHelpers.TryRepairUtf8Mojibake(c.Relationship);
+            }
+        }
+
+        // Viikkosuunnitelma
+        if (data.WeeklyPlan?.Days != null)
+        {
+            foreach (var d in data.WeeklyPlan.Days)
+            {
+                if (d == null) continue;
+                if (!string.IsNullOrEmpty(d.Label)) d.Label = EncodingHelpers.TryRepairUtf8Mojibake(d.Label);
+                if (d.Meals != null)
+                {
+                    for (int i = 0; i < d.Meals.Count; i++)
+                    {
+                        if (!string.IsNullOrEmpty(d.Meals[i])) d.Meals[i] = EncodingHelpers.TryRepairUtf8Mojibake(d.Meals[i]);
+                    }
+                }
+                if (d.Events != null)
+                {
+                    for (int i = 0; i < d.Events.Count; i++)
+                    {
+                        if (!string.IsNullOrEmpty(d.Events[i])) d.Events[i] = EncodingHelpers.TryRepairUtf8Mojibake(d.Events[i]);
+                    }
+                }
+            }
+        }
+    }
+}
