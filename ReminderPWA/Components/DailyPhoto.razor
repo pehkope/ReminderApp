@@ -43,16 +43,17 @@
         if (!string.Equals(_lastApiPhotoUrl, ApiPhotoUrl, StringComparison.Ordinal))
         {
             _lastApiPhotoUrl = ApiPhotoUrl;
-            _effectiveUrl = AddCacheBuster(ApiPhotoUrl);
+            var sanitized = SanitizeUrl(ApiPhotoUrl) ?? ApiPhotoUrl; // säilytä aiempi käytös, jos sanitointi ei pysty varmistamaan
+            _effectiveUrl = AddCacheBuster(sanitized);
         }
     }
 
     private string GetImageUrl()
     {
-        // Ensisijaisesti API:sta
+        // Ensisijaisesti API:sta (vain kelvollinen absoluuttinen URL)
         if (!string.IsNullOrEmpty(ApiPhotoUrl))
         {
-            return _effectiveUrl ?? ApiPhotoUrl;
+            if (!string.IsNullOrEmpty(_effectiveUrl)) return _effectiveUrl;
         }
         // Fallback from parent (e.g., profile or weekly photo)
         if (!string.IsNullOrEmpty(FallbackUrl))
@@ -76,6 +77,18 @@
     private static string AddCacheBuster(string? url)
     {
         if (string.IsNullOrWhiteSpace(url)) return "";
+        // Älä lisää cache-busteria Telegram file -URLeihin (404 riski, ei hyväksy ylimääräisiä queryjä)
+        try
+        {
+            if (Uri.TryCreate(url, UriKind.Absolute, out var u))
+            {
+                if (u.Host.Equals("api.telegram.org", StringComparison.OrdinalIgnoreCase))
+                {
+                    return url;
+                }
+            }
+        }
+        catch {}
         // Pakota https, jos linkki on vahingossa http
         if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
         {
@@ -90,7 +103,6 @@
                        || url.Contains("googleusercontent.com", StringComparison.OrdinalIgnoreCase)
                        || url.Contains("photos.google.com", StringComparison.OrdinalIgnoreCase)
                        || url.Contains("photos.app.goo.gl", StringComparison.OrdinalIgnoreCase)
-                       || url.Contains("api.telegram.org", StringComparison.OrdinalIgnoreCase)
                        || !url.Contains('?', StringComparison.Ordinal);
 
         if (!needsBuster) return url;
@@ -98,5 +110,23 @@
         var sep = url.Contains('?') ? '&' : '?';
         var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         return $"{url}{sep}_cb={ts}";
+    }
+
+    private static string? SanitizeUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        url = url.Trim().Trim('\"', '\'');
+        if (url.StartsWith("//")) return "https:" + url;
+        if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            return url;
+        // Yleiset domainit ilman skeemaa – lisää https
+        var domains = new[] { "drive.google.com", "googleusercontent.com", "photos.google.com", "photos.app.goo.gl", "api.telegram.org" };
+        foreach (var d in domains)
+        {
+            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase))
+                return "https://" + url;
+        }
+        // Muut tapaukset (esim. "file_1.jpg") – ei kelvollinen absoluuttinen kuva-URL
+        return null;
     }
 }

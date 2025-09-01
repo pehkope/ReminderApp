@@ -38,14 +38,12 @@
                     </div>
                     @if (!string.IsNullOrWhiteSpace(contact.Phone))
                     {
-                        <button class="call-button" @onclick="() => OnCall(contact.Phone)">
+                        <button class="call-button" @onclick="() => OnCall(contact.Phone)" disabled="@(!twilioReady)">
                             📞 Soita
                         </button>
                         @if (!twilioReady)
                         {
-                            <a class="call-button" href="@($"tel:{contact.Phone}")">
-                                ☎️ Soita (puhelin)
-                            </a>
+                            <span class="call-hint">Salli mikrofoni ja varmista Twilio-token</span>
                         }
                     }
                     else
