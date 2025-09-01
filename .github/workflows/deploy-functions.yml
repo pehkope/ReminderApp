@@ -1,0 +1,43 @@
+name: deploy-functions
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_FUNCTIONAPP_NAME: remindergasproxy-f9exfrbyfsend9bh   # päivitä jos eri
+      AZURE_RESOURCE_GROUP: <RG_NAME>                             # päivitä
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish Functions
+        working-directory: GasProxyFunctions
+        run: dotnet publish -c Release -o ./publish
+
+      - name: Zip package
+        working-directory: GasProxyFunctions/publish
+        run: |
+          zip -r ../../deploy.zip .
+
+      - name: Zip deploy
+        run: |
+          az functionapp deployment source config-zip \
+            -g $AZURE_RESOURCE_GROUP \
+            -n $AZURE_FUNCTIONAPP_NAME \
+            --src GasProxyFunctions/deploy.zip
+
+      - name: Restart Function App
+        run: az functionapp restart -g $AZURE_RESOURCE_GROUP -n $AZURE_FUNCTIONAPP_NAME

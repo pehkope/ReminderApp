@@ -56,8 +56,9 @@ namespace ReminderTabletNew2.Services
         
         public static string GetDefaultPhotoUrl()
         {
-            // KORJATTU: Ei näytetä placeholder kuvia - odotellaan API:sta tulevaa kuvaa
-            return "";
+            // Fallback kuva jos API ei palauta valokuvaa
+            // Käytetään jotain mukavaa placeholder kuvaa
+            return "https://picsum.photos/400/300?random=" + DateTime.Now.ToString("yyyyMMdd");
         }
         
         public static int GetCurrentWeekNumber()
@@ -91,8 +92,16 @@ namespace ReminderTabletNew2.Services
 
         public static string GetDefaultPhotoCaption()
         {
-            // KORJATTU: Kuvateksti tulee Google Sheets:stä, ei kovakoodattuna
-            return "";
+            // Fallback kuvateksti jos API ei palauta sitä
+            var captions = new[] {
+                "Päivän kaunis muisto 💕",
+                "Hyvää päivää! 🌞",
+                "Muistoja menneisyydestä 📸",
+                "Kaunis päivä alkaa! ✨"
+            };
+            // Valitse päivän mukaan sama caption
+            var dayOfYear = DateTime.Now.DayOfYear;
+            return captions[dayOfYear % captions.Length];
         }
 
         public static string GetDefaultExerciseVideoUrl()
