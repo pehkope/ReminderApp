@@ -1,0 +1,72 @@
+@using ReminderTabletNew2.Models
+@inject AppConfig Config
+@inject IJSRuntime JS
+
+<div class="card p-3 my-2">
+  <h5>Soita läheiselle</h5>
+  <div class="d-flex gap-2 align-items-center">
+    <input @bind="phoneOrIdentity" class="form-control" placeholder="+358... tai identity" />
+    <button class="btn btn-primary" @onclick="OnCall">Soita</button>
+    <button class="btn btn-outline-secondary" @onclick="OnDisconnect">Katkaise</button>
+  </div>
+  @if(!string.IsNullOrEmpty(status))
+  {
+    <div class="mt-2 text-muted">@status</div>
+  }
+</div>
+
+@code {
+  private string phoneOrIdentity = "";
+  private string status = "";
+  private bool initialized = false;
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      try
+      {
+        await JS.InvokeVoidAsync("twilioVoice.init", Config.Twilio.TokenUrl, Config.Twilio.DefaultIdentity);
+        initialized = true;
+        status = "Valmis soittamaan";
+        StateHasChanged();
+      }
+      catch (Exception ex)
+      {
+        status = $"Virhe alustuksessa: {ex.Message}";
+        StateHasChanged();
+      }
+    }
+  }
+
+  private async Task OnCall()
+  {
+    if (!initialized)
+    {
+      status = "Ei alustettu";
+      return;
+    }
+    try
+    {
+      await JS.InvokeVoidAsync("twilioVoice.call", phoneOrIdentity);
+      status = $"Soitetaan: {phoneOrIdentity}";
+    }
+    catch (Exception ex)
+    {
+      status = $"Virhe soitossa: {ex.Message}";
+    }
+  }
+
+  private async Task OnDisconnect()
+  {
+    try
+    {
+      await JS.InvokeVoidAsync("twilioVoice.disconnect");
+      status = "Yhteys katkaistu";
+    }
+    catch (Exception ex)
+    {
+      status = $"Virhe katkaisussa: {ex.Message}";
+    }
+  }
+}

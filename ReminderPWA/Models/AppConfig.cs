@@ -5,6 +5,7 @@ public class AppConfig
     public ApiSettings ApiSettings { get; set; } = new();
     public AppInfo AppInfo { get; set; } = new();
     public FeatureFlags FeatureFlags { get; set; } = new();
+    public TwilioSettings Twilio { get; set; } = new();
 }
 
 public class ApiSettings
@@ -31,5 +32,11 @@ public class FeatureFlags
     public bool EnablePhotoModal { get; set; } = true;
     public bool PreferHeavyOnFirstLoad { get; set; } = false;
     public bool ShowMealOptionsList { get; set; } = false;
+}
+
+public class TwilioSettings
+{
+    public string TokenUrl { get; set; } = "/api/twilio/token";
+    public string DefaultIdentity { get; set; } = "mom";
 }
 

@@ -1,6 +1,8 @@
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Configuration;
+using System.Text;
 
 namespace GasProxyFunctions;
 
@@ -33,8 +35,17 @@ public class GasProxy
         response.Headers.Add("Access-Control-Allow-Methods", "GET, OPTIONS");
         response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
 
-        var content = await upstreamResponse.Content.ReadAsStringAsync();
-        await response.WriteStringAsync(content);
+        var contentType = upstreamResponse.Content.Headers.ContentType?.ToString();
+        if (string.IsNullOrWhiteSpace(contentType))
+        {
+            contentType = "application/json; charset=utf-8";
+        }
+        response.Headers.Add("Content-Type", contentType);
+
+        using (var upstreamStream = await upstreamResponse.Content.ReadAsStreamAsync())
+        {
+            await upstreamStream.CopyToAsync(response.Body);
+        }
         return response;
     }
 
