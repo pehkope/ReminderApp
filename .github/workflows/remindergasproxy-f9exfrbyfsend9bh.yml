@@ -1,7 +1,7 @@
 name: deploy-functions
 on:
   push:
-    branches: [ master ]  # vaihda jos käytät muuta branchia
+    branches: [ master ] #vaihda jos käytät muuta branchia
 
 jobs:
   build-and-deploy:
