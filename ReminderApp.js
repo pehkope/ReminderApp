@@ -288,7 +288,12 @@ function doPost(e) {
     // 1) Telegram webhook detection (before API-key checks)
     const isTelegramWebhook = (e.parameter && (e.parameter.source === 'telegram' || e.parameter.src === 'tg'))
                               || (postData && (postData.update_id || postData.message || postData.edited_message));
+    console.log("🔍 Webhook detection - isTelegramWebhook:", isTelegramWebhook);
+    console.log("🔍 e.parameter:", JSON.stringify(e.parameter || {}, null, 2));
+    console.log("🔍 postData keys:", postData ? Object.keys(postData) : "null");
+
     if (isTelegramWebhook) {
+      console.log("✅ Telegram webhook detected, calling handleTelegramWebhook_");
       return handleTelegramWebhook_(e, postData);
     }
 
@@ -328,9 +333,11 @@ function doPost(e) {
 
 function handleTelegramWebhook_(e, postData) {
   try {
+    console.log("🔄 handleTelegramWebhook_ called");
     const scriptProperties = PropertiesService.getScriptProperties();
     const secretExpected = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
     const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
+    console.log("🔑 Token available:", !!token);
     if (!token) {
       console.error("❌ TELEGRAM_BOT_TOKEN missing");
       return createCorsResponse_({ status: "ERROR", error: "Bot token missing" });
@@ -345,11 +352,13 @@ function handleTelegramWebhook_(e, postData) {
     }
 
     const update = postData || {};
+    console.log("📨 Update received:", JSON.stringify(update, null, 2));
     const message = update.message || update.edited_message || {};
     const chat = message.chat || {};
     const chatId = String(chat.id || "");
     const caption = String(message.caption || "").trim();
     const text = String(message.text || "").trim();
+    console.log("💬 Message details - chatId:", chatId, "caption:", caption, "text:", text);
 
     // Idempotence guard based on update/message id to avoid duplicate processing
     try {
@@ -405,10 +414,13 @@ function handleTelegramWebhook_(e, postData) {
     }
 
     if (!fileId) {
-      console.log("No image content (photo or image document) in telegram message; ignoring");
+      console.log("❌ No image content (photo or image document) in telegram message; ignoring");
+      console.log("📷 Available message properties:", Object.keys(message));
       try { appendWebhookLog_("NO_IMAGE_CONTENT", `chat:${chatId}`); } catch(__) {}
       return createCorsResponse_({ status: "OK" });
     }
+
+    console.log("✅ Found image fileId:", fileId);
 
     // getFile
     const getFileUrl = `${TELEGRAM_API_BASE}${token}/getFile?file_id=${encodeURIComponent(fileId)}`;
@@ -459,7 +471,7 @@ function handleTelegramWebhook_(e, postData) {
       try { if (typeof driveFile.setDescription === 'function' && dedupeKey) { driveFile.setDescription(String(dedupeKey)); } } catch (__) {}
     }
     driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    const driveUrl = `https://drive.google.com/uc?export=view&id=${driveFile.getId()}`;
+    const driveUrl = `https://drive.google.com/thumbnail?id=${driveFile.getId()}`;
 
     // Append to Kuvat sheet (dedupe by URL)
     const sheet = SpreadsheetApp.openById(scriptProperties.getProperty(SHEET_ID_KEY));
@@ -482,8 +494,12 @@ function handleTelegramWebhook_(e, postData) {
     if (lastRow > 1) {
       const existing = photoSheet.getRange(2, urlColumnIndex, lastRow - 1, 1).getValues().map(function(r){ return String(r[0] || ""); });
       if (existing.indexOf(driveUrl) !== -1) {
+        console.log("🛑 DUPLICATE URL detected - skipping appendRow");
         try { appendWebhookLog_("DUPLICATE_URL_SKIPPED", driveUrl); } catch (__) {}
-        try { sendTelegramMessage_(token, chatId, "Kuva vastaanotettu aiemmin, ei lisätty duplikaattina."); } catch (__) {}
+        try {
+          const message = `Kuva vastaanotettu aiemmin, ei lisätty duplikaattina.\n\n📸 Olemassa oleva kuva: ${driveUrl}`;
+          sendTelegramMessage_(token, chatId, message);
+        } catch (__) {}
         return createCorsResponse_({ status: "OK" });
       }
     }
@@ -502,8 +518,23 @@ function handleTelegramWebhook_(e, postData) {
       try {
         const existingKeys = photoSheet.getRange(2, 4, lastRow - 1, 1).getValues().map(function(r){ return String(r[0] || ""); });
         if (existingKeys.indexOf(dedupeKey) !== -1) {
+          console.log("🛑 DUPLICATE UID detected - skipping appendRow");
           try { appendWebhookLog_("DUPLICATE_UID_SKIPPED", dedupeKey); } catch (__) {}
-          try { sendTelegramMessage_(token, chatId, "Sama kuva on jo tallennettu, ei lisätty uudelleen."); } catch (__) {}
+          try {
+            // Hae olemassa oleva URL samasta rivistä
+            const existingData = photoSheet.getRange(2, 1, lastRow - 1, 4).getValues();
+            let existingUrl = "";
+            for (let i = 0; i < existingData.length; i++) {
+              if (String(existingData[i][3] || "") === dedupeKey) {
+                existingUrl = String(existingData[i][1] || "");
+                break;
+              }
+            }
+            const message = existingUrl
+              ? `Sama kuva on jo tallennettu, ei lisätty uudelleen.\n\n📸 Olemassa oleva kuva: ${existingUrl}`
+              : "Sama kuva on jo tallennettu, ei lisätty uudelleen.";
+            sendTelegramMessage_(token, chatId, message);
+          } catch (__) {}
           return createCorsResponse_({ status: "OK" });
         }
       } catch (__) {}
@@ -529,7 +560,7 @@ function handleTelegramWebhook_(e, postData) {
               var df = folder.createFile(blob.setName(name));
               try { if (typeof df.setDescription === 'function' && dedupeKey) { df.setDescription(String(dedupeKey)); } } catch (__) {}
               df.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-              var newUrl = 'https://drive.google.com/uc?export=view&id=' + df.getId();
+              var newUrl = 'https://drive.google.com/thumbnail?id=' + df.getId();
               vals[r][1] = newUrl;
               if (vals[r].length >= 4) { vals[r][3] = dedupeKey || vals[r][3]; }
               updates.push(true);
@@ -583,7 +614,15 @@ function handleTelegramWebhook_(e, postData) {
     } catch (driveCleanupErr) { console.warn('Drive cleanup error:', driveCleanupErr.toString()); }
 
     console.log(`✅ Telegram photo saved for ${clientID}`);
-    try { sendTelegramMessage_(token, chatId, `Kiitos! Kuva vastaanotettu asiakkaalle "${clientID}".`); } catch (__) {}
+    console.log(`🔗 Drive URL: ${driveUrl}`);
+    try {
+        const message = `Kiitos! Kuva vastaanotettu asiakkaalle "${clientID}".\n\n📸 Kuva tallennettu: ${driveUrl}`;
+        console.log(`📤 Sending message: ${message}`);
+        sendTelegramMessage_(token, chatId, message);
+        console.log("✅ Message sent successfully");
+    } catch (msgError) {
+        console.error("❌ Failed to send message:", msgError.toString());
+    }
     return createCorsResponse_({ status: "OK" });
   } catch (err) {
     console.error("Telegram webhook error:", err.toString());
