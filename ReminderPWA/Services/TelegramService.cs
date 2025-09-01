@@ -21,19 +21,27 @@ namespace ReminderTabletNew2.Services
             try
             {
                 var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? _legacyTelegramUrl : _apiSettings.BaseUrl;
-                var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
+                var isProxy = baseUrl.Contains("/api/gas", StringComparison.OrdinalIgnoreCase);
+                var apiKey = isProxy ? "" : (string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey);
                 var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
 
-                var url = $"{baseUrl}?action=sendTelegram&clientID={Uri.EscapeDataString(clientId)}&apiKey={Uri.EscapeDataString(apiKey)}&sender={Uri.EscapeDataString(sender)}&message={Uri.EscapeDataString(message)}&timestamp={Uri.EscapeDataString(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"))}";
+                var url = $"{baseUrl}?action=sendTelegram&clientID={Uri.EscapeDataString(clientId)}&sender={Uri.EscapeDataString(sender)}&message={Uri.EscapeDataString(message)}&timestamp={Uri.EscapeDataString(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"))}";
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    url += $"&apiKey={Uri.EscapeDataString(apiKey)}";
+                }
                 if (!string.IsNullOrWhiteSpace(targetChatId))
                 {
                     url += $"&chatId={Uri.EscapeDataString(targetChatId)}";
                 }
 
+                Console.WriteLine($"📱 Telegram send URL: {url.Replace(apiKey ?? "", "***")}");
                 var response = await _httpClient.GetAsync(url);
+                Console.WriteLine($"📱 Telegram response status: {response.StatusCode}");
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"📱 Telegram response content: {responseContent}");
                     try
                     {
                         var _ = JsonSerializer.Deserialize<JsonElement>(responseContent);
@@ -63,13 +71,17 @@ namespace ReminderTabletNew2.Services
             try
             {
                 var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? _legacyTelegramUrl : _apiSettings.BaseUrl;
-                var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
+                var isProxy = baseUrl.Contains("/api/gas", StringComparison.OrdinalIgnoreCase);
+                var apiKey = isProxy ? "" : (string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey);
                 var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
 
-                var url = string.IsNullOrEmpty(apiKey)
-                    ? $"{baseUrl}?clientID={Uri.EscapeDataString(clientId)}"
-                    : $"{baseUrl}?clientID={Uri.EscapeDataString(clientId)}&apiKey={Uri.EscapeDataString(apiKey)}";
+                var url = $"{baseUrl}?clientID={Uri.EscapeDataString(clientId)}";
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    url += $"&apiKey={Uri.EscapeDataString(apiKey)}";
+                }
 
+                Console.WriteLine($"📱 Telegram check URL: {url.Replace(apiKey ?? "", "***")}");
                 var response = await _httpClient.GetFromJsonAsync<ReminderApiResponse>(url);
                 return response?.Settings?.UseTelegram == true;
             }
