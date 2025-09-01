@@ -104,7 +104,7 @@ public class ApiService
                     var response = System.Text.Json.JsonSerializer.Deserialize<ReminderApiResponse>(responseText);
                     if (response != null)
                     {
-                        NormalizeMojibake(response);
+                        ApiResponseNormalizer.NormalizeMojibake(response);
                         Console.WriteLine("✅ API kutsu onnistui");
                         // Debug log for photo
                         Console.WriteLine($"🖼️ Photo URL from API: '{response.DailyPhotoUrl}' Caption: '{response.DailyPhotoCaption}'");
