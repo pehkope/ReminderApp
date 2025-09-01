@@ -39,7 +39,7 @@ public class GasForwarder
             queryParams[kv.Key] = kv.Value.LastOrDefault();
         }
 
-        // Inject apiKey if not present
+        // Inject apiKey if not present. this is gas apikey
         if (!queryParams.ContainsKey("apiKey") && !string.IsNullOrEmpty(_gasApiKey))
         {
             queryParams["apiKey"] = _gasApiKey;
