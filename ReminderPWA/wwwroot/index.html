@@ -56,7 +56,7 @@
     <script src="js/audio.js"></script>
     <script src="js/footer-center.js?v=1"></script>
     <!-- Twilio Voice SDK -->
-    <script src="https://sdk.twilio.com/js/client/v1.13/twilio.min.js" integrity="sha384-k1o0H0C8Rk9nFv5lJ8nV9YVw7LyQH1lGm1z0eA0Wn6SgUQGPqk5w9XO0v4QXl0nZ" crossorigin="anonymous"></script>
+    <script src="https://sdk.twilio.com/js/client/v1.13/twilio.min.js" crossorigin="anonymous"></script>
     <script src="js/twilio.js"></script>
     
     <!-- Service Worker Registration -->
@@ -64,7 +64,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    const registration = await navigator.serviceWorker.register('/service-worker.js?v=31');
+                    const registration = await navigator.serviceWorker.register('/service-worker.js?v=32');
                     console.log('✅ Service Worker registered successfully:', registration);
                     
                     // Kuuntele päivityksiä
@@ -82,7 +82,7 @@
                     const regs = await navigator.serviceWorker.getRegistrations();
                     regs.forEach(r => {
                         if (!r.active) return;
-                        if (!r.active.scriptURL.includes('v=31')) {
+                        if (!r.active.scriptURL.includes('v=32')) {
                             r.unregister();
                         }
                     });

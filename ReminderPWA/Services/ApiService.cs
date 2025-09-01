@@ -33,15 +33,15 @@ public class ApiService
                 
                 // Fallback for Azure deployment if config loading fails
                 var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzCuxVNiSxDSnPD99-RyDnC8bJ_ui93F7uCJsrfwXS2exOqiKsWYticRbauFjhjPpMc/exec" : _apiSettings.BaseUrl;
-                    
-                var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
+                var isProxy = baseUrl.Contains("/api/gas", StringComparison.OrdinalIgnoreCase);
+                var apiKey = isProxy ? "" : (string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey);
                 
                 Console.WriteLine($"🔧 Using BaseUrl: '{baseUrl}'");
                 var maskedRuntimeKey = string.IsNullOrEmpty(apiKey) ? "" : "***";
                 Console.WriteLine($"🔧 Using ApiKey: '{(string.IsNullOrEmpty(maskedRuntimeKey) ? "(empty)" : maskedRuntimeKey)}'");
                 
                 // Build the Google Apps Script URL
-                var targetUrl = string.IsNullOrEmpty(apiKey) 
+                var targetUrl = string.IsNullOrEmpty(apiKey)
                     ? $"{baseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
                     : $"{baseUrl}?clientID={actualClientId}&apiKey={apiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
 
