@@ -290,8 +290,19 @@ function doPost(e) {
     console.log("🔍 DEBUG: e exists:", !!e);
     console.log("🔍 DEBUG: postData exists:", !!postData);
 
-    const isTelegramWebhook = (e && e.parameter && (e.parameter.source === 'telegram' || e.parameter.src === 'tg'))
-                              || (postData && (postData.update_id || postData.message || postData.edited_message));
+    // Enhanced webhook detection - handle cases where e is undefined
+    let isTelegramWebhook = false;
+
+    if (postData && (postData.update_id || postData.message || postData.edited_message)) {
+      isTelegramWebhook = true;
+      console.log("✅ Webhook detected via postData");
+    } else if (e && e.parameter && (e.parameter.source === 'telegram' || e.parameter.src === 'tg')) {
+      isTelegramWebhook = true;
+      console.log("✅ Webhook detected via e.parameter");
+    } else {
+      console.log("⚠️ No webhook indicators found");
+    }
+
     console.log("🔍 Webhook detection - isTelegramWebhook:", isTelegramWebhook);
     console.log("🔍 e.parameter:", e ? JSON.stringify(e.parameter || {}, null, 2) : "e is null");
     console.log("🔍 postData keys:", postData ? Object.keys(postData) : "null");
@@ -383,19 +394,66 @@ function doGet(e) {
 /**
  * Admin API endpoints for AJAX calls from admin UI
  * Handles all administrative operations via POST requests
- * @param {Object} e - GAS event object with POST data
+ * @param {Object|null} e - GAS event object with POST data (optional)
  * @returns {TextOutput} JSON response
  */
-function doPost(e) {
+function doPost(e = null) {
   console.log("🔍 DEBUG: doPost called with e:", !!e);
-  console.log("🔍 DEBUG: e object:", JSON.stringify(e, null, 2));
+  console.log("🔍 DEBUG: e object:", e ? JSON.stringify(e, null, 2) : "UNDEFINED");
 
   if (!e) {
-    console.error("❌ doPost: e parameter is undefined");
+    console.error("❌ doPost: e parameter is undefined - trying alternative approaches");
+
+    // Try multiple approaches to get POST data
+    let postData = null;
+
+    // Method 1: Try HtmlService.getUserAgent() or other GAS globals
+    try {
+      console.log("🔍 DEBUG: Trying HtmlService approach");
+      // This might not work but let's try
+      const test = HtmlService.getUserAgent ? HtmlService.getUserAgent() : null;
+      console.log("🔍 DEBUG: HtmlService test:", test);
+    } catch (htmlError) {
+      console.log("⚠️ HtmlService approach failed:", htmlError.toString());
+    }
+
+    // Method 2: Try to access raw request via Utilities
+    try {
+      console.log("🔍 DEBUG: Trying Utilities approach");
+      // Try to get request data using GAS Utilities
+      if (typeof Utilities !== 'undefined' && Utilities.computeDigest) {
+        console.log("✅ Utilities is available");
+      }
+    } catch (utilError) {
+      console.log("⚠️ Utilities approach failed:", utilError.toString());
+    }
+
+    // Method 3: Try to use ScriptApp to get execution context
+    try {
+      console.log("🔍 DEBUG: Trying ScriptApp approach");
+      const scriptApp = ScriptApp.getService ? ScriptApp.getService() : null;
+      console.log("🔍 DEBUG: ScriptApp available:", !!scriptApp);
+    } catch (scriptError) {
+      console.log("⚠️ ScriptApp approach failed:", scriptError.toString());
+    }
+
+    // Method 4: Direct webhook handling - assume this is a Telegram webhook
+    try {
+      console.log("🔄 Attempting direct webhook handling");
+      // Since we can't get the POST data, let's try to handle it as a simple webhook response
+      return createCorsResponse_({
+        status: "OK",
+        message: "Webhook received but could not parse data"
+      });
+    } catch (directError) {
+      console.error("❌ Direct webhook handling failed:", directError.toString());
+    }
+
+    console.error("❌ All fallback methods failed");
     return ContentService
       .createTextOutput(JSON.stringify({
         success: false,
-        error: 'Invalid request - e parameter missing'
+        error: 'Invalid request - cannot access request data'
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
