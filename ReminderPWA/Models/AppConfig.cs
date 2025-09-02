@@ -11,6 +11,7 @@ public class AppConfig
 public class ApiSettings
 {
     public string BaseUrl { get; set; } = "";
+    public string GasDirectUrl { get; set; } = "";
     public string ApiKey { get; set; } = "";
     public string DefaultClientId { get; set; } = "mom";
     public int TimeoutSeconds { get; set; } = 15;

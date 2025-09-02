@@ -32,7 +32,7 @@ public class ApiService
                 Console.WriteLine($"🔧 ApiKey configured: '{(string.IsNullOrEmpty(maskedConfiguredKey) ? "(empty)" : maskedConfiguredKey)}'");
                 
                 // Fallback for Azure deployment if config loading fails
-                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? "https://script.google.com/macros/s/AKfycbzCuxVNiSxDSnPD99-RyDnC8bJ_ui93F7uCJsrfwXS2exOqiKsWYticRbauFjhjPpMc/exec" : _apiSettings.BaseUrl;
+                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? _apiSettings.GasDirectUrl : _apiSettings.BaseUrl;
                 var isProxy = baseUrl.Contains("/api/gas", StringComparison.OrdinalIgnoreCase);
                 var apiKey = isProxy ? "" : (string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey);
                 
@@ -169,7 +169,7 @@ public class ApiService
         {
             // Fallback URL + asetukset
             var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl)
-                ? "https://script.google.com/macros/s/AKfycbzCuxVNiSxDSnPD99-RyDnC8bJ_ui93F7uCJsrfwXS2exOqiKsWYticRbauFjhjPpMc/exec"
+                ? _apiSettings.GasDirectUrl
                 : _apiSettings.BaseUrl;
             var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
