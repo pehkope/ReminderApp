@@ -286,10 +286,14 @@ function doPost(e) {
     }
     
     // 1) Telegram webhook detection (before API-key checks)
-    const isTelegramWebhook = (e.parameter && (e.parameter.source === 'telegram' || e.parameter.src === 'tg'))
+    console.log("🔍 DEBUG: Starting webhook detection");
+    console.log("🔍 DEBUG: e exists:", !!e);
+    console.log("🔍 DEBUG: postData exists:", !!postData);
+
+    const isTelegramWebhook = (e && e.parameter && (e.parameter.source === 'telegram' || e.parameter.src === 'tg'))
                               || (postData && (postData.update_id || postData.message || postData.edited_message));
     console.log("🔍 Webhook detection - isTelegramWebhook:", isTelegramWebhook);
-    console.log("🔍 e.parameter:", JSON.stringify(e.parameter || {}, null, 2));
+    console.log("🔍 e.parameter:", e ? JSON.stringify(e.parameter || {}, null, 2) : "e is null");
     console.log("🔍 postData keys:", postData ? Object.keys(postData) : "null");
 
     if (isTelegramWebhook) {
@@ -298,10 +302,10 @@ function doPost(e) {
     }
 
     // Not a telegram webhook; log minimal info and continue to API auth path
-    try { appendWebhookLog_("POST_NOT_TELEGRAM", JSON.stringify(e.parameter || {})); } catch(__) {}
+    try { appendWebhookLog_("POST_NOT_TELEGRAM", JSON.stringify((e && e.parameter) || {})); } catch(__) {}
 
     // 2) API Key authentication for normal POST
-    const apiKey = postData.apiKey || (e.parameter && e.parameter.apiKey);
+    const apiKey = postData.apiKey || (e && e.parameter && e.parameter.apiKey);
     if (!validateApiKey_(apiKey)) {
       console.error("❌ Invalid or missing API key in POST:", apiKey);
       return createCorsResponse_({
@@ -383,6 +387,19 @@ function doGet(e) {
  * @returns {TextOutput} JSON response
  */
 function doPost(e) {
+  console.log("🔍 DEBUG: doPost called with e:", !!e);
+  console.log("🔍 DEBUG: e object:", JSON.stringify(e, null, 2));
+
+  if (!e) {
+    console.error("❌ doPost: e parameter is undefined");
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: 'Invalid request - e parameter missing'
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   const params = e.parameter || {};
   const action = params.action;
 
@@ -989,6 +1006,13 @@ function handleTelegramWebhook_(e, postData) {
   try {
     console.log("🔄 TELEGRAM WEBHOOK RECEIVED AT:", new Date().toISOString());
     console.log("📊 Webhook data received:", !!e, !!postData);
+    console.log("🔍 DEBUG: handleTelegramWebhook_ e object:", JSON.stringify(e, null, 2));
+    console.log("🔍 DEBUG: handleTelegramWebhook_ postData:", JSON.stringify(postData, null, 2));
+
+    if (!e) {
+      console.error("❌ handleTelegramWebhook_: e parameter is undefined");
+      return createCorsResponse_({ status: "ERROR", error: "Invalid webhook request - e parameter missing" });
+    }
     const scriptProperties = PropertiesService.getScriptProperties();
     const secretExpected = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
     const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
@@ -1017,7 +1041,60 @@ function handleTelegramWebhook_(e, postData) {
     console.log("💬 Message details - chatId:", chatId, "caption:", caption, "text:", text);
     console.log("📸 Photo exists:", !!message.photo);
 
+    // 🔒 PHOTO LEVEL DEDUPLICATION - Estää samojen kuvien käsittelyn
+    console.log("🔍 DEBUG: Starting image deduplication check");
 
+    let fileUniqueIdForDedup = "";
+    const photo = message.photo ? message.photo[message.photo.length - 1] : null;
+    const document = message.document;
+
+    console.log("🔍 DEBUG: Photo object:", JSON.stringify(photo, null, 2));
+    console.log("🔍 DEBUG: Document object:", JSON.stringify(document, null, 2));
+
+    if (photo && photo.file_unique_id) {
+      fileUniqueIdForDedup = photo.file_unique_id;
+      console.log("🆔 DEBUG: Using photo file_unique_id:", fileUniqueIdForDedup);
+    } else if (document && String(document.mime_type || "").startsWith("image/") && document.file_unique_id) {
+      fileUniqueIdForDedup = document.file_unique_id;
+      console.log("🆔 DEBUG: Using document file_unique_id:", fileUniqueIdForDedup);
+    } else {
+      console.log("⚠️ DEBUG: No file_unique_id found for deduplication");
+    }
+
+    if (fileUniqueIdForDedup) {
+      const photoKey = `processed_photo_${fileUniqueIdForDedup}`;
+      console.log("🔑 DEBUG: Generated photo key:", photoKey);
+
+      try {
+        const props = PropertiesService.getScriptProperties();
+        console.log("🔧 DEBUG: PropertiesService initialized");
+
+        const alreadyProcessed = props.getProperty(photoKey);
+        console.log("🔍 DEBUG: Properties lookup result for", photoKey, ":", alreadyProcessed);
+
+        if (alreadyProcessed) {
+          console.log(`📸 DUPLICATE IMAGE DETECTED: ${fileUniqueIdForDedup} - SKIPPING ENTIRELY`);
+          try { appendWebhookLog_('IMAGE_DUPLICATE_SKIP', fileUniqueIdForDedup); } catch(__) {}
+          return createCorsResponse_({ status: 'OK' });
+        }
+
+        console.log("✅ New image - setting processed flag");
+        props.setProperty(photoKey, new Date().toISOString());
+        console.log(`💾 Image deduplication flag set for: ${photoKey}`);
+
+        // Verify the property was set
+        const verifySet = props.getProperty(photoKey);
+        console.log("🔍 DEBUG: Verification - property set correctly:", verifySet);
+
+      } catch (imageDedupError) {
+        console.error("❌ Image deduplication error:", imageDedupError.toString());
+        console.error("❌ Error stack:", imageDedupError.stack);
+        // Jatka normaalisti jos deduplication epäonnistuu
+        console.log("⚠️ Continuing without deduplication due to error");
+      }
+    } else {
+      console.log("⚠️ Skipping deduplication - no file_unique_id available");
+    }
 
     // Idempotence guard based on update/message id to avoid duplicate processing
     try {
