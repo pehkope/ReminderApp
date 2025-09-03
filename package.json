@@ -1,0 +1,22 @@
+{
+  "name": "reminderapp-azure",
+  "version": "1.0.0",
+  "description": "ReminderApp Azure Functions backend",
+  "main": "azure-function-template.js",
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0"
+  },
+  "devDependencies": {
+    "azure-functions-core-tools": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["azure-functions", "reminder", "weather", "api"],
+  "author": "ReminderApp",
+  "license": "MIT"
+}
