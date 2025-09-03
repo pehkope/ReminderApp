@@ -1,0 +1,25 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+
+    // Cosmos DB Configuration
+    "COSMOS_ENDPOINT": "https://your-cosmos-account.documents.azure.com:443/",
+    "COSMOS_KEY": "your-cosmos-primary-key",
+    "COSMOS_DATABASE": "ReminderAppDB",
+    "COSMOS_CONTAINER": "Configurations",
+
+    // Default API Keys (can be overridden per customer)
+    "WEATHER_API_KEY": "your-openweathermap-api-key",
+    "GOOGLE_SHEETS_API_KEY": "your-google-sheets-api-key",
+
+    // Azure Function settings
+    "AZURE_FUNCTION_NAME": "ReminderAPI"
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}

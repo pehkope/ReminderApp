@@ -9,7 +9,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
     const data = mealsSheet.getDataRange().getValues();
     if (!data || data.length <= 1) return null;
 
-    const to = (v) => String(v || '').trim();
+    const to = (v)// REMOVED: JavaScript arrow functionString(v || '').trim();
     const tod = String(timeOfDay || '').toUpperCase();
     const clientLower = String(clientID || '').trim().toLowerCase();
 
@@ -23,7 +23,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       YO:   { start: { h:21, m:0 }, end: { h:22, m:0 } }
     };
 
-    const inWindow = (n, win) => {
+    const inWindow = (n, win)// REMOVED: JavaScript arrow function{
       const s = new Date(n.getFullYear(), n.getMonth(), n.getDate(), win.start.h, win.start.m, 0, 0);
       const e = new Date(n.getFullYear(), n.getMonth(), n.getDate(), win.end.h, win.end.m, 0, 0);
       return n >= s && n <= e;
@@ -53,7 +53,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
           const eh = parseInt(rangeMatch[3])||0, em = parseInt(rangeMatch[4])||0;
           timeMatch = inWindow(now, { start:{h:sh,m:sm}, end:{h:eh,m:em} });
         } else if (/^\d{1,2}:\d{2}$/.test(hhmm)) {
-          const [h, m] = hhmm.split(':').map(x => parseInt(x) || 0);
+          const [h, m] = hhmm.split(':').map(x// REMOVED: JavaScript arrow functionparseInt(x) || 0);
           const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
           const diffMin = Math.abs((now - target) / 60000);
           timeMatch = diffMin <= 90;
@@ -65,7 +65,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       }
       if (!timeMatch) continue;
 
-      const options = suggestion.split('|').map(s => to(s)).filter(s => s);
+      const options = suggestion.split('|').map(s// REMOVED: JavaScript arrow functionto(s)).filter(s// REMOVED: JavaScript arrow functions);
       if (options.length === 0) continue;
       candidates.push({ mealType, hhmm, options });
     }
@@ -90,7 +90,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
           if (!suggestion) continue;
           if (rowClient && rowClient !== clientLower && rowClient !== '*') continue;
           if (rowTod && rowTod !== targetTod) continue;
-          const options = suggestion.split('|').map(s => to(s)).filter(s => s);
+          const options = suggestion.split('|').map(s// REMOVED: JavaScript arrow functionto(s)).filter(s// REMOVED: JavaScript arrow functions);
           if (options.length === 0) continue;
           fallbackRows.push({ mealType, hhmm, options });
         }
@@ -115,7 +115,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
       };
 
       const todayKey = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      const pickStable = (len, salt='') => { let h=0; const s=`${clientID}|${tod}|${todayKey}|fallback|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
+      const pickStable = (len, salt='')// REMOVED: JavaScript arrow function{ let h=0; const s=`${clientID}|${tod}|${todayKey}|fallback|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
       const chosen = fallbackRows[pickStable(fallbackRows.length)];
       const shuffledIdx = []; for (let i=0;i<chosen.options.length;i++) shuffledIdx.push(i);
       shuffledIdx.sort((a,b)=> (pickStable(chosen.options.length, String(a))-pickStable(chosen.options.length, String(b))));
@@ -131,7 +131,7 @@ function getMealSuggestions_(sheet, clientID, timeOfDay, now) {
 
     // Valitse stabiilisti päivän mukaan 2–3 vaihtoehtoa
     const todayKey = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const pickStable = (len, salt='') => { let h=0; const s=`${clientID}|${tod}|${todayKey}|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
+    const pickStable = (len, salt='')// REMOVED: JavaScript arrow function{ let h=0; const s=`${clientID}|${tod}|${todayKey}|${salt}|${len}`; for (let k=0;k<s.length;k++){ h=((h<<5)-h)+s.charCodeAt(k); h|=0; } return Math.abs(h)%len; };
     const chosen = candidates[pickStable(candidates.length)];
     const shuffledIdx = []; for (let i=0;i<chosen.options.length;i++) shuffledIdx.push(i);
     // yksinkertainen deterministinen sekoitus
@@ -281,31 +281,12 @@ function doPost(e) {
         return createCorsResponse_({
           error: "Invalid JSON in POST body",
           status: "ERROR"
-        });
+// REMOVED: JavaScript closing braces
       }
     }
     
-    // 1) Telegram webhook detection (before API-key checks)
-    console.log("🔍 DEBUG: Starting webhook detection");
-    console.log("🔍 DEBUG: e exists:", !!e);
-    console.log("🔍 DEBUG: postData exists:", !!postData);
-
-    // Enhanced webhook detection - handle cases where e is undefined
-    let isTelegramWebhook = false;
-
-    if (postData && (postData.update_id || postData.message || postData.edited_message)) {
-      isTelegramWebhook = true;
-      console.log("✅ Webhook detected via postData");
-    } else if (e && e.parameter && (e.parameter.source === 'telegram' || e.parameter.src === 'tg')) {
-      isTelegramWebhook = true;
-      console.log("✅ Webhook detected via e.parameter");
-    } else {
-      console.log("⚠️ No webhook indicators found");
-    }
-
-    console.log("🔍 Webhook detection - isTelegramWebhook:", isTelegramWebhook);
-    console.log("🔍 e.parameter:", e ? JSON.stringify(e.parameter || {}, null, 2) : "e is null");
-    console.log("🔍 postData keys:", postData ? Object.keys(postData) : "null");
+    // 1) Telegram webhook detection
+    const isTelegramWebhook = postData && (postData.update_id || postData.message || postData.edited_message);
 
     if (isTelegramWebhook) {
       console.log("✅ Telegram webhook detected, calling handleTelegramWebhook_");
@@ -391,296 +372,94 @@ function doGet(e) {
   }
 }
 
-/**
- * Admin API endpoints for AJAX calls from admin UI
- * Handles all administrative operations via POST requests
- * @param {Object|null} e - GAS event object with POST data (optional)
- * @returns {TextOutput} JSON response
- */
-function doPost(e = null) {
-  console.log("🔍 DEBUG: doPost called with e:", !!e);
-  console.log("🔍 DEBUG: e object:", e ? JSON.stringify(e, null, 2) : "UNDEFINED");
+// REMOVED: Admin API doPost function - keeping only webhook handler
 
-  if (!e) {
-    console.error("❌ doPost: e parameter is undefined - trying alternative approaches");
+// REMOVED: Admin authentication - keeping only webhook functionality
 
-    // Try multiple approaches to get POST data
-    let postData = null;
+// REMOVED: All HTML template functions and content - keeping only webhook functionality
+// REMOVED: HTML content
+// REMOVED: HTML head
+// REMOVED: HTML meta charset="utf-8">
+// REMOVED: HTML title
+// REMOVED: HTML style element
+// REMOVED: CSS body font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
+// REMOVED: CSS header background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+// REMOVED: CSS nav background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+// REMOVED: CSS nav a rule
+// REMOVED: CSS nav a hover rule
+// REMOVED: CSS stats rule
+// REMOVED: CSS stat-card background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+// REMOVED: CSS stat-title rule
+// REMOVED: CSS stat-value rule
+    // REMOVED: HTML closing tagstyle>
+// REMOVED: HTML closing taghead>
+// REMOVED: HTML body
+// REMOVED: HTML header div
+// REMOVED: HTML h1 element
+// REMOVED: HTML p element
+// REMOVED: HTML closing div
 
-    // Method 1: Try HtmlService.getUserAgent() or other GAS globals
-    try {
-      console.log("🔍 DEBUG: Trying HtmlService approach");
-      // This might not work but let's try
-      const test = HtmlService.getUserAgent ? HtmlService.getUserAgent() : null;
-      console.log("🔍 DEBUG: HtmlService test:", test);
-    } catch (htmlError) {
-      console.log("⚠️ HtmlService approach failed:", htmlError.toString());
-    }
+// REMOVED: HTML nav div
+// REMOVED: HTML dashboard link
+// REMOVED: HTML webhook link
+// REMOVED: HTML logs link
+// REMOVED: HTML settings link
+// REMOVED: HTML logout link
+// REMOVED: HTML closing div
 
-    // Method 2: Try to access raw request via Utilities
-    try {
-      console.log("🔍 DEBUG: Trying Utilities approach");
-      // Try to get request data using GAS Utilities
-      if (typeof Utilities !== 'undefined' && Utilities.computeDigest) {
-        console.log("✅ Utilities is available");
-      }
-    } catch (utilError) {
-      console.log("⚠️ Utilities approach failed:", utilError.toString());
-    }
+// REMOVED: HTML stats div
+// REMOVED: HTML stat-card div
+// REMOVED: HTML stat-title div
+// REMOVED: HTML system status div
+    // REMOVED: HTML closing div
+// REMOVED: HTML stat-card div
+// REMOVED: HTML webhook status title div
+// REMOVED: HTML webhook status value div
+    // REMOVED: HTML closing div
+// REMOVED: HTML stat-card div
+// REMOVED: HTML active users title div
+// REMOVED: HTML active users value div
+    // REMOVED: HTML closing div
+// REMOVED: HTML stat-card div
+// REMOVED: HTML total reminders title div
+// REMOVED: HTML total reminders value div
+    // REMOVED: HTML closing div
+// REMOVED: HTML closing div
 
-    // Method 3: Try to use ScriptApp to get execution context
-    try {
-      console.log("🔍 DEBUG: Trying ScriptApp approach");
-      const scriptApp = ScriptApp.getService ? ScriptApp.getService() : null;
-      console.log("🔍 DEBUG: ScriptApp available:", !!scriptApp);
-    } catch (scriptError) {
-      console.log("⚠️ ScriptApp approach failed:", scriptError.toString());
-    }
-
-    // Method 4: Direct webhook handling - assume this is a Telegram webhook
-    try {
-      console.log("🔄 Attempting direct webhook handling");
-      // Since we can't get the POST data, let's try to handle it as a simple webhook response
-      return createCorsResponse_({
-        status: "OK",
-        message: "Webhook received but could not parse data"
-      });
-    } catch (directError) {
-      console.error("❌ Direct webhook handling failed:", directError.toString());
-    }
-
-    console.error("❌ All fallback methods failed");
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: 'Invalid request - cannot access request data'
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  const params = e.parameter || {};
-  const action = params.action;
-
-  // Verify authentication for all admin operations
-  if (!isAuthenticated_(e)) {
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: 'Unauthorized access - please login first'
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  try {
-    switch (action) {
-      case 'toggle_webhook':
-        return handleToggleWebhook_(params);
-      case 'get_webhook_status':
-        return handleGetWebhookStatus_();
-      case 'get_dashboard_data':
-        return handleGetDashboardData_();
-      case 'clear_logs':
-        return handleClearLogs_();
-      case 'update_settings':
-        return handleUpdateSettings_(params);
-      default:
-        return ContentService
-          .createTextOutput(JSON.stringify({
-            success: false,
-            error: 'Unknown admin action: ' + action
-          }))
-          .setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch (error) {
-    console.error('Admin API error:', error);
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: 'Server error: ' + error.toString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-/**
- * Check if user is authenticated
- */
-function isAuthenticated_(e) {
-  // Simple authentication using GAS properties
-  // In production, use proper OAuth or secure token system
-  const adminPassword = PropertiesService.getScriptProperties().getProperty('ADMIN_PASSWORD');
-  const sessionToken = PropertiesService.getScriptProperties().getProperty('ADMIN_SESSION_TOKEN');
-
-  // For development: always allow access if no password set OR if it's a GET request (dashboard access)
-  if (!adminPassword || (e && !e.postData)) {
-    return true; // Allow access for initial setup or GET requests
-  }
-
-  // Check session token from cookies/parameters
-  const providedToken = (e.parameter && e.parameter.token) ||
-                       (e.parameters && e.parameters.token && e.parameters.token[0]);
-
-  return providedToken === sessionToken;
-}
-
-/**
- * Generate login page HTML
- */
-function getLoginPage_() {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Admin Login</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-        .login-container { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        .btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
-        .btn:hover { background: #0056b3; }
-        .error { color: red; margin-top: 10px; }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h2>🔐 Admin Login</h2>
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="password">Admin Password:</label>
-                <input type="password" id="password" required>
-            </div>
-            <button type="submit" class="btn">Login</button>
-            <div id="error" class="error" style="display:none;"></div>
-        </form>
-    </div>
-
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const password = document.getElementById('password').value;
-
-            fetch('/macros/s/' + ScriptApp.getScriptId() + '/exec', {
-                method: 'POST',
-                body: new URLSearchParams({
-                    action: 'login',
-                    password: password
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = '?action=dashboard&token=' + data.token;
-                } else {
-                    document.getElementById('error').textContent = data.error || 'Login failed';
-                    document.getElementById('error').style.display = 'block';
-                }
-            })
-            .catch(error => {
-                document.getElementById('error').textContent = 'Network error';
-                document.getElementById('error').style.display = 'block';
-            });
-        });
-    </script>
-</body>
-</html>`;
-}
-
-/**
- * Generate admin dashboard HTML
- */
-function getAdminDashboard_() {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Admin Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
-        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .nav { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .nav a { margin-right: 20px; text-decoration: none; color: #007bff; padding: 8px 16px; border-radius: 4px; }
-        .nav a:hover { background: #e9ecef; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .stat-title { font-size: 14px; color: #6c757d; margin-bottom: 10px; }
-        .stat-value { font-size: 24px; font-weight: bold; color: #007bff; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>🎛️ ReminderApp Admin Dashboard</h1>
-        <p>Manage your reminder application</p>
-    </div>
-
-    <div class="nav">
-        <a href="?action=dashboard">📊 Dashboard</a>
-        <a href="?action=webhook">🔗 Webhook Management</a>
-        <a href="?action=logs">📋 System Logs</a>
-        <a href="?action=settings">⚙️ Settings</a>
-        <a href="/macros/s/${ScriptApp.getScriptId()}/exec?action=logout" style="color: #dc3545;">🚪 Logout</a>
-    </div>
-
-    <div class="stats">
-        <div class="stat-card">
-            <div class="stat-title">System Status</div>
-            <div class="stat-value" id="systemStatus">Loading...</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Webhook Status</div>
-            <div class="stat-value" id="webhookStatus">Checking...</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Active Users</div>
-            <div class="stat-value">1</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Total Reminders</div>
-            <div class="stat-value" id="totalReminders">Loading...</div>
-        </div>
-    </div>
-
-    <script>
-        // Load dashboard data
-        fetch('/macros/s/${ScriptApp.getScriptId()}/exec', {
-            method: 'POST',
-            body: new URLSearchParams({ action: 'get_dashboard_data' })
+// REMOVED: HTML script element
+// REMOVED: JavaScript dashboard code
+// REMOVED: JavaScript fetch call
+// REMOVED: JavaScript method
+// REMOVED: JavaScript URLSearchParams
         })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('systemStatus').textContent = '✅ Online';
-            document.getElementById('webhookStatus').textContent = data.webhookActive ? '✅ Active' : '❌ Inactive';
-            document.getElementById('totalReminders').textContent = data.totalReminders || '0';
+// REMOVED: JavaScript then chain
+// REMOVED: JavaScript then data
+            // REMOVED: JavaScript documentgetElementById('systemStatus').textContent = '✅ Online';
+            // REMOVED: JavaScript documentgetElementById('webhookStatus').textContent = data.webhookActive ? '✅ Active' : '❌ Inactive';
+            // REMOVED: JavaScript documentgetElementById('totalReminders').textContent = data.totalReminders || '0';
         })
-        .catch(error => {
-            console.error('Dashboard error:', error);
-        });
-    </script>
-</body>
-</html>`;
+// REMOVED: JavaScript catch error
+// REMOVED: JavaScript console.error
+// REMOVED: JavaScript closing braces
+// REMOVED: HTML closing script
+// REMOVED: HTML closing body
+// REMOVED: HTML closing html
 }
 
-/**
- * Generate webhook admin page
- */
-function getWebhookAdminPage_() {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Webhook Management</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
-        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .webhook-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
-        .status-active { background: #28a745; }
+// REMOVED: Webhook admin page function
+// REMOVED: HTML template content
+// REMOVED: HTML content
+// REMOVED: HTML head
+// REMOVED: HTML meta charset="utf-8">
+// REMOVED: HTML title element
+// REMOVED: HTML style element
+// REMOVED: CSS body font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
+// REMOVED: CSS header background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+// REMOVED: CSS webhook-card rule
+// REMOVED: CSS status-indicator rule
+// REMOVED: CSS status-active rule
         .status-inactive { background: #dc3545; }
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+// REMOVED: CSS btn padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; // REMOVED: CSS margin-right 10px; }
         .btn-success { background: #28a745; color: white; }
         .btn-danger { background: #dc3545; color: white; }
         .btn-primary { background: #007bff; color: white; }
@@ -688,42 +467,42 @@ function getWebhookAdminPage_() {
         .info-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .info-table th, .info-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #ddd; }
         .info-table th { background: #f8f9fa; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>🔗 Webhook Management</h1>
-        <p>Control Telegram webhook integration</p>
-    </div>
+    // REMOVED: HTML closing tagstyle>
+// REMOVED: HTML closing taghead>
+// REMOVED: HTML body
+// REMOVED: HTML header div
+        // REMOVED: HTML h1🔗 Webhook Management// REMOVED: HTML closing tagh1>
+        // REMOVED: HTML pControl Telegram webhook integration// REMOVED: HTML closing tagp>
+// REMOVED: HTML closing div
 
-    <div class="webhook-card">
-        <h3>Webhook Status</h3>
-        <p><span id="statusIndicator" class="status-indicator"></span>Status: <span id="webhookStatus">Loading...</span></p>
+    // REMOVED: HTML div // REMOVED: HTML class"webhook-card">
+        <h3>Webhook Status// REMOVED: HTML closing tagh3>
+        // REMOVED: HTML p<span // REMOVED: HTML id"statusIndicator" // REMOVED: HTML class"status-indicator">// REMOVED: HTML closing tagspan>Status: <span // REMOVED: HTML id"webhookStatus">Loading...// REMOVED: HTML closing tagspan>// REMOVED: HTML closing tagp>
 
-        <button id="toggleBtn" class="btn btn-primary">Loading...</button>
-        <button id="refreshBtn" class="btn btn-primary">🔄 Refresh Status</button>
+        <button // REMOVED: HTML id"toggleBtn" // REMOVED: HTML class"btn btn-primary">Loading...// REMOVED: HTML closing tagbutton>
+        <button // REMOVED: HTML id"refreshBtn" // REMOVED: HTML class"btn btn-primary">🔄 Refresh Status// REMOVED: HTML closing tagbutton>
 
-        <table class="info-table">
-            <tr><th>Property</th><th>Value</th></tr>
-            <tr><td>URL</td><td id="webhookUrl">-</td></tr>
-            <tr><td>Pending Updates</td><td id="pendingUpdates">-</td></tr>
-            <tr><td>Last Error</td><td id="lastError">-</td></tr>
-            <tr><td>Max Connections</td><td id="maxConnections">-</td></tr>
-        </table>
-    </div>
+        <table // REMOVED: HTML class"info-table">
+            <tr><th>Property// REMOVED: HTML closing tagth><th>Value// REMOVED: HTML closing tagth>// REMOVED: HTML closing tagtr>
+            <tr><td>URL// REMOVED: HTML closing tagtd><td // REMOVED: HTML id"webhookUrl">-// REMOVED: HTML closing tagtd>// REMOVED: HTML closing tagtr>
+            <tr><td>Pending Updates// REMOVED: HTML closing tagtd><td // REMOVED: HTML id"pendingUpdates">-// REMOVED: HTML closing tagtd>// REMOVED: HTML closing tagtr>
+            <tr><td>Last Error// REMOVED: HTML closing tagtd><td // REMOVED: HTML id"lastError">-// REMOVED: HTML closing tagtd>// REMOVED: HTML closing tagtr>
+            <tr><td>Max Connections// REMOVED: HTML closing tagtd><td // REMOVED: HTML id"maxConnections">-// REMOVED: HTML closing tagtd>// REMOVED: HTML closing tagtr>
+        // REMOVED: HTML closing tagtable>
+// REMOVED: HTML closing div
 
-    <div class="webhook-card">
-        <h3>Recent Logs</h3>
-        <div id="logsContainer">Loading logs...</div>
-    </div>
+    // REMOVED: HTML div // REMOVED: HTML class"webhook-card">
+        <h3>Recent Logs// REMOVED: HTML closing tagh3>
+        // REMOVED: HTML div // REMOVED: HTML id"logsContainer">Loading logs...// REMOVED: HTML closing tagdiv>
+// REMOVED: HTML closing div
 
-    <script>
+// REMOVED: HTML script element
         let webhookActive = false;
 
         function updateWebhookStatus(data) {
-            const statusEl = document.getElementById('webhookStatus');
-            const indicatorEl = document.getElementById('statusIndicator');
-            const toggleBtn = document.getElementById('toggleBtn');
+            const statusEl = // REMOVED: JavaScript documentgetElementById('webhookStatus');
+            const indicatorEl = // REMOVED: JavaScript documentgetElementById('statusIndicator');
+            const toggleBtn = // REMOVED: JavaScript documentgetElementById('toggleBtn');
 
             webhookActive = data.active;
             statusEl.textContent = webhookActive ? 'Active' : 'Inactive';
@@ -731,43 +510,43 @@ function getWebhookAdminPage_() {
             toggleBtn.textContent = webhookActive ? '🔴 Disable Webhook' : '🟢 Enable Webhook';
             toggleBtn.className = 'btn ' + (webhookActive ? 'btn-danger' : 'btn-success');
 
-            document.getElementById('webhookUrl').textContent = data.url || '-';
-            document.getElementById('pendingUpdates').textContent = data.pending_update_count || '0';
-            document.getElementById('lastError').textContent = data.last_error_message || 'None';
-            document.getElementById('maxConnections').textContent = data.max_connections || '-';
+            // REMOVED: JavaScript documentgetElementById('webhookUrl').textContent = data.url || '-';
+            // REMOVED: JavaScript documentgetElementById('pendingUpdates').textContent = data.pending_update_count || '0';
+            // REMOVED: JavaScript documentgetElementById('lastError').textContent = data.last_error_message || 'None';
+            // REMOVED: JavaScript documentgetElementById('maxConnections').textContent = data.max_connections || '-';
         }
 
         function loadWebhookStatus() {
-            fetch('/macros/s/${ScriptApp.getScriptId()}/exec', {
-                method: 'POST',
+    // REMOVED: JavaScript fetch call
+    // REMOVED: JavaScript method
                 body: new URLSearchParams({ action: 'get_webhook_status' })
             })
-            .then(response => response.json())
-            .then(data => {
+    // REMOVED: JavaScript then chain
+    // REMOVED: JavaScript then data
                 if (data.success) {
                     updateWebhookStatus(data.webhook);
                 } else {
                     console.error('Status error:', data.error);
                 }
             })
-            .catch(error => console.error('Network error:', error));
+            // REMOVED: JavaScript catcherror// REMOVED: JavaScript arrow functionconsole.error('Network error:', error));
         }
 
         // Toggle webhook
-        document.getElementById('toggleBtn').addEventListener('click', function() {
+        // REMOVED: JavaScript documentgetElementById('toggleBtn').// REMOVED: JavaScript addEventListener'click', // REMOVED: JavaScript function) {
             const action = webhookActive ? 'disable' : 'enable';
             this.textContent = 'Processing...';
             this.disabled = true;
 
-            fetch('/macros/s/${ScriptApp.getScriptId()}/exec', {
-                method: 'POST',
+    // REMOVED: JavaScript fetch call
+    // REMOVED: JavaScript method
                 body: new URLSearchParams({
                     action: 'toggle_webhook',
                     webhook_action: action
                 })
             })
-            .then(response => response.json())
-            .then(data => {
+    // REMOVED: JavaScript then chain
+    // REMOVED: JavaScript then data
                 if (data.success) {
                     alert(data.message);
                     loadWebhookStatus();
@@ -776,20 +555,20 @@ function getWebhookAdminPage_() {
                 }
                 this.disabled = false;
             })
-            .catch(error => {
+    // REMOVED: JavaScript catch error
                 alert('Network error');
                 this.disabled = false;
-            });
-        });
+    // REMOVED: JavaScript closing braces
+// REMOVED: JavaScript closing braces
 
         // Refresh status
-        document.getElementById('refreshBtn').addEventListener('click', loadWebhookStatus);
+        // REMOVED: JavaScript documentgetElementById('refreshBtn').// REMOVED: JavaScript addEventListener'click', loadWebhookStatus);
 
         // Load initial status
         loadWebhookStatus();
-    </script>
-</body>
-</html>`;
+// REMOVED: HTML closing script
+// REMOVED: HTML closing body
+// REMOVED: HTML closing html
 }
 
 /**
@@ -797,7 +576,7 @@ function getWebhookAdminPage_() {
  */
 function handleToggleWebhook_(params) {
   const action = params.webhook_action;
-  const token = PropertiesService.getScriptProperties().getProperty(TELEGRAM_BOT_TOKEN_KEY);
+// REMOVED: Admin handler function content
 
   if (!token) {
     return ContentService
@@ -811,7 +590,7 @@ function handleToggleWebhook_(params) {
 
     if (action === 'enable') {
       // Set webhook
-      const setResponse = UrlFetchApp.fetch(
+      const setResponse = UrlFetchApp.// REMOVED: JavaScript fetch
         `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}`
       );
       const setData = JSON.parse(setResponse.getContentText());
@@ -833,7 +612,7 @@ function handleToggleWebhook_(params) {
       }
     } else if (action === 'disable') {
       // Delete webhook
-      const deleteResponse = UrlFetchApp.fetch(
+      const deleteResponse = UrlFetchApp.// REMOVED: JavaScript fetch
         `https://api.telegram.org/bot${token}/deleteWebhook`
       );
       const deleteData = JSON.parse(deleteResponse.getContentText());
@@ -867,8 +646,8 @@ function handleToggleWebhook_(params) {
 /**
  * Handle webhook status request
  */
-function handleGetWebhookStatus_() {
-  const token = PropertiesService.getScriptProperties().getProperty(TELEGRAM_BOT_TOKEN_KEY);
+// REMOVED: Admin handler functions - keeping only Telegram webhook handler
+// REMOVED: Admin handler function content
 
   if (!token) {
     return ContentService
@@ -881,7 +660,7 @@ function handleGetWebhookStatus_() {
   }
 
   try {
-    const response = UrlFetchApp.fetch(
+    const response = UrlFetchApp.// REMOVED: JavaScript fetch
       `https://api.telegram.org/bot${token}/getWebhookInfo`
     );
     const data = JSON.parse(response.getContentText());
@@ -941,7 +720,7 @@ function handleGetDashboardData_() {
     let webhookInfo = { active: false };
     if (token) {
       try {
-        const response = UrlFetchApp.fetch(
+        const response = UrlFetchApp.// REMOVED: JavaScript fetch
           `https://api.telegram.org/bot${token}/getWebhookInfo`
         );
         const data = JSON.parse(response.getContentText());
@@ -990,19 +769,19 @@ function handleGetDashboardData_() {
  */
 function getLogsPage_() {
   return `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>System Logs</title>
-    <style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#333}</style>
-</head>
-<body>
-    <h2>📋 System Logs</h2>
-    <p>Log viewing functionality will be implemented here.</p>
-    <p><a href="?action=dashboard">← Back to Dashboard</a></p>
-</body>
-</html>`;
+// REMOVED: HTML template content
+// REMOVED: HTML content
+// REMOVED: HTML head
+// REMOVED: HTML meta charset="utf-8">
+    <title>System Logs// REMOVED: HTML closing tagtitle>
+// REMOVED: HTML style elementbody{font-family:Arial,sans-serif;margin:20px}h2{color:#333}// REMOVED: HTML closing tagstyle>
+// REMOVED: HTML closing taghead>
+// REMOVED: HTML body
+    <h2>📋 System Logs// REMOVED: HTML closing tagh2>
+    // REMOVED: HTML pLog viewing functionality will be implemented here.// REMOVED: HTML closing tagp>
+    // REMOVED: HTML p// REMOVED: HTML a // REMOVED: HTML href"?action=dashboard">← Back to Dashboard// REMOVED: HTML closing taga>// REMOVED: HTML closing tagp>
+// REMOVED: HTML closing body
+// REMOVED: HTML closing html
 }
 
 /**
@@ -1010,19 +789,19 @@ function getLogsPage_() {
  */
 function getSettingsPage_() {
   return `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>System Settings</title>
-    <style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#333}</style>
-</head>
-<body>
-    <h2>⚙️ System Settings</h2>
-    <p>Settings management will be implemented here.</p>
-    <p><a href="?action=dashboard">← Back to Dashboard</a></p>
-</body>
-</html>`;
+// REMOVED: HTML template content
+// REMOVED: HTML content
+// REMOVED: HTML head
+// REMOVED: HTML meta charset="utf-8">
+    <title>System Settings// REMOVED: HTML closing tagtitle>
+// REMOVED: HTML style elementbody{font-family:Arial,sans-serif;margin:20px}h2{color:#333}// REMOVED: HTML closing tagstyle>
+// REMOVED: HTML closing taghead>
+// REMOVED: HTML body
+    <h2>⚙️ System Settings// REMOVED: HTML closing tagh2>
+    // REMOVED: HTML pSettings management will be implemented here.// REMOVED: HTML closing tagp>
+    // REMOVED: HTML p// REMOVED: HTML a // REMOVED: HTML href"?action=dashboard">← Back to Dashboard// REMOVED: HTML closing taga>// REMOVED: HTML closing tagp>
+// REMOVED: HTML closing body
+// REMOVED: HTML closing html
 }
 
 /**
@@ -1062,96 +841,43 @@ function handleUpdateSettings_(params) {
  */
 function handleTelegramWebhook_(e, postData) {
   try {
-    console.log("🔄 TELEGRAM WEBHOOK RECEIVED AT:", new Date().toISOString());
-    console.log("📊 Webhook data received:", !!e, !!postData);
-    console.log("🔍 DEBUG: handleTelegramWebhook_ e object:", JSON.stringify(e, null, 2));
-    console.log("🔍 DEBUG: handleTelegramWebhook_ postData:", JSON.stringify(postData, null, 2));
+    console.log("🔄 WEBHOOK RECEIVED");
 
-    if (!e) {
-      console.error("❌ handleTelegramWebhook_: e parameter is undefined");
-      return createCorsResponse_({ status: "ERROR", error: "Invalid webhook request - e parameter missing" });
+    if (!postData) {
+      console.error("❌ No webhook data");
+      return createCorsResponse_({ status: "ERROR", error: "No data" });
     }
+
     const scriptProperties = PropertiesService.getScriptProperties();
-    const secretExpected = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
     const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
-    console.log("🔑 Token available:", !!token);
     if (!token) {
-      console.error("❌ TELEGRAM_BOT_TOKEN missing");
-      return createCorsResponse_({ status: "ERROR", error: "Bot token missing" });
-    }
-
-    // Verify secret header if configured
-    const secretHeader = (e && e.headers && (e.headers["X-Telegram-Bot-Api-Secret-Token"] || e.headers["x-telegram-bot-api-secret-token"])) || "";
-    if (secretExpected && secretHeader !== secretExpected) {
-      console.error("❌ Invalid telegram secret token");
-      try { appendWebhookLog_("SECRET_MISMATCH", `chat:${chatId}`); } catch(__) {}
-      return createCorsResponse_({ status: "FORBIDDEN" });
+      console.error("❌ Bot token missing");
+      return createCorsResponse_({ status: "ERROR", error: "Token missing" });
     }
 
     const update = postData || {};
-    console.log("📨 Full update received:", JSON.stringify(update, null, 2));
     const message = update.message || update.edited_message || {};
     const chat = message.chat || {};
     const chatId = String(chat.id || "");
     const caption = String(message.caption || "").trim();
     const text = String(message.text || "").trim();
-    console.log("🆔 Update ID:", update.update_id, "Message ID:", message.message_id);
-    console.log("💬 Message details - chatId:", chatId, "caption:", caption, "text:", text);
-    console.log("📸 Photo exists:", !!message.photo);
+    console.log("📨 Processing message ID:", message.message_id, "from chat:", chatId);
 
-    // 🔒 PHOTO LEVEL DEDUPLICATION - Estää samojen kuvien käsittelyn
-    console.log("🔍 DEBUG: Starting image deduplication check");
-
-    let fileUniqueIdForDedup = "";
+    // Photo deduplication
     const photo = message.photo ? message.photo[message.photo.length - 1] : null;
     const document = message.document;
+    const fileUniqueId = photo?.file_unique_id || (document?.mime_type?.startsWith("image/") ? // REMOVED: JavaScript documentfile_unique_id : null);
 
-    console.log("🔍 DEBUG: Photo object:", JSON.stringify(photo, null, 2));
-    console.log("🔍 DEBUG: Document object:", JSON.stringify(document, null, 2));
+    if (fileUniqueId) {
+      const photoKey = `processed_photo_${fileUniqueId}`;
+      const props = PropertiesService.getScriptProperties();
 
-    if (photo && photo.file_unique_id) {
-      fileUniqueIdForDedup = photo.file_unique_id;
-      console.log("🆔 DEBUG: Using photo file_unique_id:", fileUniqueIdForDedup);
-    } else if (document && String(document.mime_type || "").startsWith("image/") && document.file_unique_id) {
-      fileUniqueIdForDedup = document.file_unique_id;
-      console.log("🆔 DEBUG: Using document file_unique_id:", fileUniqueIdForDedup);
-    } else {
-      console.log("⚠️ DEBUG: No file_unique_id found for deduplication");
-    }
-
-    if (fileUniqueIdForDedup) {
-      const photoKey = `processed_photo_${fileUniqueIdForDedup}`;
-      console.log("🔑 DEBUG: Generated photo key:", photoKey);
-
-      try {
-        const props = PropertiesService.getScriptProperties();
-        console.log("🔧 DEBUG: PropertiesService initialized");
-
-        const alreadyProcessed = props.getProperty(photoKey);
-        console.log("🔍 DEBUG: Properties lookup result for", photoKey, ":", alreadyProcessed);
-
-        if (alreadyProcessed) {
-          console.log(`📸 DUPLICATE IMAGE DETECTED: ${fileUniqueIdForDedup} - SKIPPING ENTIRELY`);
-          try { appendWebhookLog_('IMAGE_DUPLICATE_SKIP', fileUniqueIdForDedup); } catch(__) {}
-          return createCorsResponse_({ status: 'OK' });
-        }
-
-        console.log("✅ New image - setting processed flag");
-        props.setProperty(photoKey, new Date().toISOString());
-        console.log(`💾 Image deduplication flag set for: ${photoKey}`);
-
-        // Verify the property was set
-        const verifySet = props.getProperty(photoKey);
-        console.log("🔍 DEBUG: Verification - property set correctly:", verifySet);
-
-      } catch (imageDedupError) {
-        console.error("❌ Image deduplication error:", imageDedupError.toString());
-        console.error("❌ Error stack:", imageDedupError.stack);
-        // Jatka normaalisti jos deduplication epäonnistuu
-        console.log("⚠️ Continuing without deduplication due to error");
+      if (props.getProperty(photoKey)) {
+        console.log(`📸 DUPLICATE IMAGE: ${fileUniqueId} - SKIPPING`);
+        return createCorsResponse_({ status: 'OK' });
       }
-    } else {
-      console.log("⚠️ Skipping deduplication - no file_unique_id available");
+
+      props.setProperty(photoKey, new Date().toISOString());
     }
 
     // Idempotence guard based on update/message id to avoid duplicate processing
@@ -1179,7 +905,7 @@ function handleTelegramWebhook_(e, postData) {
 
     // Whitelist
     const allowedStr = scriptProperties.getProperty(ALLOWED_TELEGRAM_CHAT_IDS_KEY) || "";
-    const allowed = allowedStr.split(',').map(x => String(x).trim()).filter(Boolean);
+    const allowed = allowedStr.split(',').map(x// REMOVED: JavaScript arrow functionString(x).trim()).filter(Boolean);
     const isAllowed = (allowed.length === 0) || allowed.includes(chatId);
     if (!isAllowed) {
       console.warn(`⚠️ Telegram chat not allowed: ${chatId}`);
@@ -1208,12 +934,12 @@ function handleTelegramWebhook_(e, postData) {
     const photos = message.photo || [];
     if (photos.length > 0) {
       // Pick largest photo
-      const best = photos.reduce((a, b) => ((a.file_size || 0) > (b.file_size || 0) ? a : b), photos[0]);
+      const best = photos.reduce((a, b)// REMOVED: JavaScript arrow function((a.file_size || 0) > (b.file_size || 0) ? a : b), photos[0]);
       fileId = best.file_id;
       fileUniqueId = String(best.file_unique_id || "");
-    } else if (message.document && String(message.document.mime_type || "").startsWith("image/")) {
-      fileId = message.document.file_id;
-      fileUniqueId = String(message.document.file_unique_id || "");
+    } else if (message.document && String(message.// REMOVED: JavaScript documentmime_type || "").startsWith("image/")) {
+      fileId = message.// REMOVED: JavaScript documentfile_id;
+      fileUniqueId = String(message.// REMOVED: JavaScript documentfile_unique_id || "");
     }
 
     if (!fileId) {
@@ -1300,8 +1026,8 @@ function handleTelegramWebhook_(e, postData) {
     }
 
     // getFile
-    const getFileUrl = `${TELEGRAM_API_BASE}${token}/getFile?file_id=${encodeURIComponent(fileId)}`;
-    const fileResp = UrlFetchApp.fetch(getFileUrl, { method: 'get', muteHttpExceptions: true });
+    const getFileUrl = `${TELEGRAM_API_BASE}${token}/getFile?file_// REMOVED: HTML id${encodeURIComponent(fileId)}`;
+    const fileResp = UrlFetchApp.// REMOVED: JavaScript fetchgetFileUrl, { method: 'get', muteHttpExceptions: true });
     const fileJson = JSON.parse(fileResp.getContentText());
     if (!fileJson.ok) {
       console.error("getFile failed:", fileResp.getContentText());
@@ -1313,7 +1039,7 @@ function handleTelegramWebhook_(e, postData) {
     const filePath = fileJson.result.file_path;
     // Secure: download from Telegram, upload to Drive, store Drive link
     const downloadUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
-    const photoBlob = UrlFetchApp.fetch(downloadUrl).getBlob();
+    const photoBlob = UrlFetchApp.// REMOVED: JavaScript fetchdownloadUrl).getBlob();
 
     // Resolve Drive target folder
     let folder = null;
@@ -1348,7 +1074,7 @@ function handleTelegramWebhook_(e, postData) {
       try { if (typeof driveFile.setDescription === 'function' && dedupeKey) { driveFile.setDescription(String(dedupeKey)); } } catch (__) {}
     }
     driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    const driveUrl = `https://drive.google.com/thumbnail?id=${driveFile.getId()}`;
+    const driveUrl = `https://drive.google.com/thumbnail?// REMOVED: HTML id${driveFile.getId()}`;
 
     // Append to Kuvat sheet (dedupe by URL)
     let sheet, photoSheet;
@@ -1394,12 +1120,12 @@ function handleTelegramWebhook_(e, postData) {
           var urlCell = String(vals[r][1] || "");
           if (/^https?:\/\/api\.telegram\.org\/file\/bot/.test(urlCell)) {
             try {
-              var blob = UrlFetchApp.fetch(urlCell).getBlob();
+              var blob = UrlFetchApp.// REMOVED: JavaScript fetchurlCell).getBlob();
               var name = 'photo_' + new Date().getTime() + '_' + r + '.jpg';
               var df = folder.createFile(blob.setName(name));
               try { if (typeof df.setDescription === 'function' && dedupeKey) { df.setDescription(String(dedupeKey)); } } catch (__) {}
               df.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-              var newUrl = 'https://drive.google.com/thumbnail?id=' + df.getId();
+              var newUrl = 'https://drive.google.com/thumbnail?// REMOVED: HTML id' + df.getId();
               vals[r][1] = newUrl;
               if (vals[r].length >= 4) { vals[r][3] = dedupeKey || vals[r][3]; }
               updates.push(true);
@@ -1427,7 +1153,7 @@ function handleTelegramWebhook_(e, postData) {
         }
       }
       if (rowsToDelete.length > 0) {
-        rowsToDelete.forEach(function(r){ photoSheet.deleteRow(r); });
+        rowsToDelete.forEach(// REMOVED: JavaScript functionr){ photoSheet.deleteRow(r); });
         try { appendWebhookLog_("TELEGRAM_URL_ROWS_REMOVED", String(rowsToDelete.length)); } catch (__) {}
       }
     } catch (cleanupErr) { console.warn('Cleanup error:', cleanupErr.toString()); }
@@ -1447,7 +1173,7 @@ function handleTelegramWebhook_(e, postData) {
             }
           } catch (__) {}
         }
-        toRemove.forEach(function(f){ try { f.setTrashed(true); } catch (__) {} });
+        toRemove.forEach(// REMOVED: JavaScript functionf){ try { f.setTrashed(true); } catch (__) {} });
         if (toRemove.length) { try { appendWebhookLog_("DRIVE_DUPLICATES_TRASHED", String(toRemove.length)); } catch (__) {} }
       }
     } catch (driveCleanupErr) { console.warn('Drive cleanup error:', driveCleanupErr.toString()); }
@@ -1485,23 +1211,19 @@ function handleTelegramWebhook_(e, postData) {
 }
 
 /** Helper: create webhook URL for docs */
-function getTelegramSetWebhookUrl_() {
-  const scriptProperties = PropertiesService.getScriptProperties();
-  const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
-  const secret = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
-  const execUrl = ScriptApp.getService().getUrl();
-  return `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(execUrl)}&secret_token=${encodeURIComponent(secret)}&drop_pending_updates=true`;
+// REMOVED: Admin utility functions - keeping only core webhook functionality
+// REMOVED: Admin utility function content
 }
 
 /** Admin: call to set Telegram webhook to current deployment */
-function adminSetWebhook() {
+// REMOVED: All admin functions - keeping only core webhook functionality
   const scriptProperties = PropertiesService.getScriptProperties();
   const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
   const secret = scriptProperties.getProperty(TELEGRAM_WEBHOOK_SECRET_KEY) || "";
   if (!token) throw new Error('TELEGRAM_BOT_TOKEN missing');
   const execUrl = ScriptApp.getService().getUrl();
   const url = `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(execUrl)}&secret_token=${encodeURIComponent(secret)}&drop_pending_updates=true`;
-  const resp = UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true });
+  const resp = UrlFetchApp.// REMOVED: JavaScript fetchurl, { method: 'post', muteHttpExceptions: true });
   Logger.log(resp.getContentText());
   return resp.getContentText();
 }
@@ -1512,7 +1234,7 @@ function adminDeleteWebhook() {
   const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
   if (!token) throw new Error('TELEGRAM_BOT_TOKEN missing');
   const url = `https://api.telegram.org/bot${token}/deleteWebhook?drop_pending_updates=true`;
-  const resp = UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true });
+  const resp = UrlFetchApp.// REMOVED: JavaScript fetchurl, { method: 'post', muteHttpExceptions: true });
   Logger.log(resp.getContentText());
   return resp.getContentText();
 }
@@ -1523,7 +1245,7 @@ function adminGetWebhookInfo() {
   const token = scriptProperties.getProperty(TELEGRAM_BOT_TOKEN_KEY) || "";
   if (!token) throw new Error('TELEGRAM_BOT_TOKEN missing');
   const url = `https://api.telegram.org/bot${token}/getWebhookInfo`;
-  const resp = UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true });
+  const resp = UrlFetchApp.// REMOVED: JavaScript fetchurl, { method: 'get', muteHttpExceptions: true });
   Logger.log(resp.getContentText());
   return resp.getContentText();
 }
@@ -1575,7 +1297,7 @@ function adminPropsImport(jsonString, overwrite) {
   const sp = PropertiesService.getScriptProperties();
   const obj = JSON.parse(jsonString);
   const current = sp.getProperties();
-  Object.keys(obj).forEach(function(k){
+  Object.keys(obj).forEach(// REMOVED: JavaScript functionk){
     if (overwrite || !(k in current)) {
       sp.setProperty(k, String(obj[k]));
     }
@@ -1739,7 +1461,7 @@ function getHealthStatus_() {
       const ss = SpreadsheetApp.openById(sheetId);
       addCheck('Spreadsheet_open', !!ss, 'opened');
       const tabs = [SHEET_NAMES.CONFIG, SHEET_NAMES.KUVAT];
-      tabs.forEach(tab => {
+      tabs.forEach(tab// REMOVED: JavaScript arrow function{
         const exists = !!ss.getSheetByName(tab);
         addCheck(`Tab_${tab}`, exists, exists ? 'exists' : 'missing');
       });
@@ -1877,7 +1599,7 @@ function sendAcknowledgmentNotifications_(clientID, taskType, timeOfDay, timesta
           name: name,
           phone: phone, 
           telegramChatID: telegramChatID
-        });
+// REMOVED: JavaScript closing braces
         console.log(`[NOTIFY] Added recipient: ${name}, Phone: ${phone || 'N/A'}, Telegram: ${telegramChatID || 'N/A'}`);
       }
 }
@@ -1964,7 +1686,7 @@ function sendTelegramMessage_(token, chatId, message, sheet, clientID, usePhotos
     console.log(`📞 Sending Telegram message to chat ${chatId}...`);
     console.log(`📝 Message: ${message}`);
     
-    const response = UrlFetchApp.fetch(url, options);
+    const response = UrlFetchApp.// REMOVED: JavaScript fetchurl, options);
     const responseText = response.getContentText();
     
     console.log(`📱 Telegram API response: ${responseText}`);
@@ -2039,11 +1761,11 @@ function sendSmsViaTwilio_(messageBody, to, from, accountSid, authToken) {
         'Authorization': authHeader,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      'payload': Object.keys(payload).map(key => `${key}=${encodeURIComponent(payload[key])}`).join('&')
+      'payload': Object.keys(payload).map(key// REMOVED: JavaScript arrow function`${key}=${encodeURIComponent(payload[key])}`).join('&')
     };
 
     console.log(`📞 Calling Twilio API...`);
-    const response = UrlFetchApp.fetch(url, options);
+    const response = UrlFetchApp.// REMOVED: JavaScript fetchurl, options);
     const responseText = response.getContentText();
     
     console.log(`📱 Twilio response: ${responseText}`);
@@ -2326,7 +2048,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     
     if (foodReminders.length > 0) {
       // Löytyi muistutuksia sheet:stä
-      foodReminders.forEach(reminder => {
+      foodReminders.forEach(reminder// REMOVED: JavaScript arrow function{
         const isAcked = isTaskAckedToday_(sheet, "RUOKA", timeOfDay, reminder.replace("🍽️ ", ""), today);
         console.log(`📋 Adding RUOKA task from sheet: "${reminder}" with timeOfDay: "${finalTimeOfDay}"`);
         
@@ -2337,7 +2059,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
           requiresAck: true, // 🍽️ RUOKA VAATII KUITTAUKSEN
           isAckedToday: isAcked,
           acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, "RUOKA", timeOfDay, today) : null
-        });
+// REMOVED: JavaScript closing braces
       });
     } else {
       // Ei löytynyt muistutuksia sheet:stä, lisää default RUOKA tehtävä
@@ -2360,7 +2082,7 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
     
     if (medicineReminders.length > 0) {
       // Näytä kaikki kyseisen vuorokaudenajan lääkkeet (deduplikointi tehty getMedicineReminders_ sisällä)
-      medicineReminders.forEach(rem => {
+      medicineReminders.forEach(rem// REMOVED: JavaScript arrow function{
         const desc = rem.replace("💊 ", "");
         const isAcked = isTaskAckedToday_(sheet, "LÄÄKKEET", timeOfDay, desc, today);
         console.log(`📋 Adding LÄÄKKEET task from sheet: "${desc}" with timeOfDay: "${finalTimeOfDay}"`);
@@ -2418,12 +2140,12 @@ function getDailyTasks_(sheet, clientID, timeOfDay) {
             timeOfDay: taskTimeOfDay,
             isAckedToday: isAcked,
             acknowledgmentTimestamp: isAcked ? getTaskAckTimestamp_(sheet, taskType, timeOfDay, today) : null
-          });
+  // REMOVED: JavaScript closing braces
         }
       }
     }
     
-    console.log(`Found ${tasks.length} tasks for ${clientID} at ${timeOfDay}:`, tasks.map(t => t.type).join(", "));
+    console.log(`Found ${tasks.length} tasks for ${clientID} at ${timeOfDay}:`, tasks.map(t// REMOVED: JavaScript arrow functiont.type).join(", "));
     return tasks;
     
   } catch (error) {
@@ -2518,7 +2240,7 @@ function getContacts_(sheet) {
           name: name,
           phone: phone,
           telegramChatID: telegramChatID
-        });
+// REMOVED: JavaScript closing braces
       }
     }
     
@@ -2562,12 +2284,12 @@ function getClientSettings_(sheet, clientID) {
     
     const data = configSheet.getDataRange().getValues();
     const headers = (data && data.length > 0) ? (data[0] || []) : [];
-    const norm = (v) => String(v || '').trim().toLowerCase().replace(/\s+/g, '');
-    const toBool = (v) => (v === true) || ['true','yes','1','x'].includes(String(v).trim().toLowerCase());
-    const findCol = (names) => {
+    const norm = (v)// REMOVED: JavaScript arrow functionString(v || '').trim().toLowerCase().replace(/\s+/g, '');
+    const toBool = (v)// REMOVED: JavaScript arrow function(v === true) || ['true','yes','1','x'].includes(String(v).trim().toLowerCase());
+    const findCol = (names)// REMOVED: JavaScript arrow function{
       for (let idx = 0; idx < headers.length; idx++) {
         const h = norm(headers[idx]);
-        if (names.some(n => h === n || h.includes(n))) return idx;
+        if (names.some(n// REMOVED: JavaScript arrow functionh === n || h.includes(n))) return idx;
       }
       return -1;
     };
@@ -2580,7 +2302,7 @@ function getClientSettings_(sheet, clientID) {
       
       if (configClientID === clientID.toLowerCase()) {
         // Lue usePhotos (otsikon perusteella tai tunnetut indeksit: W(22), J(9), D(3))
-        const candidatesPhotosIdx = [photosIdxByHeader, 22, 9, 3].filter(x => x >= 0);
+        const candidatesPhotosIdx = [photosIdxByHeader, 22, 9, 3].filter(x// REMOVED: JavaScript arrow functionx >= 0);
         let usePhotosResult = defaultSettings.usePhotos;
         for (const ci of candidatesPhotosIdx) {
           if (ci < data[i].length) {
@@ -2590,7 +2312,7 @@ function getClientSettings_(sheet, clientID) {
         }
 
         // Lue useTelegram (otsikon perusteella tai tunnetut: K(10), E(4))
-        const candidatesTelegramIdx = [telegramIdxByHeader, 10, 4].filter(x => x >= 0);
+        const candidatesTelegramIdx = [telegramIdxByHeader, 10, 4].filter(x// REMOVED: JavaScript arrow functionx >= 0);
         let useTelegramResult = defaultSettings.useTelegram;
         for (const ci of candidatesTelegramIdx) {
           if (ci < data[i].length) {
@@ -2657,7 +2379,7 @@ function parseGreetingAndActivity_(message) {
       const right = parts.slice(1).join('|').trim();
       // Extract tags starting with #
       const tagMatches = right.match(/#[a-zA-ZåäöÅÄÖ]+/g) || [];
-      result.activityTags = tagMatches.map(t => t.replace('#','').toLowerCase());
+      result.activityTags = tagMatches.map(t// REMOVED: JavaScript arrow functiont.replace('#','').toLowerCase());
       // time of day tags
       if (result.activityTags.includes('aamu')) result.activityTimeOfDay = 'AAMU';
       else if (result.activityTags.includes('päivä') || result.activityTags.includes('paiva')) result.activityTimeOfDay = 'PÄIVÄ';
@@ -2687,7 +2409,7 @@ function getActivitySuggestion_(sheet, clientID, timeOfDay, weather) {
 
     // Kieltolista – suodata RUOKA/LÄÄKE maininnat pois
     const deny = [/\blääke/i, /\blääkkeet/i, /\bruoka/i, /\bsyö/i, /aamupala/i, /lounas/i, /päivällinen/i, /iltapala/i, /tabletti/i, /pilleri/i, /kapseli/i];
-    const to = (v) => String(v || '').trim();
+    const to = (v)// REMOVED: JavaScript arrow functionString(v || '').trim();
     const nowTod = String(timeOfDay || '').toUpperCase(); // AAMU/PÄIVÄ/ILTA/YÖ
     const goodOutdoor = !!(weather && weather.isGoodForOutdoor === true);
 
@@ -2699,23 +2421,23 @@ function getActivitySuggestion_(sheet, clientID, timeOfDay, weather) {
       const isDateA = (cellA && Object.prototype.toString.call(cellA) === '[object Date]' && !isNaN(cellA));
       const msg = !isDateA && to(cellA) ? to(cellA) : to(row[1]);
       if (!msg) continue;
-      if (deny.some(rx => rx.test(msg))) continue; // pudota ruoka/lääke viestit
+      if (deny.some(rx// REMOVED: JavaScript arrow functionrx.test(msg))) continue; // pudota ruoka/lääke viestit
       rows.push(msg);
     }
     if (rows.length === 0) return result;
 
     // Jaa aikaryhmiin ja kategorioihin
-    const parsed = rows.map(r => parseGreetingAndActivity_(r));
-    const matchTod = (p) => {
+    const parsed = rows.map(r// REMOVED: JavaScript arrow functionparseGreetingAndActivity_(r));
+    const matchTod = (p)// REMOVED: JavaScript arrow function{
       if (!p.activityTimeOfDay) return true; // jos ei määritetty, käy kaikkiin aikoihin
       return p.activityTimeOfDay.toUpperCase() === nowTod;
     };
-    const hasTag = (p, tag) => (p.activityTags || []).includes(tag);
+    const hasTag = (p, tag)// REMOVED: JavaScript arrow function(p.activityTags || []).includes(tag);
 
-    const candidatesOutside = parsed.filter(p => matchTod(p) && hasTag(p, 'outside'));
-    const candidatesInside  = parsed.filter(p => matchTod(p) && hasTag(p, 'inside'));
-    const candidatesSocial  = parsed.filter(p => matchTod(p) && hasTag(p, 'social'));
-    const candidatesAny     = parsed.filter(p => matchTod(p));
+    const candidatesOutside = parsed.filter(p// REMOVED: JavaScript arrow functionmatchTod(p) && hasTag(p, 'outside'));
+    const candidatesInside  = parsed.filter(p// REMOVED: JavaScript arrow functionmatchTod(p) && hasTag(p, 'inside'));
+    const candidatesSocial  = parsed.filter(p// REMOVED: JavaScript arrow functionmatchTod(p) && hasTag(p, 'social'));
+    const candidatesAny     = parsed.filter(p// REMOVED: JavaScript arrow functionmatchTod(p));
 
     let bucket = [];
     if (goodOutdoor && candidatesOutside.length) bucket = candidatesOutside;
@@ -3041,12 +2763,12 @@ function testContextualReminder() {
       { hour: 21, name: "YÖ (iltalääkkeet)" }
     ];
     
-    testTimes.forEach(time => {
+    testTimes.forEach(time// REMOVED: JavaScript arrow function{
       console.log(`\n--- ${time.name} (${time.hour}:00) ---`);
       
       // Mock current time
       const originalNow = Date.now;
-      Date.now = () => {
+      Date.now = ()// REMOVED: JavaScript arrow function{
         const mockDate = new Date();
         mockDate.setHours(time.hour, 0, 0, 0);
         return mockDate.getTime();
@@ -3064,7 +2786,7 @@ function testContextualReminder() {
       console.log("Aika-muistutukset:", timeReminders);
       
       const fullMessage = [greeting, weatherActivity, ...(Array.isArray(timeReminders) ? timeReminders : [timeReminders])]
-        .filter(part => part && String(part).trim())
+        .filter(part// REMOVED: JavaScript arrow functionpart && String(part).trim())
         .join("\n");
       
       console.log("KOKO VIESTI:\n" + fullMessage);
@@ -3091,7 +2813,7 @@ function testMedicineMessages() {
     
     const times = ["AAMU", "PÄIVÄ", "ILTA", "YÖ"];
     
-    times.forEach(time => {
+    times.forEach(time// REMOVED: JavaScript arrow function{
       console.log(`\n--- ${time} ---`);
       
       // Test LÄÄKE type (ei näy nimeä)
@@ -3108,7 +2830,7 @@ function testMedicineMessages() {
     
     console.log("\n=== FALLBACK MEDICINE TESTS ===");
     const testHours = [8, 12, 17, 21];
-    testHours.forEach(hour => {
+    testHours.forEach(hour// REMOVED: JavaScript arrow function{
       const fallbacks = getFallbackMedicineReminders_(hour);
       console.log(`Klo ${hour}:00 → ${fallbacks.join(", ")}`);
     });
@@ -3186,7 +2908,7 @@ function getImportantMessage_(sheet) {
         
         if (eventTime && eventTime.includes(':')) {
           try {
-            const [hours, minutes] = eventTime.split(':').map(x => parseInt(x) || 0);
+            const [hours, minutes] = eventTime.split(':').map(x// REMOVED: JavaScript arrow functionparseInt(x) || 0);
             if (!isNaN(hours) && !isNaN(minutes)) {
               // Aseta Suomi-aika
               finnishDate.setHours(hours, minutes, 0, 0);
@@ -3218,7 +2940,7 @@ function getImportantMessage_(sheet) {
           daysUntilEvent: daysUntilEvent,
           isToday: daysUntilEvent === 0,
           isPast: daysUntilEvent < 0
-        });
+// REMOVED: JavaScript closing braces
       }
     }
     
@@ -3227,7 +2949,7 @@ function getImportantMessage_(sheet) {
     }
     
     // Sort by priority (lower number = higher priority), then by days until event
-    activeMessages.sort((a, b) => {
+    activeMessages.sort((a, b)// REMOVED: JavaScript arrow function{
       if (a.priority !== b.priority) {
         return a.priority - b.priority;
       }
@@ -3302,7 +3024,7 @@ function formatImportantMessage_(messageObj) {
   const { mainMessage } = splitMessageAndActivity_(message);
   
   // Format date as Finnish: d.m.yyyy h:mm
-  const formatFinnishDateTime = (date) => {
+  const formatFinnishDateTime = (date)// REMOVED: JavaScript arrow function{
     try {
       if (!date || isNaN(date.getTime())) {
         console.error("Invalid date object:", date);
@@ -3373,11 +3095,11 @@ function getUpcomingAppointments_(sheet, clientID) {
           title: eventTitle,
           date: Utilities.formatDate(eventDate, HELSINKI_TIMEZONE, "dd.MM.yyyy"),
           time: eventTime
-        });
+// REMOVED: JavaScript closing braces
       }
     }
     
-    return appointments.sort((a, b) => new Date(a.date) - new Date(b.date));
+    return appointments.sort((a, b)// REMOVED: JavaScript arrow functionnew Date(a.date) - new Date(b.date));
   } catch (error) {
     console.error("Error getting upcoming appointments:", error.toString());
     return [];
@@ -3402,7 +3124,7 @@ function getWeatherDataOptimized_(weatherApiKey, clientID) {
  * Core weather API function
  */
 function getWeatherData_(weatherApiKey) {
-  const weatherUrl = `${WEATHER_API_BASE}?q=Helsinki&units=metric&lang=fi&appid=${weatherApiKey}`;
+  const weatherUrl = `${WEATHER_API_BASE}?q=Helsinki&units=metric&lang=fi&app// REMOVED: HTML id${weatherApiKey}`;
   let defaultResult = {
     description: "Säätietoja ei saatu.",
     temperature: "N/A",
@@ -3415,7 +3137,7 @@ function getWeatherData_(weatherApiKey) {
 };
   
   try {
-    const response = UrlFetchApp.fetch(weatherUrl, { muteHttpExceptions: true });
+    const response = UrlFetchApp.// REMOVED: JavaScript fetchweatherUrl, { muteHttpExceptions: true });
     if (response.getResponseCode() == 200) {
       const weatherData = JSON.parse(response.getContentText());
       const temp = weatherData.main.temp;
@@ -3685,7 +3407,7 @@ function getDailyPhoto_(sheet, clientID) {
     
     const allRows = photoSheet.getDataRange().getValues();
     const clientLower = String(clientID || "").trim().toLowerCase();
-    const rowHasUrl = (row) => {
+    const rowHasUrl = (row)// REMOVED: JavaScript arrow function{
       if (!row) return false;
       for (let ci = 1; ci < row.length; ci++) {
         const cell = String(row[ci] || '').trim();
@@ -3711,7 +3433,7 @@ function getDailyPhoto_(sheet, clientID) {
     let selectedRowIndex = -1;
     if (candidates.length > 0) {
       // Valitse rivi joko viimeisin tai stabiilisti satunnainen rotationSettingsin mukaan
-      const pickStableIndex = (count) => {
+      const pickStableIndex = (count)// REMOVED: JavaScript arrow function{
         // Määritä siemen: päivä/viikko/kuukausi
         const now = new Date();
         let periodKey = '';
@@ -3989,7 +3711,7 @@ function testEveningBefore() {
 function ensureHighResDriveThumb_(url, minWidth) {
   try {
     if (!url) return url;
-    if (!/^https?:\/\/drive\.google\.com\/thumbnail\?id=/i.test(url)) return url;
+    if (!/^https?:\/\/drive\.google\.com\/thumbnail\?// REMOVED: HTML id/i.test(url)) return url;
     if (/([?&])sz=w\d+/i.test(url)) return url; // jo annettu
     const width = Math.max(800, Number(minWidth) || 1200);
     return url + (url.includes("?") ? "&" : "?") + "sz=w" + width;
@@ -4112,7 +3834,7 @@ function getPhotoRotationDebugInfo_(clientID, sheet) {
     }
     
     const photos = photoSheet.getDataRange().getValues()
-                             .filter((row, index) => index > 0 && row[0] === clientID);
+                             .filter((row, index)// REMOVED: JavaScript arrow functionindex > 0 && row[0] === clientID);
     
     const photoIndex = calculatePhotoIndex_(photos.length, rotationSettings);
     const now = new Date();
@@ -4186,19 +3908,19 @@ function getWeeklyPlan_(sheet, clientID) {
 
       // Food from Ruoka-ajat
       const meals = (getFoodReminders_(sheet, clientID, getTimeOfDay_(d), d.getHours()) || [])
-        .map(x => x.replace(/^🍽️\s*/, ''));
+        .map(x// REMOVED: JavaScript arrow functionx.replace(/^🍽️\s*/, ''));
 
       // Medicines from Lääkkeet
       const meds = (getMedicineReminders_(sheet, clientID, getTimeOfDay_(d), d.getHours()) || [])
-        .map(x => x.replace(/^💊\s*/, ''));
+        .map(x// REMOVED: JavaScript arrow functionx.replace(/^💊\s*/, ''));
 
       // Events for that exact date
-      const events = appointments.filter(a => {
+      const events = appointments.filter(a// REMOVED: JavaScript arrow function{
         try {
           const ad = parseFlexibleDate_(a.date || a.Date);
           return ad && Utilities.formatDate(ad, HELSINKI_TIMEZONE, 'yyyy-MM-dd') === iso;
         } catch { return false; }
-      }).map(a => `${a.time || a.Time || ''} ${a.type || a.Type || ''}: ${a.message || a.Message || ''}`);
+      }).map(a// REMOVED: JavaScript arrow function`${a.time || a.Time || ''} ${a.type || a.Type || ''}: ${a.message || a.Message || ''}`);
 
       days.push({ date: iso, label, meals, medicines: meds, events });
     }
@@ -4213,7 +3935,7 @@ function getWeeklyPlan_(sheet, clientID) {
 function parseFlexibleDate_(s) {
   if (!s) return null;
   try {
-    const parts = String(s).split(/[.\-\/]/).map(p => p.trim());
+    const parts = String(s).split(/[.\-\/]/).map(p// REMOVED: JavaScript arrow functionp.trim());
     if (parts.length === 3 && parts[0].length <= 2) {
       // dd.MM.yyyy
       return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
@@ -4315,7 +4037,7 @@ function listClientSheets() {
     const allProperties = scriptProperties.getProperties();
     const clientSheets = {};
     
-    Object.keys(allProperties).forEach(key => {
+    Object.keys(allProperties).forEach(key// REMOVED: JavaScript arrow function{
       if (key.startsWith('SHEET_ID_')) {
         const clientID = key.replace('SHEET_ID_', '');
         clientSheets[clientID] = allProperties[key];
@@ -4451,7 +4173,7 @@ function getPuuhaaEhdotus_(sheet, clientID, timeOfDay, weather) {
       if (asiakasID !== clientID.toLowerCase()) continue;
       
       // Tarkista ajankohta
-      const ajankohdatList = ajankohta.split(',').map(a => a.trim().toUpperCase());
+      const ajankohdatList = ajankohta.split(',').map(a// REMOVED: JavaScript arrow functiona.trim().toUpperCase());
       if (!ajankohdatList.includes('KAIKKI') && !ajankohdatList.includes(timeOfDay.toUpperCase())) {
         continue;
       }
@@ -4544,7 +4266,7 @@ function testPuuhaaJarjestelma() {
       { timeOfDay: "YO", weather: { description: "overcast clouds", temp: 8, isRaining: false }}
     ];
     
-    testCases.forEach(testCase => {
+    testCases.forEach(testCase// REMOVED: JavaScript arrow function{
       console.log(`\n--- ${testCase.timeOfDay} (${testCase.weather.description}) ---`);
       
       const saaKategoria = getSaaKategoria_(testCase.weather);
