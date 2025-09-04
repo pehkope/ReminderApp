@@ -1,22 +1,25 @@
 {
-  "name": "reminderapp-azure",
+  "name": "reminderapp-functions",
   "version": "1.0.0",
-  "description": "ReminderApp Azure Functions backend",
-  "main": "azure-function-template.js",
+  "description": "ReminderApp Azure Functions backend with Cosmos DB",
+  "main": "azure-functions-cosmos-config.js",
   "scripts": {
     "start": "func start",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "build": "echo \"No build step required\" && exit 0"
   },
   "dependencies": {
-    "@azure/functions": "^4.0.0"
+    "@azure/functions": "^4.0.0",
+    "@azure/cosmos": "^4.0.0",
+    "twilio": "^4.19.0"
   },
   "devDependencies": {
     "azure-functions-core-tools": "^4.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
-  "keywords": ["azure-functions", "reminder", "weather", "api"],
+  "keywords": ["azure-functions", "reminder", "weather", "cosmosdb", "api"],
   "author": "ReminderApp",
   "license": "MIT"
 }
