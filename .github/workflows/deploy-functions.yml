@@ -1,15 +1,26 @@
-name: deploy-functions
+name: Deploy Functions (Node.js)
 on:
   push:
-    branches: [ master ]
+    branches: [ main, master ]
+    paths:
+      - 'azure-functions-*.js'
+      - 'test-*-api.js'
+      - 'simple-test-function.js'
+      - 'host.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.funcignore'
+      - '.github/workflows/deploy-functions.yml'
+      - 'local.settings.json'
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      AZURE_FUNCTIONAPP_NAME: remindergasproxy-f9exfrbyfsend9bh   # päivitä jos eri
-      AZURE_RESOURCE_GROUP: <RG_NAME>                             # päivitä
+      AZURE_FUNCTIONAPP_NAME: reminderapp-functions
+      AZURE_RESOURCE_GROUP: ReminderApp_RG
+      NODE_VERSION: '20.x'
     steps:
       - uses: actions/checkout@v4
 
@@ -18,26 +29,46 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          dotnet-version: 8.0.x
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Publish Functions
-        working-directory: GasProxyFunctions
-        run: dotnet publish -c Release -o ./publish
+      - name: Install dependencies
+        run: npm ci
 
       - name: Zip package
-        working-directory: GasProxyFunctions/publish
         run: |
-          zip -r ../../deploy.zip .
+          echo "Creating deployment package..."
+          zip -r deploy.zip \
+            simple-test-function.js \
+            host.json \
+            package.json \
+            package-lock.json \
+            .funcignore \
+            -x "*.git*" "*.md" "*.log" "*debug*"
+          echo "Package contents:"
+          unzip -l deploy.zip
 
       - name: Zip deploy
         run: |
           az functionapp deployment source config-zip \
-            -g $AZURE_RESOURCE_GROUP \
-            -n $AZURE_FUNCTIONAPP_NAME \
-            --src GasProxyFunctions/deploy.zip
+            -g ${{ env.AZURE_RESOURCE_GROUP }} \
+            -n ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --src deploy.zip
 
       - name: Restart Function App
-        run: az functionapp restart -g $AZURE_RESOURCE_GROUP -n $AZURE_FUNCTIONAPP_NAME
+        run: az functionapp restart -g ${{ env.AZURE_RESOURCE_GROUP }} -n ${{ env.AZURE_FUNCTIONAPP_NAME }}
+
+      - name: Test API endpoints
+        run: |
+          echo "Testing Simple Test Function..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" "https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/test")
+          if [ "$response" -eq 200 ]; then
+            echo "✅ Simple Test Function works! (HTTP $response)"
+            echo "🎉 Basic deployment successful!"
+          else
+            echo "❌ Simple Test Function failed (HTTP $response)"
+            exit 1
+          fi
