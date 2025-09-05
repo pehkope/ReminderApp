@@ -1,4 +1,4 @@
-name: Deploy Functions (Node.js)
+name: DEPRECATED - Deploy Functions (Node.js)
 on:
   push:
     branches: [ main, master ]

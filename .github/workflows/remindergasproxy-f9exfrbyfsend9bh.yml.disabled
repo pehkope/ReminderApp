@@ -1,4 +1,4 @@
-name: deploy-functions
+name: DEPRECATED - deploy-functions
 on:
   push:
     branches: [ master ] #vaihda jos käytät muuta branchia
