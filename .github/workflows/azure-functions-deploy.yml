@@ -21,8 +21,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies (prod)
-        run: npm ci --omit=dev
+      - name: Show Node & npm versions
+        run: |
+          node -v
+          npm -v
+
+      - name: Install dependencies (no lockfile strict)
+        run: |
+          npm install --omit=dev --no-audit --no-fund
+          npm ls --depth=0 || true
 
       - name: Create deploy artifact
         run: |
