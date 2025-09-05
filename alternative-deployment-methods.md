@@ -105,7 +105,7 @@ https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.ne
 ```json
 {
   "success": true,
-  "message": "Minimal test function works!!!!",
+  "message": "Minimal test function works!!!",
   "function": "MinimalTest"
 }
 ```
