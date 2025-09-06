@@ -2,7 +2,7 @@
   "name": "reminderapp-functions",
   "version": "1.0.0",
   "description": "ReminderApp Azure Functions backend with Cosmos DB",
-  "main": "azure-functions-cosmos-config.js",
+  "main": "index.js",
   "scripts": {
     "start": "func start",
     "test": "echo \"No tests specified\" && exit 0",
