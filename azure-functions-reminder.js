@@ -18,7 +18,7 @@ const cosmosClient = new CosmosClient({
   key: COSMOS_KEY
 });
 
-// Default configuration template
+// Default configuration template 
 const DEFAULT_CONFIG = {
   useWeather: true,
   usePhotos: true,
