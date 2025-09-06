@@ -131,3 +131,4 @@ https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.ne
 
 **Testataan deployment tällä tavalla!** ✅
 
+
