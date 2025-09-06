@@ -56,6 +56,15 @@ jobs:
           name: functionapp
           path: .
 
+      - name: Echo app name
+        run: echo "$AZURE_FUNCTIONAPP_NAME"
+
+      - name: Assert publish profile secret exists
+        run: |
+          if [ -z "${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}" ]; then
+            echo "Missing AZURE_FUNCTIONAPP_PUBLISH_PROFILE" && exit 1
+          fi
+
       - name: Deploy with publish profile
         uses: Azure/functions-action@v1
         with:
