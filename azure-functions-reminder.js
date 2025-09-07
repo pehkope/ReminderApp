@@ -12,11 +12,18 @@ const COSMOS_KEY = process.env.COSMOS_KEY || '';
 const DATABASE_ID = process.env.COSMOS_DATABASE || 'ReminderAppDB';
 const CONTAINER_ID = process.env.COSMOS_CONTAINER || 'Reminders';
 
-// Initialize Cosmos client
-const cosmosClient = new CosmosClient({
-  endpoint: COSMOS_ENDPOINT,
-  key: COSMOS_KEY
-});
+// Lazy Cosmos client to avoid startup failures when settings missing
+let cosmosClient = null;
+function ensureCosmosClient() {
+  if (cosmosClient) return cosmosClient;
+  if (!COSMOS_ENDPOINT || !COSMOS_KEY) return null;
+  try {
+    cosmosClient = new CosmosClient({ endpoint: COSMOS_ENDPOINT, key: COSMOS_KEY });
+    return cosmosClient;
+  } catch (e) {
+    return null;
+  }
+}
 
 // Default configuration template 
 const DEFAULT_CONFIG = {
@@ -32,17 +39,19 @@ const DEFAULT_CONFIG = {
 app.http('ReminderAPI', {
   methods: ['GET', 'POST'],
   authLevel: 'anonymous',
-  route: 'api/ReminderAPI',
+  route: 'ReminderAPI',
   handler: async (request, context) => {
     try {
       context.log(`Processing request for ${request.method} ${request.url}`);
+      context.log('Deployment Center test - API working!');
 
       const clientID = request.query.get('clientID') || 'default';
       context.log(`Client ID: ${clientID}`);
 
-      // Get Cosmos DB container
-      const database = cosmosClient.database(DATABASE_ID);
-      const container = database.container(CONTAINER_ID);
+      // Get Cosmos DB container (if configured)
+      const client = ensureCosmosClient();
+      const database = client ? client.database(DATABASE_ID) : null;
+      const container = database ? database.container(CONTAINER_ID) : null;
 
       // Handle different HTTP methods
       if (request.method === 'GET') {
@@ -57,8 +66,11 @@ app.http('ReminderAPI', {
           ]
         };
 
-        const { resources: reminders } = await container.items.query(querySpec).fetchAll();
-
+        let reminders = [];
+        if (container) {
+          const result = await container.items.query(querySpec).fetchAll();
+          reminders = result.resources || [];
+        }
         return {
           status: 200,
           jsonBody: {
@@ -66,7 +78,8 @@ app.http('ReminderAPI', {
             clientID: clientID,
             reminders: reminders,
             count: reminders.length,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            storage: container ? 'cosmos' : 'in-memory'
           }
         };
 
@@ -83,8 +96,17 @@ app.http('ReminderAPI', {
           updatedAt: new Date().toISOString()
         };
 
+        if (!container) {
+          return {
+            status: 501,
+            jsonBody: {
+              success: false,
+              message: 'Cosmos DB not configured',
+              timestamp: new Date().toISOString()
+            }
+          };
+        }
         const { resource: createdReminder } = await container.items.create(reminder);
-
         return {
           status: 201,
           jsonBody: {
