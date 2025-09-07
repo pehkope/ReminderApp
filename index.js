@@ -1,4 +1,10 @@
-// Bootstrap all function registrations
+/**
+ * Azure Functions Entry Point
+ * This file exports all function definitions
+ */
+
+// Import all function modules
 require('./azure-functions-reminder.js');
-try { require('./minimal-test-function.js'); } catch (_) {}
-try { require('./simple-test-function.js'); } catch (_) {}
+
+// Entry point is ready - functions are registered via app.http() calls in imported modules
+console.log('Azure Functions runtime initialized');
