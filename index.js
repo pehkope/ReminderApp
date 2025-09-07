@@ -3,8 +3,11 @@
  * This file exports all function definitions
  */
 
-// Import all function modules
+// Import and re-export all function modules
+const { app } = require('@azure/functions');
+
+// Import function definitions (they register themselves via app.http())
 require('./azure-functions-reminder.js');
 
-// Entry point is ready - functions are registered via app.http() calls in imported modules
-console.log('Azure Functions runtime initialized');
+// Export the app instance
+module.exports = app;
