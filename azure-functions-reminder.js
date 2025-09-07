@@ -43,7 +43,7 @@ app.http('ReminderAPI', {
   handler: async (request, context) => {
     try {
       context.log(`Processing request for ${request.method} ${request.url}`);
-      context.log('Deployment Center test - API working!');
+      context.log('WEBSITE_RUN_FROM_PACKAGE removed - ZIP deploy test!');
 
       const clientID = request.query.get('clientID') || 'default';
       context.log(`Client ID: ${clientID}`);
