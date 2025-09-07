@@ -1,13 +1,8 @@
 /**
- * Azure Functions Entry Point
- * This file exports all function definitions
+ * Azure Functions Entry Point - Traditional Model
+ * Using function.json approach only
  */
 
-// Import and re-export all function modules
-const { app } = require('@azure/functions');
-
-// Import function definitions (they register themselves via app.http())
-require('./azure-functions-reminder.js');
-
-// Export the app instance
-module.exports = app;
+// This file is not needed for traditional function.json model
+// All functions are in their own directories with function.json
+console.log('Azure Functions traditional model - entry point loaded');
