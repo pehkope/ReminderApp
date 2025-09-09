@@ -11,6 +11,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // Load configuration from appsettings.json
 var appConfig = new AppConfig();
 builder.Configuration.Bind(appConfig);
+Console.WriteLine($"🔧 PWA Config loaded - BaseUrl: '{appConfig.ApiSettings.BaseUrl}'");
+Console.WriteLine($"🔧 PWA Config loaded - GasDirectUrl: '{appConfig.ApiSettings.GasDirectUrl}'");
 builder.Services.AddSingleton(appConfig);
 
 builder.Services.AddScoped(sp => 
