@@ -1,7 +1,7 @@
 {
   "name": "reminderapp-functions",
   "version": "1.0.0",
-  "description": "ReminderApp Azure Functions backend with Cosmos DB",
+  "description": "ReminderApp Azure Functions backend with Cosmos DB and Google Sheets",
   "main": "index.js",
   "scripts": {
     "start": "func start",
