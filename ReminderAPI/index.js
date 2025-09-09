@@ -1,10 +1,16 @@
 const { CosmosClient } = require('@azure/cosmos');
+const { google } = require('googleapis');
 
 // Cosmos DB configuration
 const COSMOS_ENDPOINT = process.env.COSMOS_ENDPOINT || '';
 const COSMOS_KEY = process.env.COSMOS_KEY || '';
 const DATABASE_ID = process.env.COSMOS_DATABASE || 'ReminderAppDB';
 const CONTAINER_ID = process.env.COSMOS_CONTAINER || 'Reminders';
+
+// Google Sheets configuration
+const SHEETS_ID = '14i3QPYquqSqyE7fTp_pa2LNBq2Jb_re2rwsuUpRRSHo';
+const PHOTOS_SHEET_NAME = 'Kuvat';
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || '';
 
 // Lazy Cosmos client
 let cosmosClient = null;
@@ -16,6 +22,54 @@ function ensureCosmosClient() {
     return cosmosClient;
   } catch (e) {
     return null;
+  }
+}
+
+// Get daily photo from Google Sheets
+async function getDailyPhoto(clientID, context) {
+  try {
+    if (!GOOGLE_API_KEY) {
+      context.log('No Google API key configured');
+      return { url: '', caption: '' };
+    }
+
+    const sheets = google.sheets({ version: 'v4', auth: GOOGLE_API_KEY });
+    
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEETS_ID,
+      range: `${PHOTOS_SHEET_NAME}!A:C`, // ClientID, URL, Caption columns
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length <= 1) {
+      context.log('No photo data found in sheets');
+      return { url: '', caption: '' };
+    }
+
+    // Find photos for this client (skip header row)
+    const clientPhotos = rows.slice(1).filter(row => 
+      row[0] && row[0].toLowerCase() === clientID.toLowerCase()
+    );
+
+    if (clientPhotos.length === 0) {
+      context.log(`No photos found for client: ${clientID}`);
+      return { url: '', caption: '' };
+    }
+
+    // Select a random photo or use date-based selection
+    const today = new Date();
+    const photoIndex = today.getDate() % clientPhotos.length;
+    const selectedPhoto = clientPhotos[photoIndex];
+
+    const url = selectedPhoto[1] || '';
+    const caption = selectedPhoto[2] || '';
+
+    context.log(`Selected photo for ${clientID}: ${caption}`);
+    return { url, caption };
+
+  } catch (error) {
+    context.log.error('Error fetching photo from Google Sheets:', error);
+    return { url: '', caption: '' };
   }
 }
 
@@ -44,13 +98,11 @@ module.exports = async function (context, req) {
                 reminders = result.resources || [];
             }
 
-            // Get daily photo from Google Sheets (temporary - will move to proper API)
-            let dailyPhotoUrl = '';
-            let dailyPhotoCaption = '';
-            
-            context.log('Adding photo fields to response...');
-            // TODO: Add Google Sheets API integration for photos
-            // For now, return empty photo data so PWA uses fallback
+            // Get daily photo from Google Sheets
+            context.log('Fetching photo from Google Sheets...');
+            const photoData = await getDailyPhoto(clientID, context);
+            const dailyPhotoUrl = photoData.url;
+            const dailyPhotoCaption = photoData.caption;
             
             context.res = {
                 status: 200,
