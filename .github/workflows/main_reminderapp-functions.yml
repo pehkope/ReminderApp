@@ -4,15 +4,6 @@
 name: Build and deploy Node.js project to Azure Function App - reminderapp-functions
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '*.js'
-      - 'package.json'
-      - 'host.json'
-      - '.funcignore'
-      - '!ReminderApp.Functions/**'
   workflow_dispatch:
 
 env:
