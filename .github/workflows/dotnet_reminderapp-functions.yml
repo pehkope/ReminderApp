@@ -29,11 +29,6 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 'Azure Login'
-        uses: azure/login@v1
-        with:
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D4D1DD18FDFB4E5DAA3C7FD52B4EB42C }}
-
       - name: 'Restore dependencies'
         run: |
           echo "📦 Restoring .NET dependencies..."
