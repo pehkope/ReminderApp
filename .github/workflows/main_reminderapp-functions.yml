@@ -7,6 +7,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '*.js'
+      - 'package.json'
+      - 'host.json'
+      - '.funcignore'
+      - '!ReminderApp.Functions/**'
   workflow_dispatch:
 
 env:
