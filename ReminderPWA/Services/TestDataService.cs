@@ -57,8 +57,10 @@ namespace ReminderTabletNew2.Services
         public static string GetDefaultPhotoUrl()
         {
             // Fallback kuva jos API ei palauta valokuvaa
-            // Käytetään jotain mukavaa placeholder kuvaa
-            return "https://picsum.photos/400/300?random=" + DateTime.Now.ToString("yyyyMMdd");
+            // Käytetään luotettavaa placeholder palvelua
+            var dayOfYear = DateTime.Now.DayOfYear;
+            var imageId = (dayOfYear % 50) + 1; // 1-50 väliltä
+            return $"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center&auto=format&q=80&ixlib=rb-4.0.3&seed={imageId}";
         }
         
         public static int GetCurrentWeekNumber()
