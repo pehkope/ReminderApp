@@ -10,6 +10,9 @@ const SHEETS_ID = '14i3QPYquqSqyE7fTp_pa2LNBq2Jb_re2rwsuUpRRSHo';
 const PHOTOS_SHEET_NAME = 'Kuvat';
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || '';
 
+// Google Sheets Web App configuration (no API key needed)
+const SHEETS_WEBAPP_URL = process.env.SHEETS_WEBAPP_URL || 'https://script.google.com/macros/s/AKfycbwoDsaGH3GLSDbBwBUTNqaKxCDATPUn_xrlWvzXghEL88YZYbnUVmx6kn_nODQW4GM0rQ/exec';
+
 // Lazy Cosmos client
 let cosmosClient = null;
 function ensureCosmosClient() {
@@ -93,36 +96,37 @@ async function getDailyPhoto(clientID, context) {
       }
     }
 
-    // Fallback to Google Sheets
-    if (!GOOGLE_API_KEY) {
-      context.log('No Google API key configured and no Cosmos photos');
+    // Fallback to Google Sheets Web App (no API key needed)
+    context.log('Trying Google Sheets Web App fallback...');
+    
+    if (!SHEETS_WEBAPP_URL) {
+      context.log('No Google Sheets Web App URL configured');
       return { url: '', caption: '' };
     }
 
-    const sheets = google.sheets({ version: 'v4', auth: GOOGLE_API_KEY });
+    const webAppUrl = `${SHEETS_WEBAPP_URL}?spreadsheetId=${SHEETS_ID}&sheetName=${PHOTOS_SHEET_NAME}`;
+    context.log(`Fetching from Web App: ${webAppUrl}`);
     
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEETS_ID,
-      range: `${PHOTOS_SHEET_NAME}!A:C`, // ClientID, URL, Caption columns
-    });
-
-    const rows = response.data.values;
-    if (!rows || rows.length <= 1) {
-      context.log('No photo data found in sheets');
+    const response = await fetch(webAppUrl);
+    const data = await response.json();
+    
+    if (!data.success || !data.values || data.values.length <= 1) {
+      context.log('No photo data found in Web App response:', data);
       return { url: '', caption: '' };
     }
 
     // Find photos for this client (skip header row)
-    const clientPhotos = rows.slice(1).filter(row => 
+    const clientPhotos = data.values.slice(1).filter(row => 
       row[0] && row[0].toLowerCase() === clientID.toLowerCase()
     );
 
     if (clientPhotos.length === 0) {
       context.log(`No photos found for client: ${clientID}`);
+      context.log('Available clients:', data.values.slice(1).map(row => row[0]).filter(Boolean));
       return { url: '', caption: '' };
     }
 
-    // Select a random photo or use date-based selection
+    // Select photo based on date
     const today = new Date();
     const photoIndex = today.getDate() % clientPhotos.length;
     const selectedPhoto = clientPhotos[photoIndex];
@@ -130,7 +134,7 @@ async function getDailyPhoto(clientID, context) {
     const url = selectedPhoto[1] || '';
     const caption = selectedPhoto[2] || '';
 
-    context.log(`Selected photo from Google Sheets for ${clientID}: ${caption}`);
+    context.log(`Selected photo from Web App for ${clientID}: ${caption}`);
     return { url, caption };
 
   } catch (error) {
