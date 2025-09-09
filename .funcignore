@@ -1,9 +1,38 @@
-# Exclude files and folders from deployment
-**/.git/**
-**/.github/**
-**/*.md
-**/test/**
-**/*.log
-node_modules/**
-local.settings.json
-GasProxyFunctions/**
+# Ignore unnecessary files for Azure Functions deployment
+.git/
+.github/
+.vscode/
+node_modules/
+deployedApps/
+GasProxyFunctions/
+ReminderPWA/
+ReminderTabletAndroid/
+tablet/
+
+# Documentation and config files
+*.md
+*.txt
+*.bat
+*.ps1
+*.sh
+*.sln
+*.zip
+*.out
+
+# Debug files
+debug-*.html
+test-*.html
+meal-test.html
+
+# Backup and temporary files
+*.backup
+*.tmp
+restore.out
+deploy-trigger.txt
+
+# Keep only essential files for Functions
+!host.json
+!package.json
+!index.js
+!ReminderAPI/
+!local.settings.json
