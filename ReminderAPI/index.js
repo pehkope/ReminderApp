@@ -55,13 +55,40 @@ module.exports = async function (context, req) {
             context.res = {
                 status: 200,
                 body: {
-                    success: true,
+                    // Legacy fields for PWA compatibility
                     clientID: clientID,
-                    reminders: reminders,
-                    count: reminders.length,
+                    timestamp: new Date().toISOString(),
+                    status: 'OK',
+                    settings: {
+                        useWeather: true,
+                        usePhotos: true,
+                        useTelegram: false,
+                        useSMS: false
+                    },
+                    importantMessage: '',
+                    upcomingAppointments: [],
                     dailyPhotoUrl: dailyPhotoUrl,
                     dailyPhotoCaption: dailyPhotoCaption,
-                    timestamp: new Date().toISOString(),
+                    weeklyPhotos: [],
+                    profilePhoto: null,
+                    exerciseVideoUrl: '',
+                    weather: {
+                        description: 'Pilvistä',
+                        temperature: '12°C'
+                    },
+                    contacts: [],
+                    latestReminder: '',
+                    dailyTasks: [],
+                    currentTimeOfDay: 'päivä',
+                    weeklyPlan: {},
+                    greeting: '',
+                    activityText: '',
+                    activityTags: [],
+                    
+                    // New API fields
+                    success: true,
+                    reminders: reminders,
+                    count: reminders.length,
                     storage: container ? 'cosmos' : 'in-memory'
                 }
             };
