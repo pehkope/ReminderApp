@@ -44,6 +44,13 @@ module.exports = async function (context, req) {
                 reminders = result.resources || [];
             }
 
+            // Get daily photo from Google Sheets (temporary - will move to proper API)
+            let dailyPhotoUrl = '';
+            let dailyPhotoCaption = '';
+            
+            // TODO: Add Google Sheets API integration for photos
+            // For now, return empty photo data so PWA uses fallback
+            
             context.res = {
                 status: 200,
                 body: {
@@ -51,6 +58,8 @@ module.exports = async function (context, req) {
                     clientID: clientID,
                     reminders: reminders,
                     count: reminders.length,
+                    dailyPhotoUrl: dailyPhotoUrl,
+                    dailyPhotoCaption: dailyPhotoCaption,
                     timestamp: new Date().toISOString(),
                     storage: container ? 'cosmos' : 'in-memory'
                 }
