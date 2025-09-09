@@ -1,0 +1,220 @@
+{
+  "description": "Test data for mom (äiti) - ReminderApp Cosmos DB",
+  "containers": {
+    "Clients": [
+      {
+        "id": "mom",
+        "clientId": "mom",
+        "type": "client",
+        "name": "Äiti",
+        "displayName": "Kultaseni",
+        "timezone": "Europe/Helsinki",
+        "language": "fi",
+        "createdAt": "2025-09-09T12:00:00Z",
+        "updatedAt": "2025-09-09T12:00:00Z",
+        "settings": {
+          "smsEnabled": true,
+          "smsCount": 4,
+          "weatherLocation": "Helsinki",
+          "photoRotation": "daily",
+          "reminderTimes": ["08:00", "12:00", "16:00", "20:00"]
+        },
+        "contacts": {
+          "primaryFamily": "Petri",
+          "phone": "+358...",
+          "emergencyContact": "+358..."
+        }
+      }
+    ],
+    "Photos": [
+      {
+        "id": "photo_mom_001",
+        "clientId": "mom",
+        "type": "photo",
+        "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+        "caption": "Kaunis järvimaisema",
+        "source": "manual",
+        "isActive": true,
+        "uploadedAt": "2025-09-09T12:00:00Z",
+        "uploadedBy": "petri",
+        "tags": ["luonto", "järvi"]
+      },
+      {
+        "id": "photo_mom_002", 
+        "clientId": "mom",
+        "type": "photo",
+        "url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+        "caption": "Syksy metsässä",
+        "source": "manual",
+        "isActive": true,
+        "uploadedAt": "2025-09-09T12:00:00Z",
+        "uploadedBy": "petri",
+        "tags": ["luonto", "syksy"]
+      },
+      {
+        "id": "photo_mom_003",
+        "clientId": "mom", 
+        "type": "photo",
+        "url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
+        "caption": "Auringonlasku",
+        "source": "manual",
+        "isActive": true,
+        "uploadedAt": "2025-09-09T12:00:00Z",
+        "uploadedBy": "petri",
+        "tags": ["auringonlasku", "taivas"]
+      }
+    ],
+    "Appointments": [
+      {
+        "id": "apt_mom_20250912_001",
+        "clientId": "mom",
+        "type": "appointment",
+        "title": "Lääkärin vastaanotto",
+        "description": "Muista ottaa lääkkeet ja henkilökortti mukaan",
+        "date": "2025-09-12",
+        "time": "14:00",
+        "location": "Terveysasema Kamppi",
+        "reminderBefore": 60,
+        "createdAt": "2025-09-09T12:00:00Z",
+        "createdBy": "petri"
+      },
+      {
+        "id": "apt_mom_20250915_001",
+        "clientId": "mom",
+        "type": "appointment", 
+        "title": "Hiustenleikkaus",
+        "description": "Kampaamo Sirkka",
+        "date": "2025-09-15",
+        "time": "10:30",
+        "location": "Kampaamo Sirkka",
+        "reminderBefore": 30,
+        "createdAt": "2025-09-09T12:00:00Z",
+        "createdBy": "petri"
+      }
+    ],
+    "Foods": [
+      {
+        "id": "food_mom_breakfast_20250909",
+        "clientId": "mom",
+        "type": "food",
+        "mealTime": "breakfast",
+        "timeSlot": "08:00",
+        "date": "2025-09-09",
+        "suggestions": [
+          "Kaurapuuro marjojen kanssa 🫐",
+          "Voileipä juustolla ja kahvi ☕",
+          "Jogurtti ja tuoreita hedelmiä 🍓"
+        ],
+        "encouragingMessage": "Hyvää huomenta kultaseni! Aloitetaan päivä hyvällä aamiaisella! ☀️",
+        "completed": false,
+        "completedAt": null
+      },
+      {
+        "id": "food_mom_lunch_20250909",
+        "clientId": "mom", 
+        "type": "food",
+        "mealTime": "lunch",
+        "timeSlot": "12:00",
+        "date": "2025-09-09",
+        "suggestions": [
+          "Lohikeitto ja leipää 🍲",
+          "Salaatti ja lämmin voileipä 🥗",
+          "Hernekeitto ja pannukakku 🟢"
+        ],
+        "encouragingMessage": "Lounas aika rakas! Muista syödä hyvin 💚",
+        "completed": false,
+        "completedAt": null
+      },
+      {
+        "id": "food_mom_dinner_20250909",
+        "clientId": "mom",
+        "type": "food", 
+        "mealTime": "dinner",
+        "timeSlot": "16:00",
+        "date": "2025-09-09",
+        "suggestions": [
+          "Lihapullat perunoiden kanssa 🥔",
+          "Broileriwokki riisillä 🍚",
+          "Makaronilaatikko ja salaatti 🍝"
+        ],
+        "encouragingMessage": "Päivällinen aika kultaseni! Hyvää ruokahalua! 🍽️",
+        "completed": false,
+        "completedAt": null
+      },
+      {
+        "id": "food_mom_evening_20250909",
+        "clientId": "mom",
+        "type": "food",
+        "mealTime": "evening", 
+        "timeSlot": "20:00",
+        "date": "2025-09-09",
+        "suggestions": [
+          "Iltapala: jogurtti ja mysli 🥣",
+          "Tee ja keksejä 🍪",
+          "Hedelmä ja lämmin kaakao ☕"
+        ],
+        "encouragingMessage": "Mukava iltapala ennen lepoa! Hyvää yötä pian 🌙",
+        "completed": false,
+        "completedAt": null
+      }
+    ],
+    "Medications": [
+      {
+        "id": "med_mom_morning_20250909",
+        "clientId": "mom",
+        "type": "medication",
+        "name": "Muistilääke",
+        "dosage": "1 tabletti",
+        "timeSlot": "morning",
+        "time": "08:00", 
+        "date": "2025-09-09",
+        "instructions": "Otetaan aamulla ruoan kanssa",
+        "completed": false,
+        "completedAt": null,
+        "recurring": true,
+        "recurringPattern": "daily"
+      },
+      {
+        "id": "med_mom_evening_20250909",
+        "clientId": "mom",
+        "type": "medication",
+        "name": "Verenpainelääke", 
+        "dosage": "1 tabletti",
+        "timeSlot": "evening",
+        "time": "20:00",
+        "date": "2025-09-09",
+        "instructions": "Otetaan illalla vedellä",
+        "completed": false,
+        "completedAt": null,
+        "recurring": true,
+        "recurringPattern": "daily"
+      }
+    ],
+    "Messages": [
+      {
+        "id": "msg_mom_morning_001",
+        "clientId": "mom",
+        "type": "message",
+        "category": "encouragement",
+        "timeOfDay": "morning",
+        "text": "Hyvää huomenta kultaseni! Aurinko paistaa - hyvä päivä ulkoilulle! ☀️",
+        "weatherCondition": "sunny",
+        "isActive": true,
+        "createdAt": "2025-09-09T12:00:00Z",
+        "createdBy": "petri"
+      },
+      {
+        "id": "msg_mom_afternoon_001", 
+        "clientId": "mom",
+        "type": "message",
+        "category": "exercise",
+        "timeOfDay": "afternoon", 
+        "text": "Mukava päivä lenkille! Liikkuminen pitää mielen virkeänä 🚶‍♀️",
+        "weatherCondition": "any",
+        "isActive": true,
+        "createdAt": "2025-09-09T12:00:00Z",
+        "createdBy": "petri"
+      }
+    ]
+  }
+}
