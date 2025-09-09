@@ -62,19 +62,24 @@
 
     private string GetImageUrl()
     {
+        Console.WriteLine($"🖼️ GetImageUrl called - ApiPhotoUrl: '{ApiPhotoUrl}', FallbackUrl: '{FallbackUrl}'");
+        
         // Ensisijaisesti API:sta (vain kelvollinen absoluuttinen URL)
         if (!string.IsNullOrEmpty(ApiPhotoUrl))
         {
+            Console.WriteLine($"🖼️ Using API photo URL: '{ApiPhotoUrl}'");
             if (!string.IsNullOrEmpty(_effectiveUrl)) return _effectiveUrl;
         }
         // Fallback from parent (e.g., profile or weekly photo)
         if (!string.IsNullOrEmpty(FallbackUrl))
         {
+            Console.WriteLine($"🖼️ Using fallback URL: '{FallbackUrl}'");
             return AddCacheBuster(FallbackUrl);
         }
         
         // Toissijaisesti frontend:n viikottainen simulaatio (backend ei ole vielä käytössä)
         var simulatedUrl = TestDataService.GetDefaultPhotoUrl();
+        Console.WriteLine($"🖼️ Using simulated URL (fallback): '{simulatedUrl}'");
         return simulatedUrl;
     }
 
