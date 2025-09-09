@@ -31,7 +31,7 @@ public class HealthCheck
             runtime = "dotnet-isolated",
             timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
             version = "1.0.0",
-            message = ".NET Azure Functions is running"
+            message = ".NET Azure Functions is running successfully!"
         };
 
         var json = JsonSerializer.Serialize(healthData, new JsonSerializerOptions
