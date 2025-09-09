@@ -27,8 +27,9 @@ public class ApiService
             {
                 Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
                 // Use ReminderAPI directly - no more GAS proxy needed
-                var targetUrl = $"{_apiSettings.BaseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-                Console.WriteLine($"🔧 Calling ReminderAPI: '{targetUrl}'");
+                var baseUrl = _apiSettings?.BaseUrl ?? "https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI";
+                var targetUrl = $"{baseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                Console.WriteLine($"🔧 Calling ReminderAPI: '{targetUrl}' (baseUrl: '{baseUrl}')");
 
                 if (fast)
                 {
