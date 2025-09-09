@@ -22,7 +22,7 @@ function ensureCosmosClient() {
 module.exports = async function (context, req) {
     try {
         context.log(`Processing ${req.method} request to ReminderAPI`);
-        context.log('Traditional function.json approach test!');
+        context.log('PWA integration test - photo fields should be included!');
 
         const clientID = req.query.clientID || 'default';
         context.log(`Client ID: ${clientID}`);
@@ -48,6 +48,7 @@ module.exports = async function (context, req) {
             let dailyPhotoUrl = '';
             let dailyPhotoCaption = '';
             
+            context.log('Adding photo fields to response...');
             // TODO: Add Google Sheets API integration for photos
             // For now, return empty photo data so PWA uses fallback
             
