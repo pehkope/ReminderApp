@@ -57,10 +57,8 @@ namespace ReminderTabletNew2.Services
         public static string GetDefaultPhotoUrl()
         {
             // Fallback kuva jos API ei palauta valokuvaa
-            // Käytetään luotettavaa placeholder palvelua
-            var dayOfYear = DateTime.Now.DayOfYear;
-            var imageId = (dayOfYear % 50) + 1; // 1-50 väliltä
-            return $"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&crop=center&auto=format&q=80&ixlib=rb-4.0.3&seed={imageId}";
+            // Käytetään yksinkertaista data URL:a joka toimii aina
+            return "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfk7ggUMOkaXbDpG4ga3V2YW11aXN0bzwvdGV4dD48L3N2Zz4=";
         }
         
         public static int GetCurrentWeekNumber()
