@@ -26,26 +26,9 @@ public class ApiService
             try
             {
                 Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
-                Console.WriteLine($"🔧 BaseUrl from config: '{_apiSettings.BaseUrl}'");
-                Console.WriteLine($"🔧 GasDirectUrl from config: '{_apiSettings.GasDirectUrl}'");
-                // Älä tulosta paljasta API-avainta lokeihin
-                var maskedConfiguredKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "" : "***";
-                Console.WriteLine($"🔧 ApiKey configured: '{(string.IsNullOrEmpty(maskedConfiguredKey) ? "(empty)" : maskedConfiguredKey)}'");
-                
-                // Fallback for Azure deployment if config loading fails
-                var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl) ? _apiSettings.GasDirectUrl : _apiSettings.BaseUrl;
-                Console.WriteLine($"🔧 Selected baseUrl: '{baseUrl}' (isEmpty: {string.IsNullOrEmpty(_apiSettings.BaseUrl)})");
-                var isProxy = baseUrl.Contains("/api/gas", StringComparison.OrdinalIgnoreCase);
-                var apiKey = isProxy ? "" : (string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey);
-                
-                Console.WriteLine($"🔧 Using BaseUrl: '{baseUrl}'");
-                var maskedRuntimeKey = string.IsNullOrEmpty(apiKey) ? "" : "***";
-                Console.WriteLine($"🔧 Using ApiKey: '{(string.IsNullOrEmpty(maskedRuntimeKey) ? "(empty)" : maskedRuntimeKey)}'");
-                
-                // Build the Google Apps Script URL
-                var targetUrl = string.IsNullOrEmpty(apiKey)
-                    ? $"{baseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}"
-                    : $"{baseUrl}?clientID={actualClientId}&apiKey={apiKey}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                // Use ReminderAPI directly - no more GAS proxy needed
+                var targetUrl = $"{_apiSettings.BaseUrl}?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                Console.WriteLine($"🔧 Calling ReminderAPI: '{targetUrl}'");
 
                 if (fast)
                 {
