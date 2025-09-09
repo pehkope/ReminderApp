@@ -30,7 +30,17 @@ jobs:
           cache: 'npm'
 
       - name: 'Install Dependencies'
-        run: npm ci
+        run: |
+          echo "📦 Installing dependencies..."
+          npm install
+          echo "✅ Dependencies installed"
+
+      - name: 'List deployment files'
+        run: |
+          echo "📁 Files to deploy:"
+          ls -la
+          echo "📄 Package.json:"
+          cat package.json
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
