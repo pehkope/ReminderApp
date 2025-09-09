@@ -10,8 +10,9 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './ReminderApp.Functions' # set this to the path to your function app project
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # Deploy from root
   DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
+  DOTNET_PROJECT_PATH: './ReminderApp.Functions' # Source project path
 
 jobs:
   build-and-deploy:
@@ -31,20 +32,26 @@ jobs:
       - name: 'Restore dependencies'
         run: |
           echo "📦 Restoring .NET dependencies..."
-          dotnet restore "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
+          dotnet restore "${{ env.DOTNET_PROJECT_PATH }}"
           echo "✅ Dependencies restored"
 
       - name: 'Build project'
         run: |
           echo "🔨 Building .NET project..."
-          dotnet build "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}" --configuration Release --no-restore
+          dotnet build "${{ env.DOTNET_PROJECT_PATH }}" --configuration Release --no-restore
           echo "✅ Build completed"
 
       - name: 'Publish project'
         run: |
           echo "📦 Publishing .NET project..."
-          dotnet publish "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}" --configuration Release --no-build --output ./publish
+          dotnet publish "${{ env.DOTNET_PROJECT_PATH }}" --configuration Release --no-build --output ./publish
           echo "✅ Publish completed"
+          
+      - name: 'Copy host.json to publish'
+        run: |
+          echo "📄 Copying host.json..."
+          cp host.json ./publish/
+          echo "✅ host.json copied"
 
       - name: 'List deployment files'
         run: |
