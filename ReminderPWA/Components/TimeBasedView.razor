@@ -184,7 +184,7 @@
         return ApiResponse.DailyTasks.Where(task => IsTaskRelevantForTime(task));
     }
 
-    private async Task OnPhotoClickHandler(DailyPhoto.PhotoClickArgs args)
+    private void OnPhotoClickHandler(DailyPhoto.PhotoClickArgs args)
     {
         OpenImageModal(args.ImageUrl, args.Caption);
     }
@@ -249,7 +249,7 @@
         }
         
         // Fallback: käytetään task.Type:a (vanha logiikka)
-        var taskType = task.Type.ToUpper();
+        var taskType = task.Type?.ToUpper() ?? "";
         
         return TimeOfDay switch
         {

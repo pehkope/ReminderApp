@@ -19,16 +19,16 @@ public class ReminderApiResponse
     public Settings Settings { get; set; } = new();
 
     [JsonPropertyName("importantMessage")]
-    public string ImportantMessage { get; set; }
+    public string ImportantMessage { get; set; } = "";
 
     [JsonPropertyName("upcomingAppointments")]
-    public List<UpcomingAppointment> UpcomingAppointments { get; set; }
+    public List<UpcomingAppointment> UpcomingAppointments { get; set; } = new();
 
     [JsonPropertyName("dailyPhotoUrl")]
-    public string DailyPhotoUrl { get; set; }
+    public string DailyPhotoUrl { get; set; } = "";
 
     [JsonPropertyName("dailyPhotoCaption")]
-    public string DailyPhotoCaption { get; set; }
+    public string DailyPhotoCaption { get; set; } = "";
 
     [JsonPropertyName("weeklyPhotos")]
     public List<DrivePhoto> WeeklyPhotos { get; set; } = new();
@@ -37,16 +37,16 @@ public class ReminderApiResponse
     public DrivePhoto? ProfilePhoto { get; set; }
 
     [JsonPropertyName("exerciseVideoUrl")]
-    public string ExerciseVideoUrl { get; set; }
+    public string ExerciseVideoUrl { get; set; } = "";
 
     [JsonPropertyName("weather")]
-    public Weather Weather { get; set; }
+    public Weather Weather { get; set; } = new();
 
     [JsonPropertyName("contacts")]
-    public List<Contact> Contacts { get; set; }
+    public List<Contact> Contacts { get; set; } = new();
 
     [JsonPropertyName("latestReminder")]
-    public string LatestReminder { get; set; }
+    public string LatestReminder { get; set; } = "";
 
     [JsonPropertyName("dailyTasks")]
     public List<DailyTask> DailyTasks { get; set; } = new();
