@@ -27,9 +27,7 @@ jobs:
     - name: 'Build and Publish'
       shell: bash
       run: |
-        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-        dotnet publish --configuration Release --output ./output
-        popd
+        dotnet publish ReminderApp.Functions/ReminderApp.Functions.csproj --configuration Release --output ReminderApp.Functions/output
 
     - name: 'Azure Login'
       uses: azure/login@v1
@@ -43,4 +41,4 @@ jobs:
       id: fa
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+        package: 'ReminderApp.Functions/output'
