@@ -24,12 +24,10 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: 'Resolve Project Dependencies Using Dotnet'
+    - name: 'Build and Publish'
       shell: bash
       run: |
-        pushd './ReminderApp.Functions'
-        dotnet build --configuration Release --output ./output
-        popd
+        dotnet publish ReminderApp.Functions/ReminderApp.Functions.csproj --configuration Release --output ReminderApp.Functions/output
 
     - name: 'Azure Login'
       uses: azure/login@v1
