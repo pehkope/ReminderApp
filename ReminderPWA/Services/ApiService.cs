@@ -39,9 +39,9 @@ public class ApiService
                 // Direct API call - let's try without CORS proxy
                 var url = targetUrl;
                 
-                // Maskataan avain urleista
-                var safeTargetUrl = string.IsNullOrEmpty(apiKey) ? targetUrl : targetUrl.Replace(apiKey, "***");
-                var safeUrl = string.IsNullOrEmpty(apiKey) ? url : url.Replace(apiKey, "***");
+                // Maskataan avain urleista (ei apiKey:tä .NET API:ssa)
+                var safeTargetUrl = targetUrl;
+                var safeUrl = url;
                 Console.WriteLine($"🌐 Target URL: {safeTargetUrl}");
                 Console.WriteLine($"🌐 Request URL: {safeUrl}");
                 
@@ -153,31 +153,27 @@ public class ApiService
     {
         try
         {
-            // Fallback URL + asetukset
-            var baseUrl = string.IsNullOrEmpty(_apiSettings.BaseUrl)
-                ? _apiSettings.GasDirectUrl
-                : _apiSettings.BaseUrl;
-            var apiKey = string.IsNullOrEmpty(_apiSettings.ApiKey) ? "reminder-tablet-2024" : _apiSettings.ApiKey;
+            // .NET API ei tarvitse ApiKey:tä - käytetään suoraan BaseUrl:ia
+            var baseUrl = _apiSettings.BaseUrl; // Käytetään .NET API:a
             var clientId = string.IsNullOrEmpty(_apiSettings.DefaultClientId) ? "mom" : _apiSettings.DefaultClientId;
 
-            Console.WriteLine($"🔘 Lähetetään kuittaus GET-pyynnöllä (CORS-välttämiseksi): {taskType} ({timeOfDay})");
+            Console.WriteLine($"🔘 Lähetetään kuittaus .NET API:lle: {taskType} ({timeOfDay})");
 
-            // Rakennetaan URL turvallisesti
+            // Rakennetaan URL .NET API:lle (ei ApiKey:tä tarvita)
             var query = new List<string>
             {
                 $"action=acknowledge",
-                string.IsNullOrEmpty(apiKey) ? "" : $"apiKey={Uri.EscapeDataString(apiKey)}",
                 $"clientID={Uri.EscapeDataString(clientId)}",
                 $"taskType={Uri.EscapeDataString(taskType)}",
                 $"timeOfDay={Uri.EscapeDataString(timeOfDay)}",
                 $"description={Uri.EscapeDataString(description)}",
                 $"timestamp={Uri.EscapeDataString(DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}"
-            }.Where(q => !string.IsNullOrEmpty(q));
+            };
 
             var fullUrl = $"{baseUrl}?{string.Join("&", query)}";
 
-            // Älä paljasta avainta lokeissa
-            var safeLogUrl = string.IsNullOrEmpty(apiKey) ? fullUrl : fullUrl.Replace(apiKey, "***");
+            // Ei tarvita ApiKey maskausta .NET API:ssa
+            var safeLogUrl = fullUrl;
             Console.WriteLine($"📤 GET URL: {safeLogUrl}");
 
             var response = await _httpClient.GetAsync(fullUrl);

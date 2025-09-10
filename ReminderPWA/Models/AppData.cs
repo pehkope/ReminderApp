@@ -7,16 +7,16 @@ namespace ReminderTabletNew2.Models;
 public class ReminderApiResponse
 {
     [JsonPropertyName("clientID")]
-    public string ClientID { get; set; }
+    public string ClientID { get; set; } = "";
 
     [JsonPropertyName("timestamp")]
     public DateTime Timestamp { get; set; }
 
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public string Status { get; set; } = "";
 
     [JsonPropertyName("settings")]
-    public Settings Settings { get; set; }
+    public Settings Settings { get; set; } = new();
 
     [JsonPropertyName("importantMessage")]
     public string ImportantMessage { get; set; }
@@ -143,19 +143,19 @@ public class Settings
 public class UpcomingAppointment
 {
     [JsonPropertyName("date")]
-    public string Date { get; set; }
+    public string Date { get; set; } = "";
 
     [JsonPropertyName("time")]
-    public string Time { get; set; }
+    public string Time { get; set; } = "";
 
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public string Type { get; set; } = "";
 
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public string Message { get; set; } = "";
 
     [JsonPropertyName("location")]
-    public string Location { get; set; }
+    public string Location { get; set; } = "";
 
     [JsonPropertyName("daysFromNow")]
     public int DaysFromNow { get; set; }
@@ -164,10 +164,10 @@ public class UpcomingAppointment
 public class Weather
 {
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public string Description { get; set; } = "";
 
     [JsonPropertyName("temperature")]
-    public string Temperature { get; set; }
+    public string Temperature { get; set; } = "";
 }
 
 public class WeeklyPlan
