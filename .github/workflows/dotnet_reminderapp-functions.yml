@@ -1,7 +1,5 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy .NET project to Azure Function App - reminderapp-functions
+# Deploy DotNet project to Azure Function App
+name: Deploy DotNet project to Azure Function App
 
 on:
   push:
@@ -10,65 +8,33 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # Deploy from root
-  DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
-  DOTNET_PROJECT_PATH: './ReminderApp.Functions' # Source project path
+  AZURE_FUNCTIONAPP_NAME: 'reminderapp-functions'   # set this to your function app name on Azure
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './ReminderApp.Functions'       # set this to the path to your function app project
+  DOTNET_VERSION: '8.0.x'                   # set this to the dotnet version to use
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
-      - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v4
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
 
-      - name: Setup .NET ${{ env.DOTNET_VERSION }} Environment
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 'Restore dependencies'
-        run: |
-          echo "📦 Restoring .NET dependencies..."
-          dotnet restore "${{ env.DOTNET_PROJECT_PATH }}"
-          echo "✅ Dependencies restored"
+    - name: 'Resolve Project Dependencies Using Dotnet'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        dotnet build --configuration Release --output ./output
+        popd
 
-      - name: 'Build project'
-        run: |
-          echo "🔨 Building .NET project..."
-          dotnet build "${{ env.DOTNET_PROJECT_PATH }}" --configuration Release --no-restore
-          echo "✅ Build completed"
-
-      - name: 'Publish project'
-        run: |
-          echo "📦 Publishing .NET project..."
-          dotnet publish "${{ env.DOTNET_PROJECT_PATH }}" --configuration Release --no-build --output ./publish
-          echo "✅ Publish completed"
-          
-      - name: 'Copy host.json to publish'
-        run: |
-          echo "📄 Copying host.json..."
-          cp host.json ./publish/
-          echo "✅ host.json copied"
-
-      - name: 'List deployment files'
-        run: |
-          echo "📁 Files to deploy:"
-          ls -la ./publish
-          echo "📄 Function files:"
-          find ./publish -name "*.json" -o -name "*.dll" | head -10
-
-      - name: 'Azure Login'
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: 'Deploy to Azure Functions'
-        uses: Azure/functions-action@v1
-        with:
-          app-name: 'reminderapp-functions'
-          slot-name: 'Production'
-          package: './publish'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D4D1DD18FDFB4E5DAA3C7FD52B4EB42C }}
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D4D1DD18FDFB4E5DAA3C7FD52B4EB42C }}
