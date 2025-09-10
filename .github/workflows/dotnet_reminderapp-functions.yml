@@ -27,7 +27,9 @@ jobs:
     - name: 'Resolve Project Dependencies Using Dotnet'
       shell: bash
       run: |
-        dotnet build ./ReminderApp.Functions/ReminderApp.Functions.csproj --configuration Release --output ./ReminderApp.Functions/output
+        pushd './ReminderApp.Functions'
+        dotnet build --configuration Release --output ./output
+        popd
 
     - name: 'Azure Login'
       uses: azure/login@v1
