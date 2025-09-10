@@ -26,7 +26,7 @@ jobs:
     - name: 'Build and Publish'
       shell: bash
       run: |
-        dotnet publish ReminderApp.Functions/ReminderApp.Functions.csproj --configuration Release --output ReminderApp.Functions/output
+        dotnet publish "ReminderApp.Functions/ReminderApp.Functions.csproj" -c Release -o "ReminderApp.Functions/output"
 
     - name: 'Azure Login'
       uses: azure/login@v1
