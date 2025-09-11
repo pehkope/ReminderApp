@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using ReminderApp.Functions.Services;
+using ReminderApp.Functions.Models;
 using System.Net;
 using System.Text.Json;
 using Telegram.Bot.Types;

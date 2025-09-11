@@ -1,5 +1,119 @@
 [
   {
+    "name": "AdminDashboard",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.AdminApi.GetAdminDashboard",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get"
+        ],
+        "route": "admin",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "WebhookManagement",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.AdminApi.ManageWebhooks",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "admin/webhooks",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "SystemConfig",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.AdminApi.ManageSystemConfig",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post",
+          "put"
+        ],
+        "route": "admin/config",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "ClientManagement",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.AdminApi.ManageClients",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post",
+          "put",
+          "delete"
+        ],
+        "route": "admin/clients/{clientId?}",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
     "name": "HealthCheck",
     "scriptFile": "ReminderApp.Functions.dll",
     "entryPoint": "ReminderApp.Functions.HealthCheck.Run",
@@ -45,6 +159,168 @@
           "post"
         ],
         "route": "api/ReminderAPI",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "TelegramWebhook",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TelegramBotApi.HandleWebhook",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "post"
+        ],
+        "route": "telegram/webhook",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "TelegramSendMessage",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TelegramBotApi.SendMessage",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "post"
+        ],
+        "route": "telegram/send",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "TelegramGetGreetings",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TelegramBotApi.GetGreetings",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get"
+        ],
+        "route": "telegram/greetings/{clientId}",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "TelegramMarkGreetingRead",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TelegramBotApi.MarkGreetingRead",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "post"
+        ],
+        "route": "telegram/greetings/{greetingId}/read",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "TelegramGetPhotos",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TelegramBotApi.GetPhotos",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get"
+        ],
+        "route": "telegram/photos/{clientId}",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "TelegramStatus",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TelegramBotApi.GetStatus",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get"
+        ],
+        "route": "telegram/status",
         "properties": {}
       },
       {

@@ -345,7 +345,7 @@ public class TelegramBotService
 
         try
         {
-            await _botClient!.SendPhotoAsync(chatId, photoUrl, caption: caption, parseMode: ParseMode.Html);
+            await _botClient!.SendPhotoAsync(chatId, InputFile.FromUri(photoUrl), caption: caption, parseMode: ParseMode.Html);
             _logger.LogInformation("📸 Telegram photo sent to chat {ChatId}", chatId);
             return true;
         }
@@ -385,18 +385,19 @@ public class TelegramBotService
         }
     }
 
-    private async Task<bool> IsDuplicateMessage(string key)
+    private Task<bool> IsDuplicateMessage(string key)
     {
         // Simple in-memory duplicate check - in production, use Redis or Cosmos DB
         // For now, return false to process all messages
-        return false;
+        return Task.FromResult(false);
     }
 
-    private async Task MarkMessageAsProcessed(string key)
+    private Task MarkMessageAsProcessed(string key)
     {
         // Mark message as processed - in production, store in Redis or Cosmos DB
         // For now, just log
         _logger.LogInformation("Message marked as processed: {Key}", key);
+        return Task.CompletedTask;
     }
 
     private static string ExtractClientId(string text)
