@@ -12,9 +12,10 @@ var host = new HostBuilder()
         services.ConfigureFunctionsApplicationInsights();
         
         // Register our services
-        services.AddSingleton<CosmosDbService>();
-        services.AddSingleton<BlobStorageService>();
-        services.AddSingleton<GoogleSheetsService>();
+services.AddSingleton<CosmosDbService>();
+services.AddSingleton<BlobStorageService>();
+services.AddSingleton<GoogleSheetsService>();
+services.AddSingleton<TwilioService>();
     })
     .Build();
 
