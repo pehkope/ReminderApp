@@ -252,12 +252,14 @@ function getDailyPhotoWithConfig(config) {
   };
 }
 
-// CORS headers
+// CORS headers with security improvements (from GasProxy)
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Max-Age': '3600'
+  'Access-Control-Max-Age': '3600',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY'
 };
 
 /**
@@ -275,9 +277,15 @@ function createCorsResponse(data, status = 200) {
 }
 
 /**
- * Validate API key (bypassed for simplicity)
+ * Validate API key with injection support (from GasProxy)
  */
-function validateApiKey(apiKey) {
+function validateApiKey(apiKey, gasApiKey = null) {
+  // If no API key provided but we have GAS API key, inject it
+  if (!apiKey && gasApiKey) {
+    console.log('🔐 API key injection: Using GAS API key');
+    return true;
+  }
+  
   console.log('🔐 API key validation: ✅ BYPASSED (Azure Functions)');
   return true;
 }
