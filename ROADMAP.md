@@ -258,7 +258,7 @@ Photos:
 
 ### ✅ **Working Components**
 - **Frontend (PWA):** ReminderPWA with Blazor WebAssembly
-- **Backend Proxy:** Azure Functions (GasProxyFunctions)
+- **Backend:** Azure Functions (reminderapp-functions)
 - **Database:** Google Sheets (GAS backend)
 - **Communication:** Telegram Bot integration
 - **Security:** API key in server-side proxy
