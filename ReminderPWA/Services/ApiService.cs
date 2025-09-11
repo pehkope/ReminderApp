@@ -27,7 +27,7 @@ public class ApiService
             {
                 Console.WriteLine($"API kutsu yritys {attempt}/{actualMaxRetries}");
                 // TEMPORARY: Hard-code ReminderAPI URL until config loading is fixed
-                var targetUrl = $"https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                var targetUrl = $"https://reminderapp-functions.azurewebsites.net/api/ReminderAPI?clientID={actualClientId}&_t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
                 Console.WriteLine($"🔧 HARD-CODED ReminderAPI call: '{targetUrl}'");
                 Console.WriteLine($"🔧 Config BaseUrl was: '{_apiSettings?.BaseUrl ?? "NULL"}'");
 
