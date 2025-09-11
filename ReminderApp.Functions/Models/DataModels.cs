@@ -58,6 +58,21 @@ public class Photo
     [JsonPropertyName("uploadSource")]
     public string UploadSource { get; set; } = string.Empty;
 
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = ""; // "telegram", "upload", "google-drive"
+    
+    [JsonPropertyName("telegramFileId")]
+    public string? TelegramFileId { get; set; }
+    
+    [JsonPropertyName("senderName")]
+    public string? SenderName { get; set; }
+    
+    [JsonPropertyName("senderChatId")]
+    public string? SenderChatId { get; set; }
+    
+    [JsonPropertyName("createdAt")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     [JsonPropertyName("fileSize")]
     public long FileSize { get; set; }
 
