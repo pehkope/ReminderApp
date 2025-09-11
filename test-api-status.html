@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Azure Functions API Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loading { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .endpoint { font-family: monospace; background: #f8f9fa; padding: 5px; border-radius: 3px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Azure Functions API Status Test</h1>
+        <p>Tarkistaa onko .NET Azure Functions API toiminnassa deployment:in jälkeen.</p>
+        
+        <button onclick="testAllEndpoints()">🚀 Testaa kaikki API:t</button>
+        <button onclick="clearResults()">🧹 Tyhjennä tulokset</button>
+        
+        <div id="results"></div>
+        
+        <h2>📋 Testattavat endpointit:</h2>
+        <ul>
+            <li><span class="endpoint">/api/health</span> - Health check</li>
+            <li><span class="endpoint">/api/ReminderAPI?clientID=mom</span> - Main API</li>
+            <li><span class="endpoint">/admin</span> - Admin dashboard</li>
+            <li><span class="endpoint">/api/telegram/status</span> - Telegram bot status</li>
+            <li><span class="endpoint">/api/twilio/token</span> - Twilio token</li>
+        </ul>
+    </div>
+
+    <script>
+        const baseUrl = 'https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net';
+        const resultsDiv = document.getElementById('results');
+
+        const endpoints = [
+            { path: '/api/health', name: 'Health Check', method: 'GET' },
+            { path: '/api/ReminderAPI?clientID=mom', name: 'ReminderAPI', method: 'GET' },
+            { path: '/admin', name: 'Admin Dashboard', method: 'GET' },
+            { path: '/api/telegram/status', name: 'Telegram Status', method: 'GET' },
+            { path: '/api/twilio/token', name: 'Twilio Token', method: 'GET' }
+        ];
+
+        async function testEndpoint(endpoint) {
+            const url = baseUrl + endpoint.path;
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(url, { 
+                    method: endpoint.method,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const duration = Date.now() - startTime;
+                const contentType = response.headers.get('content-type');
+                
+                let responseData = '';
+                try {
+                    if (contentType && contentType.includes('application/json')) {
+                        responseData = await response.json();
+                        responseData = JSON.stringify(responseData, null, 2);
+                    } else {
+                        responseData = await response.text();
+                        if (responseData.length > 500) {
+                            responseData = responseData.substring(0, 500) + '... (truncated)';
+                        }
+                    }
+                } catch (e) {
+                    responseData = 'Could not parse response';
+                }
+
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    statusText: response.statusText,
+                    duration,
+                    contentType,
+                    data: responseData,
+                    url
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message,
+                    duration: Date.now() - startTime,
+                    url
+                };
+            }
+        }
+
+        async function testAllEndpoints() {
+            resultsDiv.innerHTML = '<div class="test-result loading">🔄 Testataan API endpointeja...</div>';
+            
+            for (const endpoint of endpoints) {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'test-result loading';
+                loadingDiv.innerHTML = `⏳ Testataan ${endpoint.name}...`;
+                resultsDiv.appendChild(loadingDiv);
+                
+                const result = await testEndpoint(endpoint);
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `test-result ${result.success ? 'success' : 'error'}`;
+                
+                const icon = result.success ? '✅' : '❌';
+                const status = result.error ? `Error: ${result.error}` : `${result.status} ${result.statusText}`;
+                
+                resultDiv.innerHTML = `
+                    <h3>${icon} ${endpoint.name}</h3>
+                    <p><strong>URL:</strong> <code>${result.url}</code></p>
+                    <p><strong>Status:</strong> ${status} (${result.duration}ms)</p>
+                    ${result.contentType ? `<p><strong>Content-Type:</strong> ${result.contentType}</p>` : ''}
+                    ${result.data ? `<p><strong>Response:</strong></p><pre>${result.data}</pre>` : ''}
+                `;
+                
+                resultsDiv.replaceChild(resultDiv, loadingDiv);
+            }
+        }
+
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+
+        // Auto-test kun sivu latautuu
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testAllEndpoints();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+
