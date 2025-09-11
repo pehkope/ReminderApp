@@ -53,5 +53,114 @@
         "direction": "Out"
       }
     ]
+  },
+  {
+    "name": "TwilioToken",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TwilioApi.GetToken",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get"
+        ],
+        "route": "api/twilio/token",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "VoiceTwiML",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TwilioApi.HandleVoiceCall",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "api/twilio/voice",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "SmsTwiML",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TwilioApi.HandleSmsMessage",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "post"
+        ],
+        "route": "api/twilio/sms",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "EmergencyNotification",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TwilioApi.SendEmergencyNotification",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "post"
+        ],
+        "route": "api/twilio/emergency",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
   }
 ]

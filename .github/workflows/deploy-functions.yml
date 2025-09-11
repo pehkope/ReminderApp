@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'ReminderApp.Functions/**'
+      - '.github/workflows/deploy-functions.yml'
   workflow_dispatch:
 
 env:
@@ -26,10 +29,17 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
+    - name: 'Restore dependencies'
+      shell: bash
+      run: |
+        cd ReminderApp.Functions
+        dotnet restore
+
     - name: 'Build and Publish'
       shell: bash
       run: |
-        dotnet publish "ReminderApp.Functions/ReminderApp.Functions.csproj" -c Release -o "ReminderApp.Functions/output"
+        cd ReminderApp.Functions
+        dotnet publish ReminderApp.Functions.csproj -c Release -o ./output
 
     - name: 'Azure Login'
       uses: azure/login@v1
@@ -44,3 +54,15 @@ jobs:
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         package: 'ReminderApp.Functions/output'
+        
+    - name: 'Test API Endpoints'
+      shell: bash
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 30
+        echo "Testing Health Check endpoint..."
+        curl -f "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/health" || echo "Health check failed"
+        echo "Testing ReminderAPI endpoint..."
+        curl -f "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/ReminderAPI?clientID=test" || echo "ReminderAPI test failed"
+        echo "Testing Admin Dashboard..."
+        curl -f "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/admin" || echo "Admin dashboard test failed"

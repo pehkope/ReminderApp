@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReminderApp .NET API Testit</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-section { background: white; margin: 15px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-button { background: #007cba; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .test-button:hover { background: #005a8b; }
+        .test-button.success { background: #28a745; }
+        .test-button.error { background: #dc3545; }
+        .response { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 15px; margin: 10px 0; }
+        .response pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+        .status { font-weight: bold; margin: 10px 0; }
+        .status.success { color: #28a745; }
+        .status.error { color: #dc3545; }
+        .url-input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .stats { display: flex; justify-content: space-around; background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #007cba; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 ReminderApp .NET API Testit</h1>
+            <p>Testaa kaikki .NET Azure Functions endpointit</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalTests">0</div>
+                <div>Testejä yhteensä</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="passedTests">0</div>
+                <div>✅ Onnistui</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="failedTests">0</div>
+                <div>❌ Epäonnistui</div>
+            </div>
+        </div>
+
+        <!-- Base URL Configuration -->
+        <div class="test-section">
+            <h3>🔧 Konfiguraatio</h3>
+            <label>Azure Functions Base URL:</label>
+            <input type="text" id="baseUrl" class="url-input" value="https://reminderapp-functions.azurewebsites.net" 
+                   placeholder="https://reminderapp-functions.azurewebsites.net">
+            <small>Vaihda localhost:7071 paikallista testausta varten</small>
+        </div>
+
+        <!-- Health Check -->
+        <div class="test-section">
+            <h3>❤️ Health Check</h3>
+            <button class="test-button" onclick="testHealthCheck()">Test Health Check</button>
+            <div id="healthResult"></div>
+        </div>
+
+        <!-- ReminderAPI Tests -->
+        <div class="test-section">
+            <h3>📝 ReminderAPI Tests</h3>
+            <button class="test-button" onclick="testReminderApiGet()">GET ReminderAPI</button>
+            <button class="test-button" onclick="testReminderApiPost()">POST ReminderAPI (Create Reminder)</button>
+            <button class="test-button" onclick="testReminderApiAck()">POST ReminderAPI (Acknowledgment)</button>
+            <div id="reminderResult"></div>
+        </div>
+
+        <!-- Admin API Tests -->
+        <div class="test-section">
+            <h3>👨‍💼 Admin API Tests</h3>
+            <button class="test-button" onclick="testAdminDashboard()">Admin Dashboard</button>
+            <button class="test-button" onclick="testWebhookManagement()">Webhook Management</button>
+            <button class="test-button" onclick="testSystemConfig()">System Config</button>
+            <button class="test-button" onclick="testClientManagement()">Client Management</button>
+            <div id="adminResult"></div>
+        </div>
+
+        <!-- Twilio API Tests -->
+        <div class="test-section">
+            <h3>📞 Twilio API Tests</h3>
+            <button class="test-button" onclick="testTwilioToken()">Twilio Token</button>
+            <button class="test-button" onclick="testVoiceTwiML()">Voice TwiML</button>
+            <button class="test-button" onclick="testSmsTwiML()">SMS TwiML</button>
+            <button class="test-button" onclick="testEmergencyNotification()">Emergency Notification</button>
+            <div id="twilioResult"></div>
+        </div>
+
+        <!-- Run All Tests -->
+        <div class="test-section">
+            <h3>🚀 Suorita kaikki testit</h3>
+            <button class="test-button" onclick="runAllTests()" style="background: #28a745; font-size: 16px; padding: 15px 30px;">
+                ▶️ Aja kaikki testit
+            </button>
+            <button class="test-button" onclick="clearResults()" style="background: #6c757d;">
+                🗑️ Tyhjennä tulokset
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let testStats = { total: 0, passed: 0, failed: 0 };
+
+        function getBaseUrl() {
+            return document.getElementById('baseUrl').value.replace(/\/$/, '');
+        }
+
+        function updateStats() {
+            document.getElementById('totalTests').textContent = testStats.total;
+            document.getElementById('passedTests').textContent = testStats.passed;
+            document.getElementById('failedTests').textContent = testStats.failed;
+        }
+
+        function showResult(containerId, title, url, response, success) {
+            const container = document.getElementById(containerId);
+            const statusClass = success ? 'success' : 'error';
+            const statusText = success ? '✅ ONNISTUI' : '❌ EPÄONNISTUI';
+            
+            testStats.total++;
+            if (success) testStats.passed++;
+            else testStats.failed++;
+            updateStats();
+
+            container.innerHTML += `
+                <div class="response">
+                    <h4>${title}</h4>
+                    <div class="status ${statusClass}">${statusText}</div>
+                    <p><strong>URL:</strong> ${url}</p>
+                    <pre>${JSON.stringify(response, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json().catch(() => response.text());
+                return { success: response.ok, status: response.status, data };
+            } catch (error) {
+                return { success: false, status: 0, data: { error: error.message } };
+            }
+        }
+
+        // Health Check Test
+        async function testHealthCheck() {
+            const url = `${getBaseUrl()}/api/health`;
+            const result = await makeRequest(url);
+            showResult('healthResult', 'Health Check', url, result, result.success);
+        }
+
+        // ReminderAPI Tests
+        async function testReminderApiGet() {
+            const url = `${getBaseUrl()}/api/ReminderAPI?clientID=test`;
+            const result = await makeRequest(url);
+            showResult('reminderResult', 'ReminderAPI GET', url, result, result.success);
+        }
+
+        async function testReminderApiPost() {
+            const url = `${getBaseUrl()}/api/ReminderAPI`;
+            const body = {
+                clientID: 'test',
+                action: 'create_reminder',
+                text: 'Test reminder from API test'
+            };
+            const result = await makeRequest(url, {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            showResult('reminderResult', 'ReminderAPI POST (Create)', url, result, result.success);
+        }
+
+        async function testReminderApiAck() {
+            const url = `${getBaseUrl()}/api/ReminderAPI`;
+            const body = {
+                clientID: 'test',
+                action: 'complete_food',
+                taskId: 'test-task-123'
+            };
+            const result = await makeRequest(url, {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            showResult('reminderResult', 'ReminderAPI POST (Acknowledgment)', url, result, result.success);
+        }
+
+        // Admin API Tests
+        async function testAdminDashboard() {
+            const url = `${getBaseUrl()}/admin`;
+            const result = await makeRequest(url);
+            showResult('adminResult', 'Admin Dashboard', url, result, result.success);
+        }
+
+        async function testWebhookManagement() {
+            const url = `${getBaseUrl()}/admin/webhooks`;
+            const result = await makeRequest(url);
+            showResult('adminResult', 'Webhook Management GET', url, result, result.success);
+        }
+
+        async function testSystemConfig() {
+            const url = `${getBaseUrl()}/admin/config`;
+            const result = await makeRequest(url);
+            showResult('adminResult', 'System Config GET', url, result, result.success);
+        }
+
+        async function testClientManagement() {
+            const url = `${getBaseUrl()}/admin/clients`;
+            const result = await makeRequest(url);
+            showResult('adminResult', 'Client Management GET', url, result, result.success);
+        }
+
+        // Twilio API Tests
+        async function testTwilioToken() {
+            const url = `${getBaseUrl()}/api/twilio/token?clientID=test&identity=test-user`;
+            const result = await makeRequest(url);
+            showResult('twilioResult', 'Twilio Token', url, result, result.success);
+        }
+
+        async function testVoiceTwiML() {
+            const url = `${getBaseUrl()}/api/twilio/voice?clientID=test&From=+1234567890&To=+0987654321`;
+            const result = await makeRequest(url);
+            showResult('twilioResult', 'Voice TwiML', url, result, result.success);
+        }
+
+        async function testSmsTwiML() {
+            const url = `${getBaseUrl()}/api/twilio/sms`;
+            const body = 'From=%2B1234567890&Body=Test%20message&To=%2B0987654321';
+            const result = await makeRequest(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+            showResult('twilioResult', 'SMS TwiML', url, result, result.success);
+        }
+
+        async function testEmergencyNotification() {
+            const url = `${getBaseUrl()}/api/twilio/emergency`;
+            const body = {
+                clientID: 'test',
+                toNumber: '+1234567890',
+                details: 'API test emergency notification'
+            };
+            const result = await makeRequest(url, {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            showResult('twilioResult', 'Emergency Notification', url, result, result.success);
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            clearResults();
+            console.log('🚀 Aloitetaan kaikki testit...');
+            
+            await testHealthCheck();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testReminderApiGet();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testReminderApiPost();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testReminderApiAck();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAdminDashboard();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testWebhookManagement();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testSystemConfig();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testClientManagement();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testTwilioToken();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testVoiceTwiML();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testSmsTwiML();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testEmergencyNotification();
+            
+            console.log('✅ Kaikki testit suoritettu!');
+        }
+
+        function clearResults() {
+            document.getElementById('healthResult').innerHTML = '';
+            document.getElementById('reminderResult').innerHTML = '';
+            document.getElementById('adminResult').innerHTML = '';
+            document.getElementById('twilioResult').innerHTML = '';
+            testStats = { total: 0, passed: 0, failed: 0 };
+            updateStats();
+        }
+
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>
