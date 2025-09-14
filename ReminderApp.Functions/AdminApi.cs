@@ -34,7 +34,7 @@ public class AdminApi
     /// </summary>
     [Function("AdminDashboard")]
     public async Task<HttpResponseData> GetAdminDashboard(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "admin")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "admin")] 
         HttpRequestData req)
     {
         _logger.LogInformation("Admin dashboard requested");
@@ -94,7 +94,7 @@ public class AdminApi
     /// </summary>
     [Function("WebhookManagement")]
     public async Task<HttpResponseData> ManageWebhooks(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "admin/webhooks")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "admin/webhooks")] 
         HttpRequestData req)
     {
         _logger.LogInformation("Webhook management: {Method}", req.Method);
@@ -125,7 +125,7 @@ public class AdminApi
     /// </summary>
     [Function("SystemConfig")]
     public async Task<HttpResponseData> ManageSystemConfig(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "put", Route = "admin/config")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", "put", Route = "admin/config")] 
         HttpRequestData req)
     {
         _logger.LogInformation("System config management: {Method}", req.Method);
@@ -156,7 +156,7 @@ public class AdminApi
     /// </summary>
     [Function("ClientManagement")]
     public async Task<HttpResponseData> ManageClients(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "put", "delete", Route = "admin/clients/{clientId?}")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", "put", "delete", Route = "admin/clients/{clientId?}")] 
         HttpRequestData req)
     {
         _logger.LogInformation("Client management: {Method}", req.Method);

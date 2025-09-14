@@ -17,7 +17,18 @@
       "routePrefix": "",
       "maxOutstandingRequests": 200,
       "maxConcurrentRequests": 100,
-      "dynamicThrottlesEnabled": true
+      "dynamicThrottlesEnabled": true,
+      "cors": {
+        "allowedOrigins": [
+          "https://localhost:5000",
+          "https://localhost:5001", 
+          "http://localhost:3000",
+          "https://*.azurestaticapps.net"
+        ],
+        "allowedMethods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allowedHeaders": ["*"],
+        "allowCredentials": false
+      }
     }
   }
 }

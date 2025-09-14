@@ -23,7 +23,7 @@ public class TwilioApi
     /// </summary>
     [Function("TwilioToken")]
     public async Task<HttpResponseData> GetToken(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/twilio/token")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "api/twilio/token")] 
         HttpRequestData req)
     {
         _logger.LogInformation("Twilio token request received");
@@ -65,7 +65,7 @@ public class TwilioApi
     /// </summary>
     [Function("VoiceTwiML")]
     public async Task<HttpResponseData> HandleVoiceCall(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "api/twilio/voice")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "api/twilio/voice")] 
         HttpRequestData req)
     {
         _logger.LogInformation("Voice TwiML request: {Method}", req.Method);
@@ -107,7 +107,7 @@ public class TwilioApi
     /// </summary>
     [Function("SmsTwiML")]
     public async Task<HttpResponseData> HandleSmsMessage(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/twilio/sms")] 
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "api/twilio/sms")] 
         HttpRequestData req)
     {
         _logger.LogInformation("SMS TwiML request received");
@@ -152,7 +152,7 @@ public class TwilioApi
     /// </summary>
     [Function("EmergencyNotification")]
     public async Task<HttpResponseData> SendEmergencyNotification(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/twilio/emergency")] 
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "api/twilio/emergency")] 
         HttpRequestData req)
     {
         _logger.LogInformation("Emergency notification request received");

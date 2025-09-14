@@ -25,7 +25,7 @@ public class ReminderApi
 
     [Function("ReminderApi")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "api/ReminderAPI")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "api/ReminderAPI")] 
         HttpRequestData req)
     {
             _logger.LogInformation("ReminderAPI (.NET v2) called with method: {Method}", req.Method);
@@ -62,6 +62,7 @@ public class ReminderApi
         var upcomingAppointments = new List<Appointment>();
         var todaysFoods = new List<Food>();
         var todaysMedications = new List<Medication>();
+        var client = (Client?)null;
         var storageType = "in-memory";
 
         if (_cosmosDbService.IsConfigured)
@@ -76,13 +77,15 @@ public class ReminderApi
                 var appointmentTask = _cosmosDbService.GetUpcomingAppointmentsAsync(clientId);
                 var foodTask = _cosmosDbService.GetTodaysFoodsAsync(clientId);
                 var medicationTask = _cosmosDbService.GetTodaysMedicationsAsync(clientId);
+                var clientTask = _cosmosDbService.GetClientAsync(clientId);
 
-                await Task.WhenAll(reminderTask, appointmentTask, foodTask, medicationTask);
+                await Task.WhenAll(reminderTask, appointmentTask, foodTask, medicationTask, clientTask);
 
                 reminders = await reminderTask;
                 upcomingAppointments = await appointmentTask;
                 todaysFoods = await foodTask;
                 todaysMedications = await medicationTask;
+                client = await clientTask;
 
                 _logger.LogInformation("Fetched from Cosmos: {ReminderCount} reminders, {AppointmentCount} appointments, {FoodCount} foods, {MedicationCount} medications", 
                     reminders.Count, upcomingAppointments.Count, todaysFoods.Count, todaysMedications.Count);
@@ -116,16 +119,47 @@ public class ReminderApi
         // Build daily tasks from foods and medications
         var dailyTasks = new List<DailyTask>();
 
-        // Add food tasks
-        dailyTasks.AddRange(todaysFoods.Select(food => new DailyTask
+        // Get client settings (use defaults if not found)
+        var clientSettings = client?.Settings ?? new ClientSettings();
+
+        // Add food tasks based on settings
+        if (clientSettings.UseFoodReminders)
         {
-            Id = food.Id,
-            Type = "food",
-            Time = food.TimeSlot,
-            Text = food.Suggestions.Any() ? string.Join(", ", food.Suggestions) : "Ruokailu",
-            Completed = food.Completed,
-            EncouragingMessage = food.EncouragingMessage
-        }));
+            if (clientSettings.FoodReminderType == "simple")
+            {
+                // Add simple food reminders at standard meal times
+                var mealTimes = new[] { "08:00", "12:00", "18:00" };
+                var simpleText = !string.IsNullOrEmpty(clientSettings.SimpleReminderText) 
+                    ? clientSettings.SimpleReminderText 
+                    : "Muista syödä";
+
+                foreach (var mealTime in mealTimes)
+                {
+                    dailyTasks.Add(new DailyTask
+                    {
+                        Id = $"simple_food_{DateTime.Today:yyyyMMdd}_{mealTime.Replace(":", "")}",
+                        Type = "food",
+                        Time = mealTime,
+                        Text = $"🍽️ {simpleText}",
+                        Completed = false,
+                        EncouragingMessage = "Hyvää ruokahalua! 😊"
+                    });
+                }
+            }
+            else // detailed food reminders
+            {
+                dailyTasks.AddRange(todaysFoods.Select(food => new DailyTask
+                {
+                    Id = food.Id,
+                    Type = "food",
+                    Time = food.TimeSlot,
+                    Text = food.Suggestions.Any() ? string.Join(", ", food.Suggestions) : "Ruokailu",
+                    Completed = food.Completed,
+                    EncouragingMessage = food.EncouragingMessage
+                }));
+            }
+        }
+        // If UseFoodReminders = false, no food tasks are added
 
         // Add medication tasks
         dailyTasks.AddRange(todaysMedications.Select(med => new DailyTask

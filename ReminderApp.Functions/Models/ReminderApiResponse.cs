@@ -101,6 +101,16 @@ public class ClientSettings
 
     [JsonPropertyName("useSMS")]
     public bool UseSMS { get; set; } = false;
+
+    // Food reminder settings
+    [JsonPropertyName("useFoodReminders")]
+    public bool UseFoodReminders { get; set; } = true;
+
+    [JsonPropertyName("foodReminderType")]
+    public string FoodReminderType { get; set; } = "detailed"; // "detailed" or "simple"
+
+    [JsonPropertyName("simpleReminderText")]
+    public string SimpleReminderText { get; set; } = "Muista syödä"; // Custom text for simple reminders
 }
 
 public class WeatherInfo

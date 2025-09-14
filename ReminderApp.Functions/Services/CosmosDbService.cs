@@ -265,4 +265,36 @@ public class CosmosDbService
             return new List<T>();
         }
     }
+
+    // Get client settings
+    public async Task<Client?> GetClientAsync(string clientId)
+    {
+        if (!IsConfigured) return null;
+
+        try
+        {
+            var container = GetContainer("Clients");
+            if (container == null) return null;
+
+            var query = new QueryDefinition(
+                "SELECT * FROM c WHERE c.clientId = @clientId AND c.type = 'client'")
+                .WithParameter("@clientId", clientId);
+
+            var iterator = container.GetItemQueryIterator<Client>(query);
+            
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                var client = response.FirstOrDefault();
+                if (client != null) return client;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching client {clientId}: {ex.Message}");
+            return null;
+        }
+    }
 }

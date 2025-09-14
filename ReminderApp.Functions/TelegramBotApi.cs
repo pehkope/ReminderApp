@@ -104,7 +104,7 @@ public class TelegramBotApi
     /// </summary>
     [Function("TelegramSendMessage")]
     public async Task<HttpResponseData> SendMessage(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "telegram/send")] 
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "telegram/send")] 
         HttpRequestData req)
     {
         _logger.LogInformation("📤 Telegram send message request");
@@ -158,7 +158,7 @@ public class TelegramBotApi
     /// </summary>
     [Function("TelegramGetGreetings")]
     public async Task<HttpResponseData> GetGreetings(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telegram/greetings/{clientId}")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "telegram/greetings/{clientId}")] 
         HttpRequestData req)
     {
         var clientId = req.FunctionContext.BindingContext.BindingData.GetValueOrDefault("clientId")?.ToString() ?? "mom";
@@ -205,7 +205,7 @@ public class TelegramBotApi
     /// </summary>
     [Function("TelegramMarkGreetingRead")]
     public async Task<HttpResponseData> MarkGreetingRead(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "telegram/greetings/{greetingId}/read")] 
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "telegram/greetings/{greetingId}/read")] 
         HttpRequestData req)
     {
         var greetingId = req.FunctionContext.BindingContext.BindingData.GetValueOrDefault("greetingId")?.ToString();
@@ -245,7 +245,7 @@ public class TelegramBotApi
     /// </summary>
     [Function("TelegramGetPhotos")]
     public async Task<HttpResponseData> GetPhotos(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telegram/photos/{clientId}")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "telegram/photos/{clientId}")] 
         HttpRequestData req)
     {
         var clientId = req.FunctionContext.BindingContext.BindingData.GetValueOrDefault("clientId")?.ToString() ?? "mom";
@@ -295,7 +295,7 @@ public class TelegramBotApi
     /// </summary>
     [Function("TelegramStatus")]
     public async Task<HttpResponseData> GetStatus(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telegram/status")] 
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "telegram/status")] 
         HttpRequestData req)
     {
         _logger.LogInformation("📊 Getting Telegram bot status");
