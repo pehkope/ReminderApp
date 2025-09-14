@@ -1,0 +1,25 @@
+{
+  "id": "test",
+  "clientId": "test", 
+  "type": "client",
+  "name": "Testi",
+  "displayName": "Testaaja",
+  "timezone": "Europe/Helsinki",
+  "language": "fi",
+  "settings": {
+    "useWeather": true,
+    "usePhotos": true,
+    "useTelegram": false,
+    "useSMS": false,
+    "useFoodReminders": false,
+    "foodReminderType": "simple",
+    "simpleReminderText": "Muista syödä"
+  },
+  "contacts": {
+    "primaryFamily": "Admin",
+    "phone": "+358123456789",
+    "emergencyContact": "+358123456789"
+  },
+  "createdAt": "2025-09-14T12:00:00Z",
+  "updatedAt": "2025-09-14T12:00:00Z"
+}

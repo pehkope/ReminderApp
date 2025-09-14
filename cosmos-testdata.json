@@ -1,0 +1,170 @@
+{
+  "clients": [
+    {
+      "id": "mom",
+      "clientId": "mom",
+      "type": "client",
+      "name": "Äiti",
+      "displayName": "Kultaseni",
+      "timezone": "Europe/Helsinki",
+      "language": "fi",
+      "settings": {
+        "useWeather": true,
+        "usePhotos": true,
+        "useTelegram": false,
+        "useSMS": false,
+        "useFoodReminders": true,
+        "foodReminderType": "detailed",
+        "simpleReminderText": "Muista syödä"
+      },
+      "contacts": {
+        "primaryFamily": "Petri",
+        "phone": "+358123456789",
+        "emergencyContact": "+358123456789"
+      },
+      "createdAt": "2025-09-14T12:00:00Z",
+      "updatedAt": "2025-09-14T12:00:00Z"
+    },
+    {
+      "id": "dad",
+      "clientId": "dad",
+      "type": "client",
+      "name": "Isä",
+      "displayName": "Rakas",
+      "timezone": "Europe/Helsinki",
+      "language": "fi",
+      "settings": {
+        "useWeather": true,
+        "usePhotos": true,
+        "useTelegram": false,
+        "useSMS": false,
+        "useFoodReminders": true,
+        "foodReminderType": "simple",
+        "simpleReminderText": "Aika syödä 🍽️"
+      },
+      "contacts": {
+        "primaryFamily": "Petri",
+        "phone": "+358123456789",
+        "emergencyContact": "+358123456789"
+      },
+      "createdAt": "2025-09-14T12:00:00Z",
+      "updatedAt": "2025-09-14T12:00:00Z"
+    },
+    {
+      "id": "test",
+      "clientId": "test",
+      "type": "client",
+      "name": "Testi",
+      "displayName": "Testaaja",
+      "timezone": "Europe/Helsinki",
+      "language": "fi",
+      "settings": {
+        "useWeather": true,
+        "usePhotos": true,
+        "useTelegram": false,
+        "useSMS": false,
+        "useFoodReminders": false,
+        "foodReminderType": "simple",
+        "simpleReminderText": "Muista syödä"
+      },
+      "contacts": {
+        "primaryFamily": "Admin",
+        "phone": "+358123456789",
+        "emergencyContact": "+358123456789"
+      },
+      "createdAt": "2025-09-14T12:00:00Z",
+      "updatedAt": "2025-09-14T12:00:00Z"
+    }
+  ],
+  "photos": [
+    {
+      "id": "photo_mom_001",
+      "clientId": "mom",
+      "type": "photo",
+      "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      "caption": "Kaunis järvimaisema",
+      "isActive": true,
+      "uploadedAt": "2025-09-14T12:00:00Z"
+    },
+    {
+      "id": "photo_mom_002",
+      "clientId": "mom",
+      "type": "photo",
+      "url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
+      "caption": "Syksy metsässä",
+      "isActive": true,
+      "uploadedAt": "2025-09-14T12:00:00Z"
+    },
+    {
+      "id": "photo_mom_003",
+      "clientId": "mom",
+      "type": "photo",
+      "url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop",
+      "caption": "Auringonlasku",
+      "isActive": true,
+      "uploadedAt": "2025-09-14T12:00:00Z"
+    }
+  ],
+  "foods": [
+    {
+      "id": "food_mom_breakfast_20250914",
+      "clientId": "mom",
+      "type": "food",
+      "mealTime": "breakfast",
+      "timeSlot": "08:00",
+      "date": "2025-09-14",
+      "suggestions": [
+        "Kaurapuuro marjojen kanssa 🫐",
+        "Voileipä ja kahvi ☕",
+        "Jogurtti ja hedelmät 🍓"
+      ],
+      "encouragingMessage": "Hyvää huomenta kultaseni! Aloitetaan päivä hyvällä aamiaisella! ☀️",
+      "completed": false,
+      "completedAt": null
+    },
+    {
+      "id": "food_mom_lunch_20250914",
+      "clientId": "mom",
+      "type": "food",
+      "mealTime": "lunch",
+      "timeSlot": "12:00",
+      "date": "2025-09-14",
+      "suggestions": [
+        "Keitto ja leipää 🍲",
+        "Salaatti ja kalaa 🐟",
+        "Pasta ja kastiketta 🍝"
+      ],
+      "encouragingMessage": "Lounas aika kulta! Nauti rauhassa 😊",
+      "completed": false,
+      "completedAt": null
+    }
+  ],
+  "medications": [
+    {
+      "id": "med_mom_morning_20250914",
+      "clientId": "mom",
+      "type": "medication",
+      "name": "Aamulääke",
+      "dosage": "1 tabletti",
+      "time": "08:00",
+      "date": "2025-09-14",
+      "recurring": true,
+      "instructions": "Ota ruoan kanssa",
+      "completed": false,
+      "completedAt": null
+    },
+    {
+      "id": "med_mom_evening_20250914",
+      "clientId": "mom",
+      "type": "medication",
+      "name": "Iltalääke",
+      "dosage": "1 tabletti",
+      "time": "20:00",
+      "date": "2025-09-14",
+      "recurring": true,
+      "instructions": "Ota ennen nukkumaanmenoa",
+      "completed": false,
+      "completedAt": null
+    }
+  ]
+}

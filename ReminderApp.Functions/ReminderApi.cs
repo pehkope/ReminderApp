@@ -127,22 +127,30 @@ public class ReminderApi
         {
             if (clientSettings.FoodReminderType == "simple")
             {
-                // Add simple food reminders at standard meal times
-                var mealTimes = new[] { "08:00", "12:00", "18:00" };
-                var simpleText = !string.IsNullOrEmpty(clientSettings.SimpleReminderText) 
-                    ? clientSettings.SimpleReminderText 
-                    : "Muista syödä";
+                // Use custom meal times if defined, otherwise use defaults
+                var mealTimes = clientSettings.MealTimes?.Any() == true 
+                    ? clientSettings.MealTimes
+                    : new Dictionary<string, string>
+                    {
+                        { "08:00", "aamupala" },
+                        { "11:00", "lounas" },
+                        { "16:00", "päivällinen" },
+                        { "20:00", "iltapala" }
+                    };
 
-                foreach (var mealTime in mealTimes)
+                foreach (var meal in mealTimes.OrderBy(m => m.Key))
                 {
+                    var mealTime = meal.Key;
+                    var mealName = meal.Value;
+                    
                     dailyTasks.Add(new DailyTask
                     {
                         Id = $"simple_food_{DateTime.Today:yyyyMMdd}_{mealTime.Replace(":", "")}",
                         Type = "food",
                         Time = mealTime,
-                        Text = $"🍽️ {simpleText}",
+                        Text = $"🍽️ Muista {mealName}",
                         Completed = false,
-                        EncouragingMessage = "Hyvää ruokahalua! 😊"
+                        EncouragingMessage = GetMealEncouragement(mealName)
                     });
                 }
             }
@@ -182,13 +190,7 @@ public class ReminderApi
             ClientID = clientId,
             Timestamp = DateTime.UtcNow.ToString("O"),
             Status = "OK",
-            Settings = new ClientSettings
-            {
-                UseWeather = true,
-                UsePhotos = true,
-                UseTelegram = false,
-                UseSMS = false
-            },
+            Settings = clientSettings,
             ImportantMessage = upcomingAppointments.Any() 
                 ? $"Muista: {upcomingAppointments[0].Title} {upcomingAppointments[0].Date} klo {upcomingAppointments[0].Time}"
                 : string.Empty,
@@ -328,6 +330,18 @@ public class ReminderApi
         }
 
         return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Failed to create reminder");
+    }
+
+    private static string GetMealEncouragement(string mealName)
+    {
+        return mealName switch
+        {
+            "aamupala" => "Hyvää huomenta kultaseni! Aloitetaan päivä hyvin! ☀️",
+            "lounas" => "Lounas aika kulta! Nauti rauhassa 🍽️",
+            "päivällinen" => "Päivällisen aika! Hyvää ruokahetkeä 🌅",
+            "iltapala" => "Mukava iltapala ennen lepoa 🌙",
+            _ => "Hyvää ruokahalua! 😊"
+        };
     }
 
     private async Task<HttpResponseData> HandleFoodCompletion(HttpRequestData req, string clientId, Dictionary<string, object>? requestData)

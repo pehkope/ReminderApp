@@ -1,0 +1,29 @@
+[
+  {
+    "id": "photo_mom_001",
+    "clientId": "mom",
+    "type": "photo",
+    "url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+    "caption": "Kaunis järvimaisema",
+    "isActive": true,
+    "uploadedAt": "2025-09-14T12:00:00Z"
+  },
+  {
+    "id": "photo_mom_002", 
+    "clientId": "mom",
+    "type": "photo",
+    "url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
+    "caption": "Syksy metsässä",
+    "isActive": true,
+    "uploadedAt": "2025-09-14T12:00:00Z"
+  },
+  {
+    "id": "photo_mom_003",
+    "clientId": "mom",
+    "type": "photo", 
+    "url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop",
+    "caption": "Auringonlasku",
+    "isActive": true,
+    "uploadedAt": "2025-09-14T12:00:00Z"
+  }
+]

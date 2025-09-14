@@ -111,6 +111,9 @@ public class ClientSettings
 
     [JsonPropertyName("simpleReminderText")]
     public string SimpleReminderText { get; set; } = "Muista syödä"; // Custom text for simple reminders
+
+    [JsonPropertyName("mealTimes")]
+    public Dictionary<string, string> MealTimes { get; set; } = new(); // Custom meal times: "08:00" -> "aamupala"
 }
 
 public class WeatherInfo

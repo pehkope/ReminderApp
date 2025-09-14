@@ -1,0 +1,34 @@
+[
+  {
+    "id": "food_mom_breakfast_20250914",
+    "clientId": "mom",
+    "type": "food",
+    "mealTime": "breakfast",
+    "timeSlot": "08:00",
+    "date": "2025-09-14",
+    "suggestions": [
+      "Kaurapuuro marjojen kanssa 🫐",
+      "Voileipä ja kahvi ☕",
+      "Jogurtti ja hedelmät 🍓"
+    ],
+    "encouragingMessage": "Hyvää huomenta kultaseni! Aloitetaan päivä hyvällä aamiaisella! ☀️",
+    "completed": false,
+    "completedAt": null
+  },
+  {
+    "id": "food_mom_lunch_20250914",
+    "clientId": "mom",
+    "type": "food",
+    "mealTime": "lunch",
+    "timeSlot": "12:00",
+    "date": "2025-09-14",
+    "suggestions": [
+      "Keitto ja leipää 🍲",
+      "Salaatti ja kalaa 🐟", 
+      "Pasta ja kastiketta 🍝"
+    ],
+    "encouragingMessage": "Lounas aika kulta! Nauti rauhassa 😊",
+    "completed": false,
+    "completedAt": null
+  }
+]

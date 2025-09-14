@@ -1,0 +1,25 @@
+{
+  "id": "dad",
+  "clientId": "dad",
+  "type": "client",
+  "name": "Isä",
+  "displayName": "Rakas",
+  "timezone": "Europe/Helsinki",
+  "language": "fi",
+  "settings": {
+    "useWeather": true,
+    "usePhotos": true,
+    "useTelegram": false,
+    "useSMS": false,
+    "useFoodReminders": true,
+    "foodReminderType": "simple",
+    "simpleReminderText": "Aika syödä 🍽️"
+  },
+  "contacts": {
+    "primaryFamily": "Petri",
+    "phone": "+358123456789",
+    "emergencyContact": "+358123456789"
+  },
+  "createdAt": "2025-09-14T12:00:00Z",
+  "updatedAt": "2025-09-14T12:00:00Z"
+}

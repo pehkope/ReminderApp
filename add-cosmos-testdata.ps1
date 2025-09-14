@@ -37,11 +37,14 @@ $clientData = @{
     timezone = "Europe/Helsinki"
     language = "fi"
     settings = @{
-        smsEnabled = $true
-        smsCount = 4
-        weatherLocation = "Helsinki"
-        photoRotation = "daily"
-        reminderTimes = @("08:00", "12:00", "16:00", "20:00")
+        useWeather = $true
+        usePhotos = $true
+        useTelegram = $false
+        useSMS = $false
+        # Food reminder settings - detailed ehdotukset
+        useFoodReminders = $true
+        foodReminderType = "detailed"  # "detailed" or "simple"
+        simpleReminderText = "Muista syödä"
     }
     contacts = @{
         primaryFamily = "Petri"
@@ -207,20 +210,102 @@ foreach ($medication in $medications) {
 }
 
 Write-Host ""
+# Lisää myös testiasiakas "simple" food remindereilla
+Write-Host "5. Lisätään testiasiakas 'dad' yksinkertaisilla food muistutuksilla..." -ForegroundColor Yellow
+
+$clientDataSimple = @{
+    id = "dad"
+    clientId = "dad"
+    type = "client"
+    name = "Isä"
+    displayName = "Rakas"
+    timezone = "Europe/Helsinki"
+    language = "fi"
+    settings = @{
+        useWeather = $true
+        usePhotos = $true
+        useTelegram = $false
+        useSMS = $false
+        # Food reminder settings - yksinkertaiset muistutukset
+        useFoodReminders = $true
+        foodReminderType = "simple"  # "detailed" or "simple"
+        simpleReminderText = "Aika syödä 🍽️"
+    }
+    contacts = @{
+        primaryFamily = "Petri"
+        phone = "+358123456789"
+        emergencyContact = "+358123456789"
+    }
+    createdAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    updatedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+} | ConvertTo-Json -Depth 10
+
+Add-CosmosItem -ContainerName "Clients" -Item $clientDataSimple -Description "Client (dad - simple food reminders)"
+
+# Lisää myös testiasiakas ilman food remindereitä
+Write-Host "6. Lisätään testiasiakas 'test' ilman food muistutuksia..." -ForegroundColor Yellow
+
+$clientDataNoFood = @{
+    id = "test"
+    clientId = "test"
+    type = "client"
+    name = "Testi"
+    displayName = "Testaaja"
+    timezone = "Europe/Helsinki"
+    language = "fi"
+    settings = @{
+        useWeather = $true
+        usePhotos = $true
+        useTelegram = $false
+        useSMS = $false
+        # Food reminder settings - ei food muistutuksia
+        useFoodReminders = $false
+        foodReminderType = "simple"
+        simpleReminderText = "Muista syödä"
+    }
+    contacts = @{
+        primaryFamily = "Admin"
+        phone = "+358123456789"
+        emergencyContact = "+358123456789"
+    }
+    createdAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    updatedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+} | ConvertTo-Json -Depth 10
+
+Add-CosmosItem -ContainerName "Clients" -Item $clientDataNoFood -Description "Client (test - no food reminders)"
+
+Write-Host ""
 Write-Host "✅ TESTIDATA LISÄTTY!" -ForegroundColor Green
 Write-Host "========================" -ForegroundColor Green
 Write-Host ""
 Write-Host "📊 LISÄTTY DATA:" -ForegroundColor Cyan
-Write-Host "   Client: 1 (mom)"
+Write-Host "   Clients: 3 (mom=detailed, dad=simple, test=no food)"
 Write-Host "   Photos: $($photos.Count)"
 Write-Host "   Foods: $($foods.Count)" 
 Write-Host "   Medications: $($medications.Count)"
 Write-Host ""
-Write-Host "🧪 TESTAA API:" -ForegroundColor Yellow
+Write-Host "🧪 TESTAA API eri asiakkailla:" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "1. Detailed food reminders (mom):"
 Write-Host "curl 'https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI?clientID=mom'"
 Write-Host ""
-Write-Host "📋 ODOTETTAVA VASTAUS:" -ForegroundColor Cyan  
-Write-Host '   "storage": "cosmos"  // Ei enää "in-memory"'
-Write-Host '   "dailyTasks": [...]  // Sisältää ruokia ja lääkkeitä'
-Write-Host '   "dailyPhotoUrl": "..." // Sisältää kuvan URL:n'
+Write-Host "2. Simple food reminders (dad):"
+Write-Host "curl 'https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI?clientID=dad'"
+Write-Host ""
+Write-Host "3. No food reminders (test):"
+Write-Host "curl 'https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI?clientID=test'"
+Write-Host ""
+Write-Host "📋 ODOTETTAVAT VASTAUKSET:" -ForegroundColor Cyan  
+Write-Host ""
+Write-Host "MOM (detailed):" -ForegroundColor Yellow
+Write-Host '   "settings": { "useFoodReminders": true, "foodReminderType": "detailed" }'
+Write-Host '   "dailyTasks": [{"time":"08:00", "text":"Kaurapuuro...", "type":"food"}]'
+Write-Host ""
+Write-Host "DAD (simple):" -ForegroundColor Yellow  
+Write-Host '   "settings": { "useFoodReminders": true, "foodReminderType": "simple" }'
+Write-Host '   "dailyTasks": [{"time":"08:00", "text":"🍽️ Aika syödä 🍽️", "type":"food"}]'
+Write-Host ""
+Write-Host "TEST (no food):" -ForegroundColor Yellow
+Write-Host '   "settings": { "useFoodReminders": false }'
+Write-Host '   "dailyTasks": [] // Ei food taskeja, vain lääkkeet'
 Write-Host ""
