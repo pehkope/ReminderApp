@@ -375,7 +375,23 @@ public class ReminderApi
     {
         var response = req.CreateResponse(statusCode);
         response.Headers.Add("Content-Type", "application/json; charset=utf-8");
-        response.Headers.Add("Access-Control-Allow-Origin", "*");
+        
+        // SECURITY: Restrict CORS to specific domains only
+        var origin = req.Headers.Contains("Origin") ? req.Headers.GetValues("Origin").FirstOrDefault() : "";
+        var allowedOrigins = new[] { 
+            "https://gentle-bush-0a3b2fd03.5.azurestaticapps.net", // PWA production
+            "https://localhost:5000", // Local development
+            "https://localhost:5001"  // Local development HTTPS
+        };
+        
+        if (allowedOrigins.Contains(origin))
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", origin);
+        }
+        else
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", "null"); // Block unknown origins
+        }
         
         var json = JsonSerializer.Serialize(data, new JsonSerializerOptions 
         { 
