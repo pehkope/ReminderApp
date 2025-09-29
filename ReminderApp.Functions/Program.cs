@@ -15,6 +15,7 @@ var host = new HostBuilder()
 services.AddSingleton<CosmosDbService>();
 services.AddSingleton<BlobStorageService>();
 services.AddSingleton<GoogleSheetsService>();
+services.AddSingleton<WeatherService>();
 services.AddSingleton<TwilioService>();
 services.AddSingleton<TelegramBotService>();
 services.AddSingleton<SheetsToCosmosService>();

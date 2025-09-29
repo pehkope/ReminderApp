@@ -13,14 +13,17 @@ public class ReminderApi
     private readonly ILogger _logger;
     private readonly CosmosDbService _cosmosDbService;
     private readonly GoogleSheetsService _googleSheetsService;
+    private readonly WeatherService _weatherService;
 
     public ReminderApi(ILoggerFactory loggerFactory, 
                       CosmosDbService cosmosDbService, 
-                      GoogleSheetsService googleSheetsService)
+                      GoogleSheetsService googleSheetsService,
+                      WeatherService weatherService)
     {
         _logger = loggerFactory.CreateLogger<ReminderApi>();
         _cosmosDbService = cosmosDbService;
         _googleSheetsService = googleSheetsService;
+        _weatherService = weatherService;
     }
 
     [Function("ReminderApi")]
@@ -197,11 +200,7 @@ public class ReminderApi
             UpcomingAppointments = upcomingAppointments,
             DailyPhotoUrl = dailyPhotoUrl,
             DailyPhotoCaption = dailyPhotoCaption,
-            Weather = new WeatherInfo
-            {
-                Description = "Pilvistä",
-                Temperature = "12°C"
-            },
+            Weather = weather,
             LatestReminder = reminders.Any() ? reminders[0].Text : string.Empty,
             DailyTasks = dailyTasks,
             CurrentTimeOfDay = GetCurrentTimeOfDay(),
@@ -275,6 +274,17 @@ public class ReminderApi
         }
 
         return fallbackPhoto;
+    }
+
+    private async Task<WeatherInfo> GetWeatherWithRecommendation(string clientId)
+    {
+        var weather = await _weatherService.GetWeatherAsync("Helsinki,FI");
+        var timeOfDay = GetCurrentTimeOfDay();
+        
+        // Add activity recommendation based on weather
+        weather.Recommendation = _weatherService.GetActivityRecommendation(weather, timeOfDay, clientId);
+        
+        return weather;
     }
 
     private static string GetCurrentTimeOfDay()

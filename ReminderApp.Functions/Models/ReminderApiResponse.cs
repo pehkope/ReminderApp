@@ -123,6 +123,18 @@ public class WeatherInfo
 
     [JsonPropertyName("temperature")]
     public string Temperature { get; set; } = "12°C";
+
+    [JsonPropertyName("condition")]
+    public string Condition { get; set; } = "clouds";
+
+    [JsonPropertyName("humidity")]
+    public int Humidity { get; set; } = 70;
+
+    [JsonPropertyName("windSpeed")]
+    public double WindSpeed { get; set; } = 3.0;
+
+    [JsonPropertyName("recommendation")]
+    public string Recommendation { get; set; } = string.Empty;
 }
 
 public class DailyTask
