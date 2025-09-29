@@ -97,18 +97,12 @@ public class SheetsToCosmosService
                     SimpleReminderText = "Muista syödä",
                     MealTimes = new Dictionary<string, string>() // Will be set if simplified
                 },
-                Contacts = new ClientContacts
-                {
-                    PrimaryFamily = "Perhe",
-                    Phone = row.Count > 2 ? row[2] : "",
-                    EmergencyContact = row.Count > 2 ? row[2] : ""
-                },
-                CreatedAt = DateTime.UtcNow.ToString("O"),
-                UpdatedAt = DateTime.UtcNow.ToString("O")
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             // Save to Cosmos DB
-            var savedClient = await _cosmosDbService.CreateItemAsync<Client>("Clients", client);
+            var savedClient = await _cosmosDbService.CreateItemAsync<Client>(client, "Clients");
             var success = savedClient != null;
             
             Console.WriteLine($"Client config migration: {(success ? "SUCCESS" : "FAILED")}");
@@ -152,10 +146,10 @@ public class SheetsToCosmosService
                     UploadSource = "google_sheets_migration",
                     IsActive = true,
                     Tags = new List<string> { "migration", "google_sheets" },
-                    CreatedAt = DateTime.UtcNow.ToString("O")
+                    CreatedAt = DateTime.UtcNow
                 };
 
-                var savedPhoto = await _cosmosDbService.CreateItemAsync<Photo>("Photos", photo);
+                var savedPhoto = await _cosmosDbService.CreateItemAsync<Photo>(photo, "Photos");
                 if (savedPhoto != null) successCount++;
             }
 
@@ -196,15 +190,13 @@ public class SheetsToCosmosService
                     Id = $"sheets_med_{sheetsData.ClientId}_{totalCount}",
                     ClientId = sheetsData.ClientId,
                     TimeSlot = ConvertTimeOfDayToTimeSlot(row[1]), // AAMU -> 08:00
-                    Description = row.Count > 3 ? row[3] : "Lääke",
+                    Name = row.Count > 3 ? row[3] : "Lääke",
                     Instructions = row.Count > 4 ? row[4] : "",
                     Completed = false,
-                    CompletedAt = null,
-                    EncouragingMessage = GetMedicationEncouragement(),
-                    CreatedAt = DateTime.UtcNow.ToString("O")
+                    CompletedAt = null
                 };
 
-                var savedMedication = await _cosmosDbService.CreateItemAsync<Medication>("Medications", medication);
+                var savedMedication = await _cosmosDbService.CreateItemAsync<Medication>(medication, "Medications");
                 if (savedMedication != null) successCount++;
             }
 
@@ -248,11 +240,10 @@ public class SheetsToCosmosService
                     Suggestions = new List<string> { row.Count > 3 ? row[3] : "Ruokailu" },
                     Completed = false,
                     CompletedAt = null,
-                    EncouragingMessage = GetFoodEncouragement(),
-                    CreatedAt = DateTime.UtcNow.ToString("O")
+                    EncouragingMessage = GetFoodEncouragement()
                 };
 
-                var savedFood = await _cosmosDbService.CreateItemAsync<Food>("Foods", food);
+                var savedFood = await _cosmosDbService.CreateItemAsync<Food>(food, "Foods");
                 if (savedFood != null) successCount++;
             }
 
@@ -293,17 +284,16 @@ public class SheetsToCosmosService
                 {
                     Id = $"sheets_app_{sheetsData.ClientId}_{totalCount}",
                     ClientId = sheetsData.ClientId,
-                    DateTime = ParseDateFromSheets(row[0], row[5]), // Date + Time
+                    Date = row[0], // Date string
+                    Time = row.Count > 5 ? row[5] : "", // Time string
                     Title = row[1],
                     Description = row[1],
                     Location = "",
-                    Priority = ParseIntFromSheets(row[2]),
-                    NotificationDaysBefore = ParseIntFromSheets(row[3]),
-                    IsCompleted = false,
-                    CreatedAt = DateTime.UtcNow.ToString("O")
+                    ReminderBefore = ParseIntFromSheets(row[3]) * 1440, // Convert days to minutes
+                    CreatedAt = DateTime.UtcNow
                 };
 
-                var savedAppointment = await _cosmosDbService.CreateItemAsync<Appointment>("Appointments", appointment);
+                var savedAppointment = await _cosmosDbService.CreateItemAsync<Appointment>(appointment, "Appointments");
                 if (savedAppointment != null) successCount++;
             }
 
@@ -342,30 +332,7 @@ public class SheetsToCosmosService
         };
     }
 
-    private static string ParseDateFromSheets(string dateStr, string timeStr)
-    {
-        try
-        {
-            // Try to parse various date formats
-            DateTime date;
-            if (DateTime.TryParseExact(dateStr, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out date) ||
-                DateTime.TryParseExact(dateStr, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out date) ||
-                DateTime.TryParse(dateStr, out date))
-            {
-                // Parse time if provided
-                if (TimeSpan.TryParse(timeStr?.Replace("klo ", ""), out var time))
-                {
-                    date = date.Add(time);
-                }
-
-                return date.ToString("O");
-            }
-        }
-        catch { }
-
-        // Fallback to current date
-        return DateTime.UtcNow.ToString("O");
-    }
+    // Removed ParseDateFromSheets - using string dates instead
 
     private static string GetMedicationEncouragement()
     {
