@@ -62,76 +62,16 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "❌ Mom-client lisääminen epäonnistui!" -ForegroundColor Red
 }
 
-# 2. Rikkaita ruokaehdotuksia (kuten Google Sheetsistä)
-Write-Host "2️⃣ Lisätään ruokaehdotukset..." -ForegroundColor Cyan
+# 2. Yksinkertaiset ruokamuistutukset - vain "Muista syödä"
+Write-Host "2️⃣ Lisätään yksinkertaiset ruokamuistutukset..." -ForegroundColor Cyan
 
-$foods = @(
-    @{
-        id = "food_mom_breakfast"
-        clientId = "mom"
-        type = "food"
-        mealTime = "breakfast"
-        timeSlot = "08:00"
-        date = (Get-Date).ToString("yyyy-MM-dd")
-        suggestions = @("🥣 Kaurapuuro marjoilla", "🥛 Jogurtti + banaani", "🧀 Ruisleipä + juusto")
-        encouragingMessage = "Hyvä! Kunnollinen aamupala antaa voimia päivään 🌅"
-        completed = $false
-    },
-    @{
-        id = "food_mom_lunch"
-        clientId = "mom" 
-        type = "food"
-        mealTime = "lunch"
-        timeSlot = "11:00"
-        date = (Get-Date).ToString("yyyy-MM-dd")
-        suggestions = @("🐟 Uunilohta + vihannekset", "🍲 Kasviskeitto + leipä", "🥗 Kanasalaatti")
-        encouragingMessage = "Mahtavaa! Terveellinen lounas pitää voimat yllä 🍽️"
-        completed = $false
-    },
-    @{
-        id = "food_mom_dinner"
-        clientId = "mom"
-        type = "food" 
-        mealTime = "dinner"
-        timeSlot = "16:00"
-        date = (Get-Date).ToString("yyyy-MM-dd")
-        suggestions = @("🥗 Ruokaisa salaatti", "🍛 Broilerikastike + peruna", "🐟 Kalapihvit + perunamuusi")
-        encouragingMessage = "Erinomaista! Herkullinen päivällinen odottaa 😊"
-        completed = $false
-    },
-    @{
-        id = "food_mom_evening"
-        clientId = "mom"
-        type = "food"
-        mealTime = "evening" 
-        timeSlot = "20:00"
-        date = (Get-Date).ToString("yyyy-MM-dd")
-        suggestions = @("🍶 Rahka marjoilla", "🥣 Viili + hedelmä", "🍎 Hedelmä + pieni jogurtti")
-        encouragingMessage = "Hyvää! Kevyt iltapala auttaa nukkumaan paremmin 🌙"
-        completed = $false
-    }
-)
+# HUOM: Kellonajat ja nimet määritellään client settings:ssä (mealTimes)
+# API luo automaattisesti simple food reminders näiden perusteella
+# Ei tarvitse lisätä Foods-containeriin mitään - API hoitaa!
 
-foreach ($food in $foods) {
-    $foodJson = $food | ConvertTo-Json -Depth 3
-    $tempFile = [System.IO.Path]::GetTempFileName()
-    $foodJson | Out-File -FilePath $tempFile -Encoding UTF8
+Write-Host "✅ Simple food reminders hoidetaan automaattisesti API:ssa client.settings.mealTimes:n perusteella" -ForegroundColor Green
 
-    az cosmosdb sql item create `
-        --account-name $DatabaseAccount `
-        --database-name $DatabaseName `
-        --container-name "Foods" `
-        --resource-group $ResourceGroup `
-        --body @"$tempFile"
-    
-    Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
-    
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ Ruokaehdotus lisätty: $($food.mealTime)" -ForegroundColor Green
-    }
-}
-
-# 3. Lääkkeet (esimerkkidataa)
+# 3. Lääkkeet - äidille vain aamulla (skaalautuva muille asiakkaille)
 Write-Host "3️⃣ Lisätään lääkemuistutukset..." -ForegroundColor Cyan
 
 $medications = @(
@@ -146,19 +86,8 @@ $medications = @(
         instructions = "Aamulla ruokailun yhteydessä"
         completed = $false
         recurring = $true
-    },
-    @{
-        id = "med_mom_evening" 
-        clientId = "mom"
-        type = "medication"
-        name = "Iltalääke"
-        timeSlot = "18:00"
-        time = "18:00"
-        date = (Get-Date).ToString("yyyy-MM-dd")
-        instructions = "Illalla ruokailun jälkeen"
-        completed = $false
-        recurring = $true
     }
+    # Äidille vain aamulla - muille asiakkaille voi olla useampia
 )
 
 foreach ($med in $medications) {
@@ -184,8 +113,18 @@ foreach ($med in $medications) {
 Remove-Item $tempFile1 -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "🎉 Kaikki data lisätty Cosmos DB:hen!" -ForegroundColor Green
+Write-Host "🎉 Mom-client data lisätty Cosmos DB:hen!" -ForegroundColor Green
 Write-Host "💡 EI Google Sheets:iä tai GAS:ia tarvita!" -ForegroundColor Yellow
 Write-Host ""
+Write-Host "📋 Äidille määritelty:" -ForegroundColor Cyan
+Write-Host "   🍽️  Simple food reminders: 08:00 aamupala, 11:00 lounas, 16:00 päivällinen, 20:00 iltapala" -ForegroundColor White
+Write-Host "   💊 Lääkemuistutus: vain aamulla (08:00)" -ForegroundColor White
+Write-Host "   📱 Viesti: 'Muista syödä' (ei rikkaita ehdotuksia)" -ForegroundColor White
+Write-Host ""
+Write-Host "🚀 Skaalautuvuus:" -ForegroundColor Green
+Write-Host "   ✅ Muut asiakkaat voivat saada useampia lääkkeitä" -ForegroundColor White
+Write-Host "   ✅ Kellonajat ja aterianimi muokattavia" -ForegroundColor White
+Write-Host "   ✅ Yksinkertainen tai detailed food mode" -ForegroundColor White
+Write-Host ""
 Write-Host "🧪 Testaa tulokset:" -ForegroundColor Cyan
-Write-Host "Invoke-RestMethod -Uri 'https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI?clientID=mom' | Select-Object dailyTasks, foods, medications" -ForegroundColor Blue
+Write-Host "Invoke-RestMethod -Uri 'https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI?clientID=mom' | Select-Object dailyTasks, medications" -ForegroundColor Blue
