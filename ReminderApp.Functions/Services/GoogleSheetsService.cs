@@ -23,7 +23,8 @@ public class GoogleSheetsService
             { "foods", "Ruoka-ajat" },
             { "appointments", "Tapaamiset" },
             { "photos", "Kuvat" },
-            { "completions", "Kuittaukset" }
+            { "completions", "Kuittaukset" },
+            { "messages", "Viestit" }
         };
     }
 
@@ -170,6 +171,7 @@ public class GoogleSheetsService
             clientData.AppointmentsData = await GetSheetDataAsync("appointments");
             clientData.PhotosData = await GetSheetDataAsync("photos");
             clientData.CompletionsData = await GetSheetDataAsync("completions");
+            clientData.MessagesData = await GetSheetDataAsync("messages");
 
             return clientData;
         }
@@ -189,6 +191,7 @@ public class GoogleSheetsService
         public List<List<string>>? AppointmentsData { get; set; }
         public List<List<string>>? PhotosData { get; set; }
         public List<List<string>>? CompletionsData { get; set; }
+        public List<List<string>>? MessagesData { get; set; }
     }
 
     private class GoogleSheetsResponse
