@@ -1,6 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.WebUtilities;
 using ReminderApp.Functions.Services;
 using System.Net;
 using System.Text.Json;
@@ -102,8 +103,8 @@ public class MessagesApi
 
     private static string? GetQueryParameter(HttpRequestData req, string paramName)
     {
-        var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
-        return query[paramName];
+        var query = QueryHelpers.ParseQuery(req.Url.Query);
+        return query.TryGetValue(paramName, out var value) ? value.FirstOrDefault() : null;
     }
 
     private static bool ParseBool(string value)
