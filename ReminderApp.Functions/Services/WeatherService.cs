@@ -59,9 +59,10 @@ public class WeatherService
             var description = weatherData.Weather[0].Description?.ToLowerInvariant() ?? "";
             var mainWeather = weatherData.Weather[0].Main?.ToLowerInvariant() ?? "";
 
-            // Use same logic as GAS code
-            var isGood = temp >= 15 && !description.Contains("sade");
+            // Use same logic as GAS code + add cold logic
             var isRaining = mainWeather == "rain" || description.Contains("sade");
+            var isCold = IsTemperatureCold(temp, DateTime.Now.Month);
+            var isGood = temp >= 15 && !isRaining && !isCold;
 
             return new WeatherInfo
             {
@@ -71,7 +72,8 @@ public class WeatherService
                 Humidity = weatherData.Main.Humidity,
                 WindSpeed = weatherData.Wind?.Speed ?? 0,
                 IsGood = isGood,
-                IsRaining = isRaining
+                IsRaining = isRaining,
+                IsCold = isCold
             };
         }
         catch (JsonException ex)
@@ -103,15 +105,35 @@ public class WeatherService
             recommendations.Add(weather.Description);
         }
 
-        // Use GAS-style logic: isGood and isRaining
-        if (weather.IsRaining)
+        // Indoor recommendations for rain or cold weather
+        if (weather.IsRaining || weather.IsCold)
         {
-            recommendations.Add("🌧️ Sataa - hyvä päivä sisäpuuhille");
-            recommendations.Add("☔ Jos lähdet ulos, ota sateenvarjo mukaan");
+            if (weather.IsRaining)
+            {
+                recommendations.Add("🌧️ Sataa - hyvä päivä sisäpuuhille");
+                recommendations.Add("☔ Jos lähdet ulos, ota sateenvarjo mukaan");
+            }
+            
+            if (weather.IsCold)
+            {
+                var temp = ExtractTemperature(weather.Temperature);
+                if (temp < 0)
+                {
+                    recommendations.Add("❄️ Pakkasta! Ole varovainen liukkailla");
+                }
+                else
+                {
+                    recommendations.Add("🧣 Kylmää - pukeudu lämpimästi jos menet ulos");
+                }
+            }
+            
+            // Indoor activity suggestions
+            recommendations.Add("🏠 Hyvä päivä sisäpuuhille");
             recommendations.Add("📚 Ehkä lukuhetki tai käsityöt?");
             recommendations.Add("📞 Soita jollekulle - mukava hetki jutteluun");
+            recommendations.Add("☕ Lämmin juoma lämmittää");
         }
-        else if (weather.IsGood) // >= 15°C and not raining
+        else if (weather.IsGood) // Good weather: not raining, not cold, >= 15°C
         {
             recommendations.Add("🌞 Ihana sää! Loistava päivä ulkoiluun");
             
@@ -133,19 +155,7 @@ public class WeatherService
                 recommendations.Add("🌆 Ihana ilta istuskeluun parvekkeella tai pihalla");
             }
         }
-        else if (temp < 0)
-        {
-            recommendations.Add("❄️ Pakkasta! Ole varovainen liukkailla");
-            recommendations.Add("🔥 Pysy lämpimässä sisällä");
-            recommendations.Add("📞 Ehkä soittaa ystävälle sisältä lämpimästä");
-        }
-        else if (temp < 10)
-        {
-            recommendations.Add("🧣 Kylmähköä, pukeudu lämpimästi jos menet ulos");
-            recommendations.Add("🏠 Hyvä päivä sisäpuuhille");
-            recommendations.Add("☕ Lämmin juoma lämmittää");
-        }
-        else // 10-15°C, not raining
+        else // Neutral weather: not good, not bad
         {
             recommendations.Add("🧥 Mukava sää, ota takki mukaan ja mene ulos");
             recommendations.Add("☕ Ehkä kahvikierros naapurin kanssa?");
@@ -169,7 +179,24 @@ public class WeatherService
             Temperature = "12°C",
             Condition = "clouds",
             IsGood = false,
-            IsRaining = false
+            IsRaining = false,
+            IsCold = false
+        };
+    }
+
+    /// <summary>
+    /// Determine if temperature is cold based on season (Finnish climate)
+    /// </summary>
+    private static bool IsTemperatureCold(double temperature, int month)
+    {
+        // Seasonal cold thresholds for Finland
+        return month switch
+        {
+            12 or 1 or 2 => temperature < 5,    // Winter: below 5°C is cold
+            3 or 4 or 11 => temperature < 8,    // Spring/late autumn: below 8°C is cold  
+            5 or 6 or 9 or 10 => temperature < 10, // Late spring/early autumn: below 10°C is cold
+            7 or 8 => temperature < 15,         // Summer: below 15°C is cold
+            _ => temperature < 10               // Default: below 10°C is cold
         };
     }
 

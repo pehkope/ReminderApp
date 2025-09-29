@@ -141,6 +141,9 @@ public class WeatherInfo
 
     [JsonPropertyName("isRaining")]
     public bool IsRaining { get; set; } = false;
+
+    [JsonPropertyName("isCold")]
+    public bool IsCold { get; set; } = false;
 }
 
 public class DailyTask
