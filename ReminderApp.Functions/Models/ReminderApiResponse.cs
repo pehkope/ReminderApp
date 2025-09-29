@@ -135,6 +135,12 @@ public class WeatherInfo
 
     [JsonPropertyName("recommendation")]
     public string Recommendation { get; set; } = string.Empty;
+
+    [JsonPropertyName("isGood")]
+    public bool IsGood { get; set; } = false;
+
+    [JsonPropertyName("isRaining")]
+    public bool IsRaining { get; set; } = false;
 }
 
 public class DailyTask
