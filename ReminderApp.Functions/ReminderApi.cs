@@ -57,6 +57,13 @@ public class ReminderApi
     {
         _logger.LogInformation("Handling GET request for client: {ClientId}", clientId);
 
+        // DEBUG: Check environment variables
+        var cosmosConnectionString = Environment.GetEnvironmentVariable("COSMOS_CONNECTION_STRING");
+        var cosmosDatabase = Environment.GetEnvironmentVariable("COSMOS_DATABASE");
+        
+        _logger.LogInformation("DEBUG - COSMOS_CONNECTION_STRING exists: {HasConnectionString}, Database: {Database}", 
+            !string.IsNullOrEmpty(cosmosConnectionString), cosmosDatabase ?? "ReminderAppDB");
+
         // Get data from Cosmos DB (if available)
         var reminders = new List<Reminder>();
         var upcomingAppointments = new List<Appointment>();
@@ -64,6 +71,14 @@ public class ReminderApi
         var todaysMedications = new List<Medication>();
         var client = (Client?)null;
         var storageType = "in-memory";
+        var debugInfo = new List<string>();
+
+        debugInfo.Add($"CosmosDbService.IsConfigured: {_cosmosDbService.IsConfigured}");
+        debugInfo.Add($"COSMOS_CONNECTION_STRING exists: {!string.IsNullOrEmpty(cosmosConnectionString)}");
+        if (!string.IsNullOrEmpty(cosmosConnectionString))
+        {
+            debugInfo.Add($"Connection string starts with: {cosmosConnectionString[..50]}...");
+        }
 
         if (_cosmosDbService.IsConfigured)
         {
@@ -213,6 +228,9 @@ public class ReminderApi
             Medications = todaysMedications,
             Appointments = upcomingAppointments
         };
+
+        // DEBUG: Add debug info to response
+        response.ActivityText = string.Join(" | ", debugInfo);
 
         return await CreateJsonResponse(req, response);
     }
