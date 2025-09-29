@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗨️ Test Messages API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+        
+        .message-card {
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .message-card.high-priority {
+            border-left: 5px solid #e53e3e;
+            background: #fed7d7;
+        }
+        
+        .message-card.medium-priority {
+            border-left: 5px solid #dd6b20;
+            background: #feebc8;
+        }
+        
+        .message-card.normal-priority {
+            border-left: 5px solid #48bb78;
+            background: #c6f6d5;
+        }
+        
+        .priority-badge {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .priority-high { background: #e53e3e; color: white; }
+        .priority-medium { background: #dd6b20; color: white; }
+        .priority-normal { background: #48bb78; color: white; }
+        
+        .message-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #2d3748;
+            margin-bottom: 10px;
+            padding-right: 100px; /* Space for priority badge */
+        }
+        
+        .message-meta {
+            font-size: 12px;
+            color: #718096;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-tag {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        
+        .error {
+            background: #fed7d7;
+            border: 1px solid #e53e3e;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #c6f6d5;
+            border: 1px solid #48bb78;
+            color: #2f855a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .info-box {
+            background: #bee3f8;
+            border: 1px solid #3182ce;
+            color: #2a69ac;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+            
+            .stat {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗨️ Messages API Testi</h1>
+        
+        <div class="controls">
+            <div class="form-group">
+                <label for="clientId">Client ID:</label>
+                <input type="text" id="clientId" value="mom" placeholder="esim. mom, dad, test">
+            </div>
+            
+            <div class="form-group">
+                <label for="apiUrl">API URL:</label>
+                <input type="text" id="apiUrl" 
+                       value="https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/messages" 
+                       placeholder="Messages API endpoint">
+            </div>
+            
+            <button onclick="testMessagesApi()">🔍 Hae Viestit</button>
+            <button onclick="clearResults()">🗑️ Tyhjennä</button>
+        </div>
+        
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        async function testMessagesApi() {
+            const clientId = document.getElementById('clientId').value.trim();
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const resultsDiv = document.getElementById('results');
+            
+            if (!clientId || !apiUrl) {
+                resultsDiv.innerHTML = '<div class="error">❌ Täytä kaikki kentät</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="loading">🔄 Haetaan viestejä...</div>';
+            
+            try {
+                const url = `${apiUrl}?clientID=${encodeURIComponent(clientId)}`;
+                console.log('Calling:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                displayMessages(data, clientId);
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ Virhe API-kutsussa:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function displayMessages(data, clientId) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!data.success) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <strong>❌ API Error:</strong><br>
+                        ${data.message || 'Unknown error'}
+                    </div>
+                `;
+                return;
+            }
+            
+            const messages = data.messages || [];
+            
+            let html = `
+                <div class="success">
+                    <strong>✅ Viestit haettu onnistuneesti!</strong><br>
+                    Client: <strong>${clientId}</strong> | 
+                    Aikaleima: <strong>${new Date(data.timestamp).toLocaleString('fi-FI')}</strong>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number">${data.messageCount}</div>
+                        <div class="stat-label">Viestit yhteensä</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">${messages.filter(m => m.priority === 'high').length}</div>
+                        <div class="stat-label">Tärkeät</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">${messages.filter(m => m.isActive).length}</div>
+                        <div class="stat-label">Aktiiviset</div>
+                    </div>
+                </div>
+            `;
+            
+            if (messages.length === 0) {
+                html += `
+                    <div class="info-box">
+                        <strong>ℹ️ Ei viestejä</strong><br>
+                        Client ID '${clientId}' ei sisällä aktiivisia viestejä.
+                    </div>
+                `;
+            } else {
+                html += '<h3>📝 Viestit:</h3>';
+                
+                messages.forEach((message, index) => {
+                    const priorityClass = message.priority === 'high' ? 'high-priority' : 
+                                        message.priority === 'medium' ? 'medium-priority' : 'normal-priority';
+                    
+                    html += `
+                        <div class="message-card ${priorityClass}">
+                            <div class="priority-badge priority-${message.priority || 'normal'}">
+                                ${message.priority || 'normal'}
+                            </div>
+                            <div class="message-text">
+                                ${message.message}
+                            </div>
+                            <div class="message-meta">
+                                <div>
+                                    <span class="category-tag">${message.category || 'general'}</span>
+                                    ${message.clientId ? `<span style="margin-left: 10px;">👤 ${message.clientId}</span>` : ''}
+                                </div>
+                                <div>
+                                    ${message.timestamp ? `⏰ ${message.timestamp}` : ''}
+                                    ${message.isActive ? '🟢' : '🔴'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `
+                <details style="margin-top: 30px;">
+                    <summary><strong>🔍 Raw API Response</strong></summary>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </details>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // Test on page load
+        window.addEventListener('load', () => {
+            testMessagesApi();
+        });
+    </script>
+</body>
+</html>
+
