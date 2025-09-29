@@ -17,6 +17,7 @@ services.AddSingleton<BlobStorageService>();
 services.AddSingleton<GoogleSheetsService>();
 services.AddSingleton<TwilioService>();
 services.AddSingleton<TelegramBotService>();
+services.AddSingleton<SheetsToCosmosService>();
     })
     .Build();
 
