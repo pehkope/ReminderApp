@@ -47,14 +47,11 @@ public class SheetsToCosmosService
             // Migrate Foods
             var foodsSuccess = await MigrateFoodsAsync(sheetsData);
             
-            // Migrate Messages
-            var messagesSuccess = await MigrateMessagesAsync(sheetsData);
-            
             // Migrate Appointments
             var appointmentsSuccess = await MigrateAppointmentsAsync(sheetsData);
 
             var overallSuccess = clientSuccess && photosSuccess && medicationsSuccess && 
-                                 foodsSuccess && messagesSuccess && appointmentsSuccess;
+                                 foodsSuccess && appointmentsSuccess;
 
             Console.WriteLine($"Migration completed for {clientId}. Success: {overallSuccess}");
             return overallSuccess;
@@ -269,49 +266,7 @@ public class SheetsToCosmosService
         }
     }
 
-    private async Task<bool> MigrateMessagesAsync(GoogleSheetsService.GoogleSheetsClientData sheetsData)
-    {
-        try
-        {
-            if (sheetsData.MessagesData == null || sheetsData.MessagesData.Count <= 1)
-            {
-                Console.WriteLine($"No messages to migrate for {sheetsData.ClientId}");
-                return true;
-            }
-
-            var successCount = 0;
-            var totalCount = 0;
-
-            // Skip header row - Messages are typically daily greetings/reminders
-            foreach (var row in sheetsData.MessagesData.Skip(1))
-            {
-                if (row.Count < 2) continue;
-
-                totalCount++;
-
-                var message = new Message
-                {
-                    Id = $"sheets_msg_{sheetsData.ClientId}_{totalCount}",
-                    ClientId = sheetsData.ClientId,
-                    Content = row[1], // Message content
-                    Priority = row.Count > 2 ? ParseIntFromSheets(row[2]) : 2,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                };
-
-                var savedMessage = await _cosmosDbService.CreateItemAsync<Message>("Messages", message);
-                if (savedMessage != null) successCount++;
-            }
-
-            Console.WriteLine($"Messages migration: {successCount}/{totalCount} SUCCESS");
-            return successCount == totalCount;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error migrating messages: {ex.Message}");
-            return false;
-        }
-    }
+    // Messages migration removed - NO Viestit sheet is not used
 
     private async Task<bool> MigrateAppointmentsAsync(GoogleSheetsService.GoogleSheetsClientData sheetsData)
     {

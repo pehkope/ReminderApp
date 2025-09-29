@@ -21,11 +21,9 @@ public class GoogleSheetsService
             { "config", "Konfiguraatio" },
             { "medications", "Lääkkeet" },
             { "foods", "Ruoka-ajat" },
-            { "messages", "Viestit" },
             { "appointments", "Tapaamiset" },
             { "photos", "Kuvat" },
-            { "completions", "Kuittaukset" },
-            { "activities", "Puuhaa-asetukset" }
+            { "completions", "Kuittaukset" }
         };
     }
 
@@ -166,10 +164,9 @@ public class GoogleSheetsService
                 if (configRow != null) clientData.ConfigRow = configRow;
             }
 
-            // Get all other sheet data
+            // Get all other sheet data (skip NO- prefixed sheets)
             clientData.MedicationsData = await GetSheetDataAsync("medications");
             clientData.FoodsData = await GetSheetDataAsync("foods");
-            clientData.MessagesData = await GetSheetDataAsync("messages");
             clientData.AppointmentsData = await GetSheetDataAsync("appointments");
             clientData.PhotosData = await GetSheetDataAsync("photos");
             clientData.CompletionsData = await GetSheetDataAsync("completions");
@@ -189,7 +186,6 @@ public class GoogleSheetsService
         public List<string>? ConfigRow { get; set; }
         public List<List<string>>? MedicationsData { get; set; }
         public List<List<string>>? FoodsData { get; set; }
-        public List<List<string>>? MessagesData { get; set; }
         public List<List<string>>? AppointmentsData { get; set; }
         public List<List<string>>? PhotosData { get; set; }
         public List<List<string>>? CompletionsData { get; set; }
