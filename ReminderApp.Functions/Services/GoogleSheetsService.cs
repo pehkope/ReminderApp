@@ -24,7 +24,8 @@ public class GoogleSheetsService
             { "messages", "Viestit" },
             { "appointments", "Tapaamiset" },
             { "photos", "Kuvat" },
-            { "completions", "Kuittaukset" }
+            { "completions", "Kuittaukset" },
+            { "activities", "Puuhaa-asetukset" }
         };
     }
 
