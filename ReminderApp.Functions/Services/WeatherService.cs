@@ -59,9 +59,10 @@ public class WeatherService
             var description = weatherData.Weather[0].Description?.ToLowerInvariant() ?? "";
             var mainWeather = weatherData.Weather[0].Main?.ToLowerInvariant() ?? "";
 
-            // Use same logic as GAS code + add cold logic
+            // Use same logic as GAS code + add cold logic with wind chill
             var isRaining = mainWeather == "rain" || description.Contains("sade");
-            var isCold = IsTemperatureCold(temp, DateTime.Now.Month);
+            var windSpeed = weatherData.Wind?.Speed ?? 0; // m/s
+            var isCold = IsTemperatureCold(temp, DateTime.Now.Month, windSpeed);
             var isGood = temp >= 15 && !isRaining && !isCold;
 
             return new WeatherInfo
@@ -185,19 +186,42 @@ public class WeatherService
     }
 
     /// <summary>
-    /// Determine if temperature is cold based on season (Finnish climate)
+    /// Determine if temperature is cold based on season (Finnish climate) and wind chill
     /// </summary>
-    private static bool IsTemperatureCold(double temperature, int month)
+    private static bool IsTemperatureCold(double temperature, int month, double windSpeedMs)
     {
-        // Seasonal cold thresholds for Finland
+        // Calculate wind chill (feels like temperature)
+        var feelsLike = CalculateWindChill(temperature, windSpeedMs);
+        
+        // Seasonal cold thresholds for Finland based on user requirements
         return month switch
         {
-            12 or 1 or 2 => temperature < 5,    // Winter: below 5°C is cold
-            3 or 4 or 11 => temperature < 8,    // Spring/late autumn: below 8°C is cold  
-            5 or 6 or 9 or 10 => temperature < 10, // Late spring/early autumn: below 10°C is cold
-            7 or 8 => temperature < 15,         // Summer: below 15°C is cold
-            _ => temperature < 10               // Default: below 10°C is cold
+            12 or 1 or 2 => feelsLike < -5,     // Talvi: < -5°C on kylmää
+            3 or 4 or 5 => feelsLike < 5,       // Kevät (maalis-touko): < 5°C on kylmää
+            6 or 7 or 8 => feelsLike < 10,      // Kesä (kesä-elo): < 10°C on kylmää
+            9 or 10 or 11 => feelsLike < 5,     // Syksy (syys-marras): < 5°C on kylmää
+            _ => feelsLike < 5                  // Default: < 5°C is cold
         };
+    }
+
+    /// <summary>
+    /// Calculate wind chill (feels like temperature)
+    /// </summary>
+    private static double CalculateWindChill(double temperatureC, double windSpeedMs)
+    {
+        // Convert wind speed from m/s to km/h
+        var windSpeedKmh = windSpeedMs * 3.6;
+        
+        // Only apply wind chill if temperature is below 10°C and wind speed > 4.8 km/h
+        if (temperatureC >= 10 || windSpeedKmh <= 4.8)
+        {
+            return temperatureC;
+        }
+        
+        // Simplified wind chill formula for Finnish conditions
+        // For every 1 m/s of wind over 3 m/s, it feels 1.5°C colder
+        var windChillEffect = windSpeedMs > 3 ? (windSpeedMs - 3) * 1.5 : 0;
+        return temperatureC - windChillEffect;
     }
 
     private static double ExtractTemperature(string tempStr)
