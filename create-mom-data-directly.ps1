@@ -36,7 +36,7 @@ $momClient = @'
     "simpleReminderText": "Muista syödä",
     "mealTimes": {
       "08:00": "aamupala",
-      "11:00": "lounas",
+      "12:00": "lounas",
       "16:00": "päivällinen", 
       "20:00": "iltapala"
     }
@@ -117,7 +117,7 @@ Write-Host "🎉 Mom-client data lisätty Cosmos DB:hen!" -ForegroundColor Green
 Write-Host "💡 EI Google Sheets:iä tai GAS:ia tarvita!" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "📋 Äidille määritelty:" -ForegroundColor Cyan
-Write-Host "   🍽️  Simple food reminders: 08:00 aamupala, 11:00 lounas, 16:00 päivällinen, 20:00 iltapala" -ForegroundColor White
+Write-Host "   🍽️  Simple food reminders: 08:00 aamupala, 12:00 lounas, 16:00 päivällinen, 20:00 iltapala" -ForegroundColor White
 Write-Host "   💊 Lääkemuistutus: vain aamulla (08:00)" -ForegroundColor White
 Write-Host "   📱 Viesti: 'Muista syödä' (ei rikkaita ehdotuksia)" -ForegroundColor White
 Write-Host ""
