@@ -37,14 +37,41 @@ jobs:
       run: |
         cd ReminderApp.Functions
         dotnet publish ReminderApp.Functions.csproj -c Release -o ./output
-
-    - name: 'Deploy to Azure Functions'
-      uses: Azure/webapps-deploy@v2
-      id: fa
-      with:
-        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: 'ReminderApp.Functions/output'
-        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+        
+    - name: 'Create deployment ZIP'
+      shell: bash
+      run: |
+        cd ReminderApp.Functions/output
+        zip -r ../deploy.zip .
+        
+    - name: 'Extract publish credentials from profile'
+      id: publishcreds
+      shell: bash
+      run: |
+        PUBLISH_PROFILE='${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}'
+        
+        # Extract username (Kudu username)
+        USERNAME=$(echo "$PUBLISH_PROFILE" | grep -oP 'userName="\K[^"]+' | head -1)
+        
+        # Extract password (Kudu password)
+        PASSWORD=$(echo "$PUBLISH_PROFILE" | grep -oP 'userPWD="\K[^"]+' | head -1)
+        
+        # Extract publish URL (Kudu URL)
+        KUDU_URL=$(echo "$PUBLISH_PROFILE" | grep -oP 'publishUrl="\K[^"]+' | grep -i scm | head -1)
+        
+        echo "username=$USERNAME" >> $GITHUB_OUTPUT
+        echo "password=$PASSWORD" >> $GITHUB_OUTPUT
+        echo "kudu_url=https://$KUDU_URL" >> $GITHUB_OUTPUT
+        
+    - name: 'Deploy to Azure Functions via Kudu'
+      shell: bash
+      run: |
+        curl -X POST \
+          -u "${{ steps.publishcreds.outputs.username }}:${{ steps.publishcreds.outputs.password }}" \
+          --data-binary @"ReminderApp.Functions/deploy.zip" \
+          "${{ steps.publishcreds.outputs.kudu_url }}/api/zipdeploy" \
+          -H "Content-Type: application/zip" \
+          -v
         
     - name: 'Test API Endpoints'
       shell: bash
