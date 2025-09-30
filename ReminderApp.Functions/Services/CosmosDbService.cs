@@ -99,7 +99,7 @@ public class CosmosDbService
         var photoIndex = today.Day % photos.Count;
         Console.WriteLine($"[GetDailyPhotoAsync] Selecting photo index {photoIndex} (day {today.Day} % {photos.Count})");
         var selectedPhoto = photos[photoIndex];
-        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo: {selectedPhoto.Id}, Caption: {selectedPhoto.Caption}");
+        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo: Id={selectedPhoto.Id}, Caption={selectedPhoto.Caption}, Url={selectedPhoto.Url}, BlobUrl={selectedPhoto.BlobUrl}");
         return selectedPhoto;
     }
 
