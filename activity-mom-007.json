@@ -1,0 +1,14 @@
+{
+  "variants": [],
+  "clientId": "mom",
+  "updatedAt": "2025-09-30T18:18:27.2321075+03:00",
+  "weatherCondition": "any",
+  "icon": "📋",
+  "createdAt": "2025-09-30T18:18:27.2321075+03:00",
+  "id": "activity_morning_inside_7",
+  "category": "suggestion",
+  "timeSlot": "morning",
+  "type": "activity",
+  "text": "Pieni suunnittelu: 1–2 asiaa päivälle 📝",
+  "isActive": true
+}

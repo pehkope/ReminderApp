@@ -1,0 +1,14 @@
+{
+  "variants": [],
+  "clientId": "mom",
+  "updatedAt": "2025-09-30T18:18:27.2321075+03:00",
+  "weatherCondition": "bad",
+  "icon": "🧩",
+  "createdAt": "2025-09-30T18:18:27.2321075+03:00",
+  "id": "activity_day_inside_2",
+  "category": "suggestion",
+  "timeSlot": "day",
+  "type": "activity",
+  "text": "Ristikko/sudoku 15 min 🧩",
+  "isActive": true
+}

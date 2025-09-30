@@ -1,0 +1,90 @@
+{
+  "success": true,
+  "clientID": "mom",
+  "timestamp": "2025-09-30T15:20:41.49692Z",
+  "status": "OK",
+  "settings": {
+    "useWeather": true,
+    "usePhotos": true,
+    "useTelegram": false,
+    "useSMS": false,
+    "useFoodReminders": true,
+    "foodReminderType": "simple",
+    "simpleReminderText": "Muista syödä",
+    "mealTimes": {
+      "08:00": "aamupala",
+      "12:00": "lounas",
+      "16:00": "päivällinen",
+      "20:00": "iltapala"
+    }
+  },
+  "importantMessage": "",
+  "upcomingAppointments": [],
+  "dailyPhotoUrl": "",
+  "dailyPhotoCaption": "Petri",
+  "weeklyPhotos": [],
+  "profilePhoto": null,
+  "exerciseVideoUrl": "",
+  "weather": {
+    "description": "Sää tänään: 8.6°C, vähän pilviä.",
+    "temperature": "8.6°C",
+    "condition": "clouds",
+    "humidity": 62,
+    "windSpeed": 2.68,
+    "recommendation": "Sää tänään: 8.6°C, vähän pilviä. 🧥 Mukava sää, ota takki mukaan ja mene ulos",
+    "isGood": false,
+    "isRaining": false,
+    "isCold": false
+  },
+  "contacts": [],
+  "latestReminder": "",
+  "dailyTasks": [
+    {
+      "id": "simple_food_20250930_0800",
+      "type": "food",
+      "time": "08:00",
+      "text": "🍽️ Muista aamupala",
+      "completed": false,
+      "encouragingMessage": "Hyvää huomenta kultaseni! Aloitetaan päivä hyvin! ☀️",
+      "instructions": ""
+    },
+    {
+      "id": "simple_food_20250930_1200",
+      "type": "food",
+      "time": "12:00",
+      "text": "🍽️ Muista lounas",
+      "completed": false,
+      "encouragingMessage": "Lounas aika kulta! Nauti rauhassa 🍽️",
+      "instructions": ""
+    },
+    {
+      "id": "simple_food_20250930_1600",
+      "type": "food",
+      "time": "16:00",
+      "text": "🍽️ Muista päivällinen",
+      "completed": false,
+      "encouragingMessage": "Päivällisen aika! Hyvää ruokahetkeä 🌅",
+      "instructions": ""
+    },
+    {
+      "id": "simple_food_20250930_2000",
+      "type": "food",
+      "time": "20:00",
+      "text": "🍽️ Muista iltapala",
+      "completed": false,
+      "encouragingMessage": "Mukava iltapala ennen lepoa 🌙",
+      "instructions": ""
+    }
+  ],
+  "currentTimeOfDay": "päivä",
+  "weeklyPlan": {},
+  "greeting": "Hyvää päivää rakas! 🌼",
+  "activityText": "",
+  "activityTags": [],
+  "reminders": [],
+  "count": 0,
+  "storage": "cosmos",
+  "foods": [],
+  "medications": [],
+  "appointments": []
+}

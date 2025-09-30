@@ -70,13 +70,23 @@ public class CosmosDbService
 
     public async Task<Photo?> GetDailyPhotoAsync(string clientId)
     {
+        Console.WriteLine($"[GetDailyPhotoAsync] Fetching photos for client: {clientId}");
         var photos = await GetPhotosAsync(clientId);
-        if (!photos.Any()) return null;
+        Console.WriteLine($"[GetDailyPhotoAsync] Found {photos.Count} photos for client: {clientId}");
+        
+        if (!photos.Any())
+        {
+            Console.WriteLine($"[GetDailyPhotoAsync] No photos found for {clientId}");
+            return null;
+        }
 
         // Select photo based on current date
         var today = DateTime.Now;
         var photoIndex = today.Day % photos.Count;
-        return photos[photoIndex];
+        Console.WriteLine($"[GetDailyPhotoAsync] Selecting photo index {photoIndex} (day {today.Day} % {photos.Count})");
+        var selectedPhoto = photos[photoIndex];
+        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo: {selectedPhoto.Id}, Caption: {selectedPhoto.Caption}");
+        return selectedPhoto;
     }
 
     // Reminder operations

@@ -1,0 +1,14 @@
+{
+  "variants": [],
+  "clientId": "mom",
+  "updatedAt": "2025-09-30T18:18:27.2321075+03:00",
+  "weatherCondition": "any",
+  "icon": "🎵",
+  "createdAt": "2025-09-30T18:18:27.2321075+03:00",
+  "id": "activity_evening_inside_2",
+  "category": "suggestion",
+  "timeSlot": "evening",
+  "type": "activity",
+  "text": "Hiljainen musiikki 15 min 🎶",
+  "isActive": true
+}

@@ -1,0 +1,14 @@
+{
+  "variants": [],
+  "clientId": "mom",
+  "updatedAt": "2025-09-30T18:18:27.2321075+03:00",
+  "weatherCondition": "good",
+  "icon": "🪑",
+  "createdAt": "2025-09-30T18:18:27.2321075+03:00",
+  "id": "activity_day_outside_3",
+  "category": "suggestion",
+  "timeSlot": "day",
+  "type": "activity",
+  "text": "Penkillä istuskelu 10 min 🪑",
+  "isActive": true
+}
