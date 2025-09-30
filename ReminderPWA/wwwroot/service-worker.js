@@ -1,8 +1,8 @@
 // Service Worker for ReminderApp PWA
 // Versio 1.0.0 - Automaattiset päivitykset ja offline-tuki
 
-const CACHE_NAME = 'reminder-app-v1.0.10';
-const API_CACHE_NAME = 'reminder-api-v1.0.10';
+const CACHE_NAME = 'reminder-app-v1.0.11';
+const API_CACHE_NAME = 'reminder-api-v1.0.11';
 
 // Tiedostot jotka tallennetaan cache:een
 const STATIC_ASSETS = [
@@ -17,9 +17,11 @@ const STATIC_ASSETS = [
   '/_framework/blazor.webassembly.js'
 ];
 
-// API endpointit joita tallennetaan väliaikaisesti
-// Poistettu GAS-URL, jotta SW ei koskaan estä tuoreita API-vastauksia
-const API_ENDPOINTS = [];
+// API endpointit joita tallennetaan offline-käyttöä varten
+// Azure Functions API tallennetaan, mutta verkko ensin
+const API_ENDPOINTS = [
+  'https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/ReminderAPI'
+];
 
 // Service Worker asennus
 self.addEventListener('install', (event) => {

@@ -1,7 +1,7 @@
 {
   "success": true,
   "clientID": "mom",
-  "timestamp": "2025-09-30T15:43:47.9527354Z",
+  "timestamp": "2025-09-30T15:47:04.3160247Z",
   "status": "OK",
   "settings": {
     "useWeather": true,
@@ -29,7 +29,7 @@
     "description": "Sää tänään: 8.5°C, vähän pilviä.",
     "temperature": "8.5°C",
     "condition": "clouds",
-    "humidity": 62,
+    "humidity": 61,
     "windSpeed": 3.13,
     "recommendation": "Sää tänään: 8.5°C, vähän pilviä. 🧥 Mukava sää, ota takki mukaan ja mene ulos",
     "isGood": false,

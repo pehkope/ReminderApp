@@ -289,9 +289,9 @@ else
             Console.WriteLine($"❌ API virhe: {result.ErrorCode} - {result.ErrorMessage}");
             consecutiveFailures++;
 
-            // Älä mene offline-tilaan heti; salli 2 peräkkäistä epäonnistumista ja tarkista viimeinen onnistuminen
-            var gracePeriodNotOver = (DateTime.Now - appStartTime) < TimeSpan.FromSeconds(25);
-            var shouldGoOffline = !gracePeriodNotOver && consecutiveFailures >= 2 && (lastSuccessfulFetch == DateTime.MinValue || DateTime.Now - lastSuccessfulFetch > TimeSpan.FromSeconds(30));
+            // Älä mene offline-tilaan heti; salli 3 peräkkäistä epäonnistumista ja tarkista viimeinen onnistuminen
+            var gracePeriodNotOver = (DateTime.Now - appStartTime) < TimeSpan.FromSeconds(60);
+            var shouldGoOffline = !gracePeriodNotOver && consecutiveFailures >= 3 && (lastSuccessfulFetch == DateTime.MinValue || DateTime.Now - lastSuccessfulFetch > TimeSpan.FromMinutes(2));
 
             if (shouldGoOffline)
             {
