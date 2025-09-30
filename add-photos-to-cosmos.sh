@@ -5,7 +5,7 @@
 echo "📸 Lisätään 26 mom:n kuvaa Cosmos DB:hen..."
 
 # Configuration
-SUBSCRIPTION="Enel-Virtual-desktop-Infrastructure"
+SUBSCRIPTION="ReminderApp"
 RESOURCE_GROUP="ReminderAppDB"
 ACCOUNT_NAME="reminderappdb"
 DATABASE_NAME="ReminderAppDB"
