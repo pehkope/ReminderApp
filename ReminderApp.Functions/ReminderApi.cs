@@ -186,6 +186,9 @@ public class ReminderApi
         // Sort by time
         dailyTasks = dailyTasks.OrderBy(t => t.Time).ToList();
 
+        // Get weather with recommendations
+        var weather = await GetWeatherWithRecommendation(clientId);
+
         // Build response
         var response = new ReminderApiResponse
         {

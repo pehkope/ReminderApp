@@ -118,7 +118,6 @@ public class WeatherService
             
             if (weather.IsCold)
             {
-                var temp = ExtractTemperature(weather.Temperature);
                 if (temp < 0)
                 {
                     recommendations.Add("❄️ Pakkasta! Ole varovainen liukkailla");
