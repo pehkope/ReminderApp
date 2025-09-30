@@ -1,0 +1,26 @@
+{
+  "id": "mom",
+  "clientId": "mom",
+  "type": "client",
+  "name": "Äiti",
+  "displayName": "Kultaseni",
+  "timezone": "Europe/Helsinki",
+  "language": "fi",
+  "settings": {
+    "useWeather": true,
+    "usePhotos": true,
+    "useTelegram": false,
+    "useSMS": false,
+    "useFoodReminders": true,
+    "foodReminderType": "simple",
+    "simpleReminderText": "Muista syödä",
+    "mealTimes": {
+      "08:00": "aamupala",
+      "12:00": "lounas",
+      "16:00": "päivällinen",
+      "20:00": "iltapala"
+    }
+  },
+  "createdAt": "2025-09-30T10:00:00Z",
+  "updatedAt": "2025-09-30T10:00:00Z"
+}

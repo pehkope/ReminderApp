@@ -1,0 +1,26 @@
+{
+  "createdAt": "2025-09-30T15:11:19.1744237+03:00",
+  "uploadedAt": "2025-09-30T15:11:19.1744237+03:00",
+  "fileSize": 0,
+  "fileName": "",
+  "clientId": "mom",
+  "isActive": true,
+  "senderName": null,
+  "id": "photo_mom_007",
+  "thumbnailUrl": "",
+  "url": "https://drive.google.com/thumbnail?id=1LFp6yUXtCrEbP2sGFUBSBbRrfJEujYxY",
+  "type": "photo",
+  "uploadedBy": "petri",
+  "uploadSource": "google_drive",
+  "source": "google-drive",
+  "telegramFileId": null,
+  "senderChatId": null,
+  "mimeType": "image/jpeg",
+  "caption": "Äiti, Petri ja Tiitta",
+  "tags": [
+    "family",
+    "memories",
+    "historical"
+  ],
+  "blobUrl": ""
+}
