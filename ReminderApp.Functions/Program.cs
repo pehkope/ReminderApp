@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReminderApp.Functions.Services;
 
 // .NET Azure Functions Host Configuration
+// Version: 2025-09-30 - Weather API with isCold logic
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services =>
