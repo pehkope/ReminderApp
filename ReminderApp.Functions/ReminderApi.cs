@@ -35,7 +35,10 @@ public class ReminderApi
 
         try
         {
-            var clientId = GetQueryParameter(req, "clientID") ?? "default";
+            // Support both "client" and "clientID" for backwards compatibility
+            var clientId = GetQueryParameter(req, "client") 
+                        ?? GetQueryParameter(req, "clientID") 
+                        ?? "default";
             _logger.LogInformation("Processing request for client: {ClientId}", clientId);
 
             if (req.Method == "GET")
