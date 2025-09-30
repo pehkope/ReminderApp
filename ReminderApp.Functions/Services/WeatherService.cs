@@ -1,5 +1,6 @@
 using ReminderApp.Functions.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ReminderApp.Functions.Services;
 
