@@ -5,11 +5,13 @@ on:
     branches: [ main ]
     paths:
       - 'ReminderPWA/**'
+      - '.github/workflows/azure-static-web-apps.yml'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ main ]
     paths:
       - 'ReminderPWA/**'
+      - '.github/workflows/azure-static-web-apps.yml'
 
 jobs:
   build_and_deploy_job:
