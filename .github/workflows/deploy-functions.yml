@@ -39,7 +39,7 @@ jobs:
         dotnet publish ReminderApp.Functions.csproj -c Release -o ./output
 
     - name: 'Deploy to Azure Functions'
-      uses: Azure/functions-action@v1
+      uses: Azure/webapps-deploy@v2
       id: fa
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
