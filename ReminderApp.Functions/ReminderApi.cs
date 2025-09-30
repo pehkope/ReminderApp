@@ -396,7 +396,8 @@ public class ReminderApi
         // SECURITY: Restrict CORS to specific domains only
         var origin = req.Headers.Contains("Origin") ? req.Headers.GetValues("Origin").FirstOrDefault() : "";
         var allowedOrigins = new[] { 
-            "https://gentle-bush-0a3b2fd03.5.azurestaticapps.net", // PWA production
+            "https://lively-forest-0b274f703.1.azurestaticapps.net", // PWA production (current)
+            "https://gentle-bush-0a3b2fd03.5.azurestaticapps.net", // PWA production (old)
             "https://localhost:5000", // Local development
             "https://localhost:5001"  // Local development HTTPS
         };
