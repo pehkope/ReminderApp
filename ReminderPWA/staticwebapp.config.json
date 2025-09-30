@@ -24,8 +24,7 @@
       "/manifest.json",
       "/service-worker.js",
       "/ReminderTabletNew2.styles.css",
-      "/*.wasm",
-      "/**/*.wasm"
+      "/*.wasm"
     ]
   },
   "mimeTypes": {
