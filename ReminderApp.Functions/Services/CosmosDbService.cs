@@ -44,26 +44,40 @@ public class CosmosDbService
         try
         {
             var container = GetContainer("Photos");
-            if (container == null) return new List<Photo>();
+            if (container == null)
+            {
+                Console.WriteLine("[GetPhotosAsync] Container is null!");
+                return new List<Photo>();
+            }
 
             var query = new QueryDefinition(
                 "SELECT * FROM c WHERE c.clientId = @clientId AND c.isActive = true")
                 .WithParameter("@clientId", clientId);
 
+            Console.WriteLine($"[GetPhotosAsync] Executing query for clientId: {clientId}");
             var iterator = container.GetItemQueryIterator<Photo>(query);
             var results = new List<Photo>();
 
             while (iterator.HasMoreResults)
             {
                 var response = await iterator.ReadNextAsync();
+                Console.WriteLine($"[GetPhotosAsync] Got {response.Count} photos in this batch");
+                
+                foreach (var photo in response)
+                {
+                    Console.WriteLine($"[GetPhotosAsync] Photo: Id={photo.Id}, Caption={photo.Caption}, Url={photo.Url}, BlobUrl={photo.BlobUrl}");
+                }
+                
                 results.AddRange(response);
             }
 
+            Console.WriteLine($"[GetPhotosAsync] Total photos fetched: {results.Count}");
             return results;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching photos for {clientId}: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return new List<Photo>();
         }
     }

@@ -1,7 +1,7 @@
 {
   "success": true,
   "clientID": "mom",
-  "timestamp": "2025-09-30T15:27:30.5404936Z",
+  "timestamp": "2025-09-30T15:33:50.1578549Z",
   "status": "OK",
   "settings": {
     "useWeather": true,
@@ -26,12 +26,12 @@
   "profilePhoto": null,
   "exerciseVideoUrl": "",
   "weather": {
-    "description": "Sää tänään: 8.6°C, vähän pilviä.",
-    "temperature": "8.6°C",
+    "description": "Sää tänään: 8.1°C, vähän pilviä.",
+    "temperature": "8.1°C",
     "condition": "clouds",
-    "humidity": 62,
-    "windSpeed": 2.68,
-    "recommendation": "Sää tänään: 8.6°C, vähän pilviä. 🧥 Mukava sää, ota takki mukaan ja mene ulos",
+    "humidity": 64,
+    "windSpeed": 3.13,
+    "recommendation": "Sää tänään: 8.1°C, vähän pilviä. 🧥 Mukava sää, ota takki mukaan ja mene ulos",
     "isGood": false,
     "isRaining": false,
     "isCold": false
