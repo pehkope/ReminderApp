@@ -32,6 +32,15 @@ jobs:
           cd ReminderPWA
           dotnet restore ReminderTabletNew2.csproj
           dotnet publish ReminderTabletNew2.csproj --configuration Release --output ../publish
+      
+      - name: Debug - List publish directory structure
+        run: |
+          echo "=== Publish directory contents ==="
+          ls -la publish/
+          echo "=== Checking for wwwroot ==="
+          ls -la publish/wwwroot/ || echo "No wwwroot directory found"
+          echo "=== Looking for index.html ==="
+          find publish -name "index.html" -type f
 
       - name: Copy staticwebapp.config.json
         run: cp ReminderPWA/staticwebapp.config.json publish/wwwroot/
