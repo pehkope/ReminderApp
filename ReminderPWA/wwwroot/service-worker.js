@@ -1,8 +1,8 @@
 // Service Worker for ReminderApp PWA
 // Versio 1.0.0 - Automaattiset päivitykset ja offline-tuki
 
-const CACHE_NAME = 'reminder-app-v1.0.11';
-const API_CACHE_NAME = 'reminder-api-v1.0.11';
+const CACHE_NAME = 'reminder-app-v1.0.12';
+const API_CACHE_NAME = 'reminder-api-v1.0.12';
 
 // Tiedostot jotka tallennetaan cache:een
 const STATIC_ASSETS = [
@@ -74,12 +74,13 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   
-  // API-kutsut: Verkko ensin, sitten cache
+  // ÄLÄ intercept API-kutsuja - anna PWA:n hoitaa ne suoraan (CSP)
   if (isApiRequest(url)) {
-    event.respondWith(handleApiRequest(request));
+    return; // Älä käsittele, anna mennä läpi normaalisti
   }
+  
   // Staattiset tiedostot: Cache ensin, sitten verkko
-  else if (isStaticAsset(url)) {
+  if (isStaticAsset(url)) {
     event.respondWith(handleStaticRequest(request));
   }
   // Muut pyynnöt: Verkko ensin
