@@ -34,6 +34,15 @@ jobs:
           cd ReminderPWA
           dotnet restore ReminderTabletNew2.csproj
           dotnet publish ReminderTabletNew2.csproj --configuration Release --output ../publish
+      
+      - name: Debug - Show publish structure
+        run: |
+          echo "=== Publish root ==="
+          ls -la publish/
+          echo "=== Publish/wwwroot ==="
+          ls -la publish/wwwroot/ || echo "No wwwroot"
+          echo "=== Find index.html ==="
+          find publish -name "index.html" -type f
 
       - name: Copy staticwebapp.config.json
         run: cp ReminderPWA/staticwebapp.config.json publish/
