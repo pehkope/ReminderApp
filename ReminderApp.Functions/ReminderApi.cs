@@ -26,9 +26,17 @@ public class ReminderApi
         _weatherService = weatherService;
     }
 
+    private static readonly string[] AllowedOrigins = new[]
+    {
+        "https://lively-forest-0b274f703.1.azurestaticapps.net",
+        "https://gentle-bush-0a3b2fd03.5.azurestaticapps.net",
+        "https://localhost:5000",
+        "https://localhost:5001"
+    };
+
     [Function("ReminderApi")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReminderAPI")] 
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "options", Route = "ReminderAPI")] 
         HttpRequestData req)
     // CORS fix deployed: 2025-10-01
     {
@@ -36,6 +44,11 @@ public class ReminderApi
 
         try
         {
+            if (req.Method == "OPTIONS")
+            {
+                return CreatePreflightResponse(req);
+            }
+
             // Support both "client" and "clientID" for backwards compatibility
             var clientId = GetQueryParameter(req, "client") 
                         ?? GetQueryParameter(req, "clientID") 
@@ -394,16 +407,9 @@ public class ReminderApi
         var response = req.CreateResponse(statusCode);
         response.Headers.Add("Content-Type", "application/json; charset=utf-8");
         
-        // SECURITY: Restrict CORS to specific domains only
         var origin = req.Headers.Contains("Origin") ? req.Headers.GetValues("Origin").FirstOrDefault() : "";
-        var allowedOrigins = new[] { 
-            "https://lively-forest-0b274f703.1.azurestaticapps.net", // PWA production (current)
-            "https://gentle-bush-0a3b2fd03.5.azurestaticapps.net", // PWA production (old)
-            "https://localhost:5000", // Local development
-            "https://localhost:5001"  // Local development HTTPS
-        };
-        
-        if (allowedOrigins.Contains(origin))
+
+        if (AllowedOrigins.Contains(origin))
         {
             response.Headers.Add("Access-Control-Allow-Origin", origin);
             response.Headers.Add("Access-Control-Allow-Credentials", "false");
@@ -430,5 +436,22 @@ public class ReminderApi
         };
 
         return await CreateJsonResponse(req, errorData, statusCode);
+    }
+
+    private HttpResponseData CreatePreflightResponse(HttpRequestData req)
+    {
+        var response = req.CreateResponse(HttpStatusCode.NoContent);
+        var origin = req.Headers.Contains("Origin") ? req.Headers.GetValues("Origin").FirstOrDefault() : "";
+
+        if (AllowedOrigins.Contains(origin))
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", origin);
+            response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, x-ms-client-principal, x-functions-key");
+            response.Headers.Add("Access-Control-Allow-Credentials", "false");
+            response.Headers.Add("Access-Control-Max-Age", "3600");
+        }
+
+        return response;
     }
 }
