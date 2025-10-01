@@ -34,19 +34,9 @@ jobs:
           cd ReminderPWA
           dotnet restore ReminderTabletNew2.csproj
           dotnet publish ReminderTabletNew2.csproj --configuration Release --output ../publish
-      
-      - name: Move wwwroot contents to publish root
-        run: |
-          echo "=== Before move ==="
-          ls -la publish/
-          ls -la publish/wwwroot/
-          echo "=== Moving wwwroot contents to publish root ==="
-          mv publish/wwwroot/* publish/
-          echo "=== After move ==="
-          ls -la publish/
 
       - name: Copy staticwebapp.config.json
-        run: cp ReminderPWA/staticwebapp.config.json publish/
+        run: cp ReminderPWA/staticwebapp.config.json publish/wwwroot/
 
       - name: Build And Deploy
         id: builddeploy
@@ -55,9 +45,9 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/publish" # Publish root with index.html
+          app_location: "publish" # Root of build output
           api_location: "" # Api source code path - optional
-          output_location: "" # Already in correct location
+          output_location: "wwwroot" # Blazor output subdirectory
           skip_app_build: true
           skip_api_build: true
 
