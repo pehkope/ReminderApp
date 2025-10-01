@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReminderApp.Functions.Services;
 
 // .NET Azure Functions Host Configuration
-// Version: 2025-10-01 - CORS fix for PWA production URL
+// Version: 2025-10-01 - CORS fix deployed, WEBSITE_RUN_FROM_PACKAGE restored
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services =>
