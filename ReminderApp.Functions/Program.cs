@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReminderApp.Functions.Services;
 
 // .NET Azure Functions Host Configuration
-// Version: 2025-09-30 - Weather API with isCold logic + Kudu deployment
+// Version: 2025-10-01 - CORS fix for PWA production URL
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services =>
