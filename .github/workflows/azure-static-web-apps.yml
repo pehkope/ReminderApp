@@ -45,7 +45,7 @@ jobs:
           find publish -name "index.html" -type f
 
       - name: Copy staticwebapp.config.json
-        run: cp ReminderPWA/staticwebapp.config.json publish/
+        run: cp ReminderPWA/staticwebapp.config.json publish/wwwroot/
 
       - name: Build And Deploy
         id: builddeploy
@@ -54,9 +54,9 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/publish" # Built app artifacts
+          app_location: "/publish/wwwroot" # Blazor WebAssembly output
           api_location: "" # Api source code path - optional
-          output_location: "wwwroot" # Already built, no additional output
+          output_location: "" # No additional build needed
           skip_app_build: true
           skip_api_build: true
 
