@@ -405,11 +405,9 @@ public class ReminderApi
         if (allowedOrigins.Contains(origin))
         {
             response.Headers.Add("Access-Control-Allow-Origin", origin);
+            response.Headers.Add("Access-Control-Allow-Credentials", "false");
         }
-        else
-        {
-            response.Headers.Add("Access-Control-Allow-Origin", "null"); // Block unknown origins
-        }
+        // Ei aseteta CORS headeria ollenkaan jos origin ei sallittu
         
         var json = JsonSerializer.Serialize(data, new JsonSerializerOptions 
         { 
