@@ -28,7 +28,7 @@ public class ReminderApi
 
     [Function("ReminderApi")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "api/ReminderAPI")] 
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReminderAPI")] 
         HttpRequestData req)
     {
             _logger.LogInformation("ReminderAPI (.NET v2) called with method: {Method}", req.Method);
