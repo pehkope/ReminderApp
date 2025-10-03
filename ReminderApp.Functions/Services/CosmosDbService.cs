@@ -19,6 +19,8 @@ public class CosmosDbService
         {
             try
             {
+                // Use default Cosmos SDK serializer (Newtonsoft.Json)
+                // Photo model has both [JsonPropertyName] and [JsonProperty] attributes
                 _cosmosClient = new CosmosClient(connectionString);
                 _database = _cosmosClient.GetDatabase(_databaseId);
             }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace ReminderApp.Functions.Models;
 
@@ -38,12 +39,14 @@ public class Photo
     public string FileName { get; set; } = string.Empty;
 
     [JsonPropertyName("blobUrl")]
+    [JsonProperty("blobUrl")] // For Cosmos DB Newtonsoft.Json deserialization
     public string BlobUrl { get; set; } = string.Empty;
 
     [JsonPropertyName("thumbnailUrl")]
     public string ThumbnailUrl { get; set; } = string.Empty;
 
     [JsonPropertyName("url")]
+    [JsonProperty("url")] // For Cosmos DB Newtonsoft.Json deserialization
     public string Url { get; set; } = string.Empty; // For Google Drive fallback
 
     [JsonPropertyName("caption")]
