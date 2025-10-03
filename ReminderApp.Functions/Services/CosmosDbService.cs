@@ -64,12 +64,6 @@ public class CosmosDbService
             {
                 var response = await iterator.ReadNextAsync();
                 Console.WriteLine($"[GetPhotosAsync] Got {response.Count} photos in this batch");
-                
-                foreach (var photo in response)
-                {
-                    Console.WriteLine($"[GetPhotosAsync] Photo: Id={photo.Id}, Caption={photo.Caption}, Url={photo.Url}, BlobUrl={photo.BlobUrl}");
-                }
-                
                 results.AddRange(response);
             }
 
@@ -86,9 +80,7 @@ public class CosmosDbService
 
     public async Task<Photo?> GetDailyPhotoAsync(string clientId)
     {
-        Console.WriteLine($"[GetDailyPhotoAsync] Fetching photos for client: {clientId}");
         var photos = await GetPhotosAsync(clientId);
-        Console.WriteLine($"[GetDailyPhotoAsync] Found {photos.Count} photos for client: {clientId}");
         
         if (!photos.Any())
         {
@@ -99,9 +91,8 @@ public class CosmosDbService
         // Select photo based on current date
         var today = DateTime.Now;
         var photoIndex = today.Day % photos.Count;
-        Console.WriteLine($"[GetDailyPhotoAsync] Selecting photo index {photoIndex} (day {today.Day} % {photos.Count})");
         var selectedPhoto = photos[photoIndex];
-        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo: Id={selectedPhoto.Id}, Caption={selectedPhoto.Caption}, Url={selectedPhoto.Url}, BlobUrl={selectedPhoto.BlobUrl}");
+        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo {photoIndex+1}/{photos.Count}: {selectedPhoto.Caption}");
         return selectedPhoto;
     }
 
