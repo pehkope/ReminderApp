@@ -28,7 +28,7 @@ public class ReminderApi
 
     private static readonly string[] AllowedOrigins = new[]
     {
-        "https://lively-forest-0b274f703.1.azurestaticapps.net",
+        "https://proud-mushroom-0dd372603.1.azurestaticapps.net",
         "https://localhost:5000",
         "https://localhost:5001"
     };
