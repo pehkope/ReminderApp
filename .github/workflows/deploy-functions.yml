@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'reminderapp-functions'
+  AZURE_FUNCTIONAPP_NAME: 'reminderapp-functions2025'
   DOTNET_VERSION: '8.0.x'
 
 jobs:
