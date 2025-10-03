@@ -12,7 +12,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get"
         ],
@@ -39,7 +39,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post"
@@ -67,7 +67,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post",
@@ -96,7 +96,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post",
@@ -141,6 +141,60 @@
     ]
   },
   {
+    "name": "MessagesApi",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.MessagesApi.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get"
+        ],
+        "route": "api/messages",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "MigrateSheets",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.MigrationApi.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "post"
+        ],
+        "route": "api/migrate-sheets",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
     "name": "ReminderApi",
     "scriptFile": "ReminderApp.Functions.dll",
     "entryPoint": "ReminderApp.Functions.ReminderApi.Run",
@@ -156,9 +210,10 @@
         "authLevel": "Anonymous",
         "methods": [
           "get",
-          "post"
+          "post",
+          "options"
         ],
-        "route": "api/ReminderAPI",
+        "route": "ReminderAPI",
         "properties": {}
       },
       {
@@ -208,7 +263,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "post"
         ],
@@ -235,7 +290,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get"
         ],
@@ -262,7 +317,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "post"
         ],
@@ -289,7 +344,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get"
         ],
@@ -316,7 +371,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get"
         ],
@@ -343,7 +398,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get"
         ],
@@ -370,7 +425,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post"
@@ -398,7 +453,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "post"
         ],
@@ -425,7 +480,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "post"
         ],
