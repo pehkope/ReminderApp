@@ -93,6 +93,52 @@ public class WeatherService
     }
 
     /// <summary>
+    /// Hae tervehdys ja puuhaa-ehdotus äidille (klo 8, 12, 16, 20)
+    /// </summary>
+    public (string greeting, string activity) GetGreetingAndActivity(WeatherInfo weather, int hour)
+    {
+        // 1. TERVEHDYS (paljon emojeja!)
+        var greeting = hour switch
+        {
+            >= 6 and < 10 => "🌅 Hyvää huomenta kultaseni! ☀️ Uusi päivä on täynnä mahdollisuuksia! 💛",
+            >= 10 and < 14 => "🌞 Mukavaa päivää rakas! ☀️ Toivottavasti lounas maistuu hyvin! 🍽️",
+            >= 14 and < 18 => "☕ Hyvää iltapäivää kulta! 🌅 Hetki rentoutumiseen! 💕",
+            >= 18 and < 22 => "🌙 Hyvää iltaa rakas! ✨ Rauhallista iltaa ja lepoa! 💤",
+            _ => "💤 Hyvää yötä kultaseni! Nukku hyvin! 🌙"
+        };
+
+        // 2. PUUHAA (sään mukaan)
+        var activity = "";
+        
+        if (weather.IsRaining || weather.IsCold)
+        {
+            // SISÄPUUHAA (huono sää)
+            activity = hour switch
+            {
+                >= 6 and < 10 => "☎️ Soita jollekin ystävälle ja kysy kuulumisia! Mukava juttuhetki piristää aamua 💕 | 📚 Tai lue hyvä lehti kahvikupillisen kera ☕",
+                >= 10 and < 14 => "🧹 Pieni siivoushetki kotona? Laita pyykkikoneeseen pyykki tai järjestele kaappeja 🏠 | 🎵 Kuuntele musiikkia ja nauti kahvihetkestä ☕",
+                >= 14 and < 18 => "☎️ Soita Hannelelle tai Marjalle - mukava juttuhetki! 💬 | 📺 Katso joku kiinnostava ohjelma televisiosta 📺",
+                >= 18 and < 22 => "🛀 Lämmin suihku ja sitten sohvalle rentoutumaan 💤 | 📖 Lue hetki hyvää kirjaa ennen nukkumaanmenoa 🌙",
+                _ => "💤 Rentoudu ja valmistaudu lepoon 🌙"
+            };
+        }
+        else
+        {
+            // ULKOILU / KÄVELYREITTEJÄ (hyvä sää!)
+            activity = hour switch
+            {
+                >= 6 and < 10 => "🚶‍♀️ AAMUKÄVELY: Lähde kävelylle Lauttasaaren rantaan 🌊 Kaunis maisema piristää! Kävele pieni lenkki, ihana aamu! ☀️",
+                >= 10 and < 14 => "🚶‍♀️ LOUNASKÄVELY: Kävele Lauttasaaren keskustaan ja takaisin 🛍️ Ehkä poikkea kaupassa? Ulkoilu auttaa ruoansulatukseen! 😊",
+                >= 14 and < 18 => "🚶‍♀️ ILTAPÄIVÄKÄVELY: Käy kävelemässä Hevossalmen puistossa 🌳 Kaunis reitti ja rauhoittava metsä! Nauti luonnosta! 🍃",
+                >= 18 and < 22 => "🌆 ILTAKÄVELY: Pieni iltalenkki Lauttasaaren rantaan 🌅 Auringonlasku on kaunis! Rauhoittava päätös päivälle 💕",
+                _ => "💤 Rentoudu kotona - hyvä aika levätä 🏠"
+            };
+        }
+
+        return (greeting, activity);
+    }
+
+    /// <summary>
     /// Get smart activity recommendations based on weather using GAS-style logic
     /// </summary>
     public string GetActivityRecommendation(WeatherInfo weather, string timeOfDay, string clientId = "mom")

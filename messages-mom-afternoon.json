@@ -1,0 +1,43 @@
+{
+  "id": "messages_mom_afternoon",
+  "clientId": "mom",
+  "type": "greeting_messages",
+  "timeSlot": "afternoon",
+  "hour": 16,
+  "messages": [
+    "☕ Hyvää iltapäivää kulta! 🌅 Hetki rentoutumiseen! 💕",
+    "Hei äiti, olethan muistanut syödä ja juoda tänään? Se pitää sinut virkeänä ja mielen iloisena! 💛💧",
+    "Äiti. Kaunis muistutus: Muista syödä kunnolla ja nauttia pieni lepohetki 🌸🥗🛋️",
+    "Huhuu äiti! Ethän ole unohtanut syödä? Ja muista juoda vettäkin, se on tärkeää! 🥤😊💪",
+    "Tarkistus: olethan syönyt tänään lämmintä ruokaa? Syöminen ja pieni tauko tekevät hyvää sinulle 🍲❤️✨",
+    "Iltapäivän piristys! Pieni välipala ja lasi vettä auttavat jaksamaan iltaan asti 🍎🥛",
+    "Muistathan lounaan ja pienen hengähdystauon? Voisit vaikka selata lehteä tai kuunnella radiota samalla 📰📻",
+    "Hellitä hetkeksi ja nauti kuppi teetä tai kahvia. Oletko syönyt jotain pientä? ☕🍪"
+  ],
+  "activities_indoor": [
+    "☎️ Soita Hannelelle tai Marjalle - mukava juttuhetki! 💬",
+    "📺 Katso joku kiinnostava ohjelma televisiosta 📺",
+    "📰 Lue päivän Hesari rauhassa ☕📰",
+    "🎵 Kuuntele musiikkia tai radiota 🎧",
+    "🧶 Tee käsitöitä tai piirtele 🎨",
+    "📚 Jatka hyvän kirjan lukemista 📖",
+    "🧩 Ratkaise ristikko tai sudoku ✍️",
+    "☎️ Soita Eevalle, Irjalle, Anjalle tai Kirsille ja vaihda kuulumiset! 😊📞",
+    "📱 Soita jollekin sukulaiselle ja kysellä kuulumisia 👨‍👩‍👧‍👦📞",
+    "📞 Soita Arvolle tai Ullalle ja piristä heidänkin päiväänsä! ☀️"
+  ],
+  "activities_outdoor": [
+    "🚶‍♀️ ILTAPÄIVÄKÄVELY: Käy kävelemässä Lauttasaaren Hevossalmen puistossa 🌳 Kaunis reitti! 🍃",
+    "🌷 Pieni happihyppely Lauttasaaren Myllylammen ympäri - rauhallinen paikka! 🦆",
+    "🌬️ Kävele Lauttasaaren rantaan Vattuniemeen - tuuli ja meri virkistävät! 🌊",
+    "🌅 Jos aurinko paistaa, istahda Meripuiston penkille nauttimaan 🌅🌿",
+    "👟 Pieni korttelikierros Lauttasaaressa - Kotkankatu ja keskusta 👟😊",
+    "🌳 Kävelymatka Lauttasaaren metroasemalle ja takaisin - sopivan mittainen! 🚇",
+    "🍎 Käy Lauttasaaren S-marketilla ja ota samalla raitisilmaa! 🍎🛒",
+    "☕ Poikkea Lauttasaaren Café & Winessä tai Café Caruselissa kahvilla ☕😊",
+    "🏛️ Matkusta metrolla Helsingin keskustaan ja kävele Senaatintorilla 🏛️✨",
+    "🌊 Kävelyretki Lauttasaaren Koirapuistoon - mukava nähdä koiria! 🐕"
+  ],
+  "isActive": true,
+  "updatedAt": "2025-10-05T19:45:00Z"
+}

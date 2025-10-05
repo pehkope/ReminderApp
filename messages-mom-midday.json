@@ -1,0 +1,41 @@
+{
+  "id": "messages_mom_midday",
+  "clientId": "mom",
+  "type": "greeting_messages",
+  "timeSlot": "midday",
+  "hour": 12,
+  "messages": [
+    "🌞 Mukavaa päivää rakas! ☀️ Toivottavasti lounas maistuu hyvin! 🍽️",
+    "Hyvää päivää äiti! 😊 Muista syödä kunnolla ja nauttia lounas! 🥗",
+    "Lounastan aika, rakas äiti! 🍲 Nauti rauhassa ja muista juoda vettä 💧",
+    "Päivän keskellä tervehdys! ☀️ Muista syödä hyvin ja levätä hetki 🛋️"
+  ],
+  "activities_indoor": [
+    "🧹 Pieni siivoushetki kotona? Laita pyykkikoneeseen pyykki tai järjestele kaappeja 🏠",
+    "🎵 Kuuntele musiikkia ja nauti kahvihetkestä ☕",
+    "📺 Katso televisiota lempiohjelmasi tai uusi sarja 📺🍿",
+    "📰 Lue Hesari alusta loppuun kaikessa rauhassa 📰☕",
+    "📚 Uppoudu hyvän kirjan maailmaan 📚🛋️",
+    "📞 Soita jollekkin tutulle ja vaihda kuulumiset 📞😊",
+    "🎧 Kuuntele musiikkia tai äänikirjaa 🎧🎶",
+    "🧩 Tee palapeliä tai ristisanatehtävää 🧩✍️",
+    "📝 Kirjoita kirje tai päiväkirjaa 📝💌",
+    "🧘‍♀️ Venyttele kevyesti tai tee jumppaliikkeitä 🧘‍♀️💪"
+  ],
+  "activities_outdoor": [
+    "🚶‍♀️ LOUNASKÄVELY: Kävele Lauttasaaren keskustaan (S-market, apteekki) ja takaisin 🛍️",
+    "🌳 Kävelylenkki Lauttasaaren K-Citymarketille ja poikkea kahvilla 🛒☕",
+    "🌷 Istahda Meripuiston penkille 15 minuutiksi nauttimaan ilmasta 🌳🌬️",
+    "🌊 Kävele Lauttasaaren Vattuniemen rantareitillä - upea merimaisema! 🌷🌊",
+    "🛍️ Matkusta keskustaan: Stockmannin Herkku tai Sokos kävelykadulle! 🤗🛍️",
+    "🚇 Ajele metrolla Kampista Kalasatamaan - Redin ostoskeskus on valtava! ☀️🚇",
+    "🏛️ Vieraile Helsingin keskustan Kolmen sepän patsaalla ja Stockalla ☀️",
+    "🍓 Käy Hakaniemen torilla tai Kauppatorilla katsomassa tarjontaa 🍓🥕🧺",
+    "📸 Kävele Helsingin Esplanadilla ja katso kaupungin elämää 📸🌸🏙️",
+    "📚 Käy Lauttasaaren kirjastossa lainaamassa uutta luettavaa 📚🚶‍♀️",
+    "💐 Poikkea Lauttasaaren kukkakaupassa Kotkankadulla 💐😊",
+    "🏙️ Matkusta Helsingin keskustaan ja kävele Aleksanterinkatua pitkin 🚇✨"
+  ],
+  "isActive": true,
+  "updatedAt": "2025-10-05T19:45:00Z"
+}

@@ -223,8 +223,8 @@ public class ReminderApi
         // Sort by time
         dailyTasks = dailyTasks.OrderBy(t => t.Time).ToList();
 
-        // Get weather with recommendations
-        var weather = await GetWeatherWithRecommendation(clientId);
+        // Get weather with smart greetings and activities (klo 8, 12, 16, 20)
+        var (weather, smartGreeting, smartActivity) = await GetWeatherWithGreetingAndActivity(clientId);
 
         // Build response
         var response = new ReminderApiResponse
@@ -244,7 +244,8 @@ public class ReminderApi
             LatestReminder = reminders.Any() ? reminders[0].Text : string.Empty,
             DailyTasks = dailyTasks,
             CurrentTimeOfDay = GetCurrentTimeOfDay(),
-            Greeting = GetGreeting(clientId),
+            Greeting = smartGreeting,  // Älykäs tervehdys säästä riippuen
+            ActivityText = smartActivity,  // Puuhaa-ehdotus (sisä/ulko sään mukaan)
             Reminders = reminders,
             Count = reminders.Count,
             Storage = storageType,
@@ -316,15 +317,24 @@ public class ReminderApi
         return fallbackPhoto;
     }
 
-    private async Task<WeatherInfo> GetWeatherWithRecommendation(string clientId)
+    private async Task<(WeatherInfo weather, string greeting, string activity)> GetWeatherWithGreetingAndActivity(string clientId)
     {
         var weather = await _weatherService.GetWeatherAsync("Helsinki,FI");
-        var timeOfDay = GetCurrentTimeOfDay();
+        var hour = DateTime.Now.Hour;
         
-        // Add activity recommendation based on weather
+        _logger.LogInformation("🕐 Current hour: {Hour}", hour);
+        
+        // Hae älykkäät tervehdykset ja puuhaa klo 8, 12, 16, 20
+        var (greeting, activity) = _weatherService.GetGreetingAndActivity(weather, hour);
+        
+        _logger.LogInformation("👋 Greeting: '{Greeting}' (length: {Length})", greeting, greeting?.Length ?? 0);
+        _logger.LogInformation("🎯 Activity: '{Activity}' (length: {Length})", activity, activity?.Length ?? 0);
+        
+        // Lisää myös vanha recommendation
+        var timeOfDay = GetCurrentTimeOfDay();
         weather.Recommendation = _weatherService.GetActivityRecommendation(weather, timeOfDay, clientId);
         
-        return weather;
+        return (weather, greeting, activity);
     }
 
     private static string GetCurrentTimeOfDay()

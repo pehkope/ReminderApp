@@ -51,9 +51,6 @@ public class CosmosDbService
     // Photo operations
     public async Task<List<Photo>> GetPhotosAsync(string clientId)
     {
-        Console.WriteLine($"[GetPhotosAsync] Called for clientId: '{clientId}'");
-        Console.WriteLine($"[GetPhotosAsync] IsConfigured: {IsConfigured}");
-        
         if (!IsConfigured)
         {
             Console.WriteLine("[GetPhotosAsync] CosmosDB not configured!");
@@ -68,41 +65,26 @@ public class CosmosDbService
                 Console.WriteLine("[GetPhotosAsync] Container is null!");
                 return new List<Photo>();
             }
-            
-            Console.WriteLine("[GetPhotosAsync] Container retrieved successfully");
 
             var query = new QueryDefinition(
                 "SELECT * FROM c WHERE c.clientId = @clientId AND c.isActive = true")
                 .WithParameter("@clientId", clientId);
-
-            Console.WriteLine($"[GetPhotosAsync] Query: SELECT * FROM c WHERE c.clientId = '{clientId}' AND c.isActive = true");
             
             var iterator = container.GetItemQueryIterator<Photo>(query);
             var results = new List<Photo>();
-
-            Console.WriteLine($"[GetPhotosAsync] Starting iteration, HasMoreResults: {iterator.HasMoreResults}");
             
             while (iterator.HasMoreResults)
             {
                 var response = await iterator.ReadNextAsync();
-                Console.WriteLine($"[GetPhotosAsync] Batch received: {response.Count} items, StatusCode: {response.StatusCode}");
-                
-                if (response.Count > 0)
-                {
-                    var firstPhoto = response.FirstOrDefault();
-                    Console.WriteLine($"[GetPhotosAsync] First photo: Id={firstPhoto?.Id}, Caption={firstPhoto?.Caption}, Url length={firstPhoto?.Url?.Length ?? 0}");
-                }
-                
                 results.AddRange(response);
             }
 
-            Console.WriteLine($"[GetPhotosAsync] ✅ Total photos fetched: {results.Count}");
+            Console.WriteLine($"✅ Fetched {results.Count} photos for {clientId}");
             return results;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Error fetching photos for {clientId}: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return new List<Photo>();
         }
     }
@@ -110,24 +92,16 @@ public class CosmosDbService
     public async Task<Photo?> GetDailyPhotoAsync(string clientId)
     {
         var photos = await GetPhotosAsync(clientId);
-        Console.WriteLine($"[GetDailyPhotoAsync] GetPhotosAsync returned {photos.Count} photos");
         
         if (!photos.Any())
         {
-            Console.WriteLine($"[GetDailyPhotoAsync] No photos found for {clientId}");
             return null;
         }
 
         // Select photo based on current date
         var today = DateTime.Now;
         var photoIndex = today.Day % photos.Count;
-        var selectedPhoto = photos[photoIndex];
-        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo {photoIndex+1}/{photos.Count}");
-        Console.WriteLine($"  - ID: {selectedPhoto.Id}");
-        Console.WriteLine($"  - Caption: {selectedPhoto.Caption}");
-        Console.WriteLine($"  - Url: '{selectedPhoto.Url}' (length: {selectedPhoto.Url?.Length ?? 0})");
-        Console.WriteLine($"  - BlobUrl: '{selectedPhoto.BlobUrl}' (length: {selectedPhoto.BlobUrl?.Length ?? 0})");
-        return selectedPhoto;
+        return photos[photoIndex];
     }
 
     // Reminder operations

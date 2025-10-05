@@ -1,0 +1,48 @@
+{
+  "id": "messages_mom_evening",
+  "clientId": "mom",
+  "type": "greeting_messages",
+  "timeSlot": "evening",
+  "hour": 20,
+  "messages": [
+    "🌙 Hyvää iltaa rakas! ✨ Rauhallista iltaa ja lepoa! 💤",
+    "Iltatervehdys äiti! 🌙 Syö proteiinirahkaa ja lääke 💊. Muista: olet meille niin tärkeä 💛 Hyvää yötä ✨",
+    "Iltaviestin aika äiti armas 💌. Muista iltapala ja lääke 💊 niin nukut hyvin. Olet rakas ja tärkeä, aina 🥰 Hyvää yötä! 😴",
+    "Iltapalan aika äiti rakas 🥣. Muista syödä jotain (vaikka sitä rahkaa!) niin nukut hyvin! Olet meille korvaamaton 🤗 Hyvää yötä! 💖",
+    "Kauniita unia odotellessa, äiti 🌟 Muistathan pienen iltapalan ja lääkkeen? Olet ajatuksissamme. Hyvää yötä! ❤️",
+    "Hyvää iltaa ja lempeitä unia, äiti 😴💤. Pieni iltapala ja lääke auttavat nukkumaan sikeästi. Sinua rakastetaan! 🥰",
+    "Nukkumaanmenoaika lähestyy, äiti armas 🛌. Ethän unohda sitä tärkeää iltapalaa ja lääkettä? Olet meidän kultakimpale! ✨ Hyvää yötä!",
+    "Rauhallista iltaa, äiti 🌃. Vielä proteiinipitoinen iltapala ja lääke 💊, niin jaksat taas huomenna! Olet meille korvaamaton. ❤️ Nuku hyvin!",
+    "Päivä paketissa, äiti! 😊 Muista iltapala ja lääkkeet, ne takaavat hyvät unet. Lähetämme sinulle lämpimiä ajatuksia ja rakkautta. 💕 Kauniita unia! ✨",
+    "Ilta saapuu, rakas äiti 🌙. Pieni iltapurtava, kuten rahka 🥄, ja lääke ovat nyt paikallaan. Olet aina mielessämme. 💖 Makeita unia! 💤",
+    "Lempeää iltaa, äiti ❤️. Muista ottaa lääke ja syödä jotain pientä ennen nukkumaanmenoa. Olet meille kultaakin kalliimpi. Hyvää yötä ja kauniita unia! 😇",
+    "Kuunsilta toivottaa hyvää yötä, äiti 🌕. Pieni iltapala ja lääke auttavat uneen. Olet tärkeä ja rakas. Nuku hyvin! 🤗",
+    "Tähtipölyä uniisi, äiti ✨😴. Muistathan iltatoimet: pieni syötävä ja lääke. Olet meille kaikki kaikessa. Hyvää yötä! 💖",
+    "Suloisia iltahetkiä, äiti kulta 🌸. Pieni iltapala ja lääke 💊 tuovat hyvän unen. Olet ajatuksissamme ja sydämissämme aina. ❤️ Hyvää yötä ja levollisia unia! ✨",
+    "Rauhaisaa iltaa sinulle, äiti rakas 🌙. Muista napata se rahka ja lääke 🥄💊, niin olet virkeä huomenna. Olet meille valtavan tärkeä. 🥰 Kauniita unia ja hyvää yötä! 😴",
+    "Hyvää iltaa, maailman paras äiti! 💖 Pieni iltapala ja lääke auttavat nukahtamaan lempeästi. Lähetämme sinulle sylin täydeltä rakkautta. 🤗 Nuku hyvin ja näe kauniita unia! 🌟",
+    "Iltatoimien aika, äiti armas 🧸. Muistathan lääkkeen ja jotain pientä syötävää 🥣? Olet meidän aarteemme, aina mielessä. 💛 Hyvää yötä ja leppoisia unia! 💤",
+    "Iltaa, äiti! ✨ On aika rauhoittua. Proteiinirahka ja lääke 💊, jotta uni tulee makeasti. Olet meille niin rakas ja tärkeä. 💕 Hyvää yötä, nuku hyvin! 😴",
+    "Päivä kallistuu iltaan, rakas äiti 🌅. Muista ottaa lääkkeesi ja pieni iltapala, vaikkapa se tuttu rahka. Olet meille kultaakin kalliimpi. ✨ Hyvää yötä! ❤️",
+    "Lempeitä tuulia uniisi, äiti 🌬️💤. Vielä pieni iltapala ja lääke 💊, niin jaksat paremmin. Sinua rakastetaan kovasti! 🥰 Nuku makeasti! 💖",
+    "Iltakellot soivat, äiti armas 🔔. Muistathan iltapalan ja lääkkeen, ne tekevät hyvää. Olet meille korvaamaton aarre. 🤗 Hyvää yötä ja kauniita unia! ✨",
+    "Hämärä laskeutuu, rakas äiti 🌃. Pieni syötävä, kuten rahka, ja lääke 💊 auttavat lepäämään. Olet aina meidän ajatuksissamme. 💛 Hyvää yötä! 😴",
+    "Unta odotellessa, äiti kulta ✨. Syöthän jotain pientä ja otat lääkkeen? Olet meille niin tärkeä ja rakas. ❤️ Kauniita unia! 💖"
+  ],
+  "activities_indoor": [
+    "🛀 Lämmin suihku ja sitten sohvalle rentoutumaan 💤",
+    "📖 Lue hetki hyvää kirjaa ennen nukkumaanmenoa 🌙",
+    "📺 Katso joku rauhoittava ohjelma televisiosta 📺",
+    "🎵 Kuuntele rauhallista musiikkia 🎧💤",
+    "☕ Nauti kuppi kuumaa juomaa ennen nukkumaanmenoa ☕",
+    "🧘‍♀️ Venyttele kevyesti ennen nukkumaanmenoa 🧘‍♀️"
+  ],
+  "activities_outdoor": [
+    "🌆 ILTAKÄVELY: Pieni iltalenkki Lauttasaaren Vattuniemen rantaan 🌅 Auringonlasku on kaunis! 💕",
+    "🌙 Lyhyt iltalenkki Lauttasaaren Meripuistoon - rauhoittava ilta-aika 🚶‍♀️",
+    "🌅 Jos aurinko laskee kauniisti, hetki parvekkeella tai kävelylle rantatielle 🌅",
+    "🌊 Lyhyt kävelyretki Lauttasaaren rantaan - veden äänet rauhoittavat 🌊💤"
+  ],
+  "isActive": true,
+  "updatedAt": "2025-10-05T19:45:00Z"
+}
