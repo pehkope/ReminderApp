@@ -1,93 +1,123 @@
+using Azure.Storage;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 
 namespace ReminderApp.Functions.Services;
 
 public class BlobStorageService
 {
+    private readonly string _connectionString;
     private readonly BlobServiceClient? _blobServiceClient;
-    private readonly string _photosContainerName;
-    private readonly string _thumbnailsContainerName;
 
     public BlobStorageService()
     {
-        var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
-        _photosContainerName = Environment.GetEnvironmentVariable("PHOTOS_CONTAINER_NAME") ?? "photos";
-        _thumbnailsContainerName = Environment.GetEnvironmentVariable("THUMBNAILS_CONTAINER_NAME") ?? "thumbnails";
-
-        if (!string.IsNullOrEmpty(connectionString))
+        _connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage") ?? "";
+        if (!string.IsNullOrEmpty(_connectionString))
         {
-            try
-            {
-                _blobServiceClient = new BlobServiceClient(connectionString);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to initialize Blob Storage: {ex.Message}");
-            }
+            _blobServiceClient = new BlobServiceClient(_connectionString);
+            Console.WriteLine("BlobStorageService initialized");
         }
     }
 
-    public bool IsConfigured => _blobServiceClient != null;
+    public bool IsConfigured => !string.IsNullOrEmpty(_connectionString);
 
-    public async Task<string?> UploadPhotoAsync(Stream photoStream, string fileName, string contentType = "image/jpeg")
+    /// <summary>
+    /// Generoi uniikki tiedostonimi
+    /// </summary>
+    public string GenerateFileName(string clientId, string fileExtension)
     {
-        if (!IsConfigured || _blobServiceClient == null)
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+        return $"{clientId}_{timestamp}{fileExtension}";
+    }
+
+    /// <summary>
+    /// Upload kuva Blob Storageen
+    /// </summary>
+    public async Task<string> UploadPhotoAsync(string containerName, string fileName, byte[] photoData)
+    {
+        if (!IsConfigured)
         {
-            Console.WriteLine("Blob Storage not configured");
-            return null;
+            throw new InvalidOperationException("Blob Storage not configured");
+        }
+
+        var containerClient = _blobServiceClient!.GetBlobContainerClient(containerName);
+        await containerClient.CreateIfNotExistsAsync();
+
+        var blobClient = containerClient.GetBlobClient(fileName);
+        using var stream = new MemoryStream(photoData);
+        await blobClient.UploadAsync(stream, overwrite: true);
+
+        return blobClient.Uri.ToString();
+    }
+
+    /// <summary>
+    /// Upload kuva Blob Storageen (stream overload)
+    /// </summary>
+    public async Task<string> UploadPhotoAsync(MemoryStream stream, string fileName, string contentType)
+    {
+        if (!IsConfigured)
+        {
+            throw new InvalidOperationException("Blob Storage not configured");
+        }
+
+        var containerClient = _blobServiceClient!.GetBlobContainerClient("photos");
+        await containerClient.CreateIfNotExistsAsync();
+
+        var blobClient = containerClient.GetBlobClient(fileName);
+        stream.Position = 0;
+        await blobClient.UploadAsync(stream, overwrite: true);
+
+        return blobClient.Uri.ToString();
+    }
+
+    /// <summary>
+    /// Luo SAS token blob URL:lle
+    /// </summary>
+    public string GenerateSasUrlForBlob(string blobUrl)
+    {
+        if (string.IsNullOrEmpty(blobUrl) || !IsConfigured)
+        {
+            return blobUrl;
         }
 
         try
         {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(_photosContainerName);
-            var blobClient = containerClient.GetBlobClient(fileName);
+            // Parse blob URL
+            var uri = new Uri(blobUrl);
+            var containerName = uri.Segments[1].TrimEnd('/');
+            var blobName = string.Join("", uri.Segments.Skip(2));
 
-            var blobHttpHeaders = new BlobHttpHeaders
+            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = containerClient.GetBlobClient(blobName);
+
+            // Luo SAS token (voimassa 1 tunti)
+            if (blobClient.CanGenerateSasUri)
             {
-                ContentType = contentType
-            };
+                var sasBuilder = new BlobSasBuilder
+                {
+                    BlobContainerName = containerName,
+                    BlobName = blobName,
+                    Resource = "b", // b = blob
+                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                    ExpiresOn = DateTimeOffset.UtcNow.AddHours(1)
+                };
 
-            await blobClient.UploadAsync(photoStream, new BlobUploadOptions
+                sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+                var sasUri = blobClient.GenerateSasUri(sasBuilder);
+                Console.WriteLine($"Generated SAS URL for blob: {blobName}");
+                return sasUri.ToString();
+            }
+            else
             {
-                HttpHeaders = blobHttpHeaders
-            });
-
-            return blobClient.Uri.ToString();
+                Console.WriteLine("Cannot generate SAS URI for blob (using connection string without AccountKey?)");
+                return blobUrl;
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error uploading photo {fileName}: {ex.Message}");
-            return null;
+            Console.WriteLine($"Error generating SAS URL: {ex.Message}");
+            return blobUrl;
         }
-    }
-
-    public async Task<bool> DeletePhotoAsync(string fileName)
-    {
-        if (!IsConfigured || _blobServiceClient == null)
-        {
-            return false;
-        }
-
-        try
-        {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(_photosContainerName);
-            var blobClient = containerClient.GetBlobClient(fileName);
-
-            await blobClient.DeleteIfExistsAsync();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error deleting photo {fileName}: {ex.Message}");
-            return false;
-        }
-    }
-
-    public string GenerateFileName(string clientId, string originalFileName)
-    {
-        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
-        return $"{clientId}/photo_{timestamp}{extension}";
     }
 }

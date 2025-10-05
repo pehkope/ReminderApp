@@ -14,16 +14,19 @@ public class ReminderApi
     private readonly CosmosDbService _cosmosDbService;
     private readonly GoogleSheetsService _googleSheetsService;
     private readonly WeatherService _weatherService;
+    private readonly BlobStorageService _blobStorageService;
 
     public ReminderApi(ILoggerFactory loggerFactory, 
                       CosmosDbService cosmosDbService, 
                       GoogleSheetsService googleSheetsService,
-                      WeatherService weatherService)
+                      WeatherService weatherService,
+                      BlobStorageService blobStorageService)
     {
         _logger = loggerFactory.CreateLogger<ReminderApi>();
         _cosmosDbService = cosmosDbService;
         _googleSheetsService = googleSheetsService;
         _weatherService = weatherService;
+        _blobStorageService = blobStorageService;
     }
 
     private static readonly string[] AllowedOrigins = new[]
@@ -133,6 +136,13 @@ public class ReminderApi
         }
         
         var dailyPhotoUrl = string.IsNullOrEmpty(photo?.BlobUrl) ? photo?.Url ?? string.Empty : photo.BlobUrl;
+        
+        // Jos blobUrl on Blob Storage URL, lisää SAS token
+        if (!string.IsNullOrEmpty(dailyPhotoUrl) && dailyPhotoUrl.Contains("blob.core.windows.net"))
+        {
+            dailyPhotoUrl = _blobStorageService.GenerateSasUrlForBlob(dailyPhotoUrl);
+        }
+        
         var dailyPhotoCaption = photo?.Caption ?? string.Empty;
         
         _logger.LogInformation("Final dailyPhotoUrl: '{Url}' (length: {Length})", dailyPhotoUrl, dailyPhotoUrl.Length);
