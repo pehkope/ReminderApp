@@ -1,6 +1,8 @@
 using Microsoft.Azure.Cosmos;
 using ReminderApp.Functions.Models;
 using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace ReminderApp.Functions.Services;
 
@@ -19,10 +21,18 @@ public class CosmosDbService
         {
             try
             {
-                // Use default Cosmos SDK serializer (Newtonsoft.Json)
-                // Photo model has both [JsonPropertyName] and [JsonProperty] attributes
-                _cosmosClient = new CosmosClient(connectionString);
+                // Configure Cosmos SDK to use Newtonsoft.Json with camelCase
+                var options = new CosmosClientOptions
+                {
+                    SerializerOptions = new CosmosSerializationOptions
+                    {
+                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                    }
+                };
+                
+                _cosmosClient = new CosmosClient(connectionString, options);
                 _database = _cosmosClient.GetDatabase(_databaseId);
+                Console.WriteLine("CosmosDB initialized with camelCase serialization");
             }
             catch (Exception ex)
             {
@@ -41,7 +51,14 @@ public class CosmosDbService
     // Photo operations
     public async Task<List<Photo>> GetPhotosAsync(string clientId)
     {
-        if (!IsConfigured) return new List<Photo>();
+        Console.WriteLine($"[GetPhotosAsync] Called for clientId: '{clientId}'");
+        Console.WriteLine($"[GetPhotosAsync] IsConfigured: {IsConfigured}");
+        
+        if (!IsConfigured)
+        {
+            Console.WriteLine("[GetPhotosAsync] CosmosDB not configured!");
+            return new List<Photo>();
+        }
 
         try
         {
@@ -51,28 +68,40 @@ public class CosmosDbService
                 Console.WriteLine("[GetPhotosAsync] Container is null!");
                 return new List<Photo>();
             }
+            
+            Console.WriteLine("[GetPhotosAsync] Container retrieved successfully");
 
             var query = new QueryDefinition(
                 "SELECT * FROM c WHERE c.clientId = @clientId AND c.isActive = true")
                 .WithParameter("@clientId", clientId);
 
-            Console.WriteLine($"[GetPhotosAsync] Executing query for clientId: {clientId}");
+            Console.WriteLine($"[GetPhotosAsync] Query: SELECT * FROM c WHERE c.clientId = '{clientId}' AND c.isActive = true");
+            
             var iterator = container.GetItemQueryIterator<Photo>(query);
             var results = new List<Photo>();
 
+            Console.WriteLine($"[GetPhotosAsync] Starting iteration, HasMoreResults: {iterator.HasMoreResults}");
+            
             while (iterator.HasMoreResults)
             {
                 var response = await iterator.ReadNextAsync();
-                Console.WriteLine($"[GetPhotosAsync] Got {response.Count} photos in this batch");
+                Console.WriteLine($"[GetPhotosAsync] Batch received: {response.Count} items, StatusCode: {response.StatusCode}");
+                
+                if (response.Count > 0)
+                {
+                    var firstPhoto = response.FirstOrDefault();
+                    Console.WriteLine($"[GetPhotosAsync] First photo: Id={firstPhoto?.Id}, Caption={firstPhoto?.Caption}, Url length={firstPhoto?.Url?.Length ?? 0}");
+                }
+                
                 results.AddRange(response);
             }
 
-            Console.WriteLine($"[GetPhotosAsync] Total photos fetched: {results.Count}");
+            Console.WriteLine($"[GetPhotosAsync] ✅ Total photos fetched: {results.Count}");
             return results;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching photos for {clientId}: {ex.Message}");
+            Console.WriteLine($"❌ Error fetching photos for {clientId}: {ex.Message}");
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return new List<Photo>();
         }
@@ -81,6 +110,7 @@ public class CosmosDbService
     public async Task<Photo?> GetDailyPhotoAsync(string clientId)
     {
         var photos = await GetPhotosAsync(clientId);
+        Console.WriteLine($"[GetDailyPhotoAsync] GetPhotosAsync returned {photos.Count} photos");
         
         if (!photos.Any())
         {
@@ -92,7 +122,11 @@ public class CosmosDbService
         var today = DateTime.Now;
         var photoIndex = today.Day % photos.Count;
         var selectedPhoto = photos[photoIndex];
-        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo {photoIndex+1}/{photos.Count}: {selectedPhoto.Caption}");
+        Console.WriteLine($"[GetDailyPhotoAsync] Selected photo {photoIndex+1}/{photos.Count}");
+        Console.WriteLine($"  - ID: {selectedPhoto.Id}");
+        Console.WriteLine($"  - Caption: {selectedPhoto.Caption}");
+        Console.WriteLine($"  - Url: '{selectedPhoto.Url}' (length: {selectedPhoto.Url?.Length ?? 0})");
+        Console.WriteLine($"  - BlobUrl: '{selectedPhoto.BlobUrl}' (length: {selectedPhoto.BlobUrl?.Length ?? 0})");
         return selectedPhoto;
     }
 

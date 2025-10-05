@@ -123,8 +123,19 @@ public class ReminderApi
         // Get daily photo
         _logger.LogInformation("Fetching daily photo for client: {ClientId}", clientId);
         var photo = await GetDailyPhoto(clientId);
-        var dailyPhotoUrl = photo?.BlobUrl ?? photo?.Url ?? string.Empty;
+        
+        _logger.LogInformation("Photo object is null: {IsNull}", photo == null);
+        if (photo != null)
+        {
+            _logger.LogInformation("Photo.BlobUrl: '{BlobUrl}' (length: {Length})", photo.BlobUrl ?? "null", photo.BlobUrl?.Length ?? -1);
+            _logger.LogInformation("Photo.Url: '{Url}' (length: {Length})", photo.Url ?? "null", photo.Url?.Length ?? -1);
+            _logger.LogInformation("Photo.Caption: '{Caption}'", photo.Caption ?? "null");
+        }
+        
+        var dailyPhotoUrl = string.IsNullOrEmpty(photo?.BlobUrl) ? photo?.Url ?? string.Empty : photo.BlobUrl;
         var dailyPhotoCaption = photo?.Caption ?? string.Empty;
+        
+        _logger.LogInformation("Final dailyPhotoUrl: '{Url}' (length: {Length})", dailyPhotoUrl, dailyPhotoUrl.Length);
 
         if (!string.IsNullOrEmpty(dailyPhotoUrl))
         {
