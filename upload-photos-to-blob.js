@@ -49,8 +49,8 @@ function downloadImage(url, redirectCount = 0) {
     }
     
     https.get(url, (response) => {
-      // Seuraa redirectejä
-      if (response.statusCode === 301 || response.statusCode === 302) {
+      // Seuraa redirectejä (301, 302, 303)
+      if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 303) {
         const redirectUrl = response.headers.location;
         if (!redirectUrl) {
           reject(new Error("Redirect ilman location headeria"));
