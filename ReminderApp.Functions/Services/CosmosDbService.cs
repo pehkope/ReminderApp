@@ -291,6 +291,44 @@ public class CosmosDbService
         }
     }
 
+    // Greeting Messages operations
+    public async Task<GreetingMessage?> GetGreetingMessageAsync(string clientId, int hour)
+    {
+        if (!IsConfigured) return null;
+
+        try
+        {
+            var container = GetContainer("Messages");
+            if (container == null) return null;
+
+            var query = new QueryDefinition(
+                "SELECT * FROM c WHERE c.clientId = @clientId AND c.hour = @hour AND c.isActive = true")
+                .WithParameter("@clientId", clientId)
+                .WithParameter("@hour", hour);
+
+            var iterator = container.GetItemQueryIterator<GreetingMessage>(query);
+            
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                var message = response.FirstOrDefault();
+                if (message != null)
+                {
+                    Console.WriteLine($"✅ Found greeting message for {clientId} at hour {hour}");
+                    return message;
+                }
+            }
+
+            Console.WriteLine($"⚠️ No greeting message found for {clientId} at hour {hour}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error fetching greeting message for {clientId} at hour {hour}: {ex.Message}");
+            return null;
+        }
+    }
+
     // Get client settings
     public async Task<Client?> GetClientAsync(string clientId)
     {

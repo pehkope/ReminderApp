@@ -54,14 +54,23 @@
   "activities_indoor": [
     "☎️ Soita jollekin ystävälle ja kysy kuulumisia! Mukava juttuhetki piristää aamua 💕",
     "📚 Lue hyvä lehti kahvikupillisen kera ☕",
-    "📰 Hesarin lukeminen aamukahvin kanssa on ihana tapa aloittaa päivä ☕"
+    "📰 Hesarin lukeminen aamukahvin kanssa on ihana tapa aloittaa päivä ☕",
+    "📻 Kuuntele aamun uutiset radiosta ja nauti aamupalasta rauhassa 📻☕",
+    "🧩 Ratkaise aamuinen ristikko tai sudoku - virkistää mieltä! 🧩✍️",
+    "📖 Lue kirjan luku aamukahvin kera - rauhallinen alku päivälle 📖☕",
+    "🎵 Laita musiikkia soimaan ja nauti aamusta 🎵😊",
+    "🪴 Hoida kukkia ja kasveja - mukavaa aamutoimintaa 🪴🌼"
   ],
   "activities_outdoor": [
     "🚶‍♀️ AAMUKÄVELY: Lähde kävelylle Lauttasaaren rantaan 🌊 Kaunis maisema piristää!",
     "🌅 Aamukävely Lauttasaaren Vattuniemen rantaan - raikas ilma ja meren tuoksu! 🌊",
     "🚶‍♀️ Pieni aamulenkki Lauttasaaren Hevossalmen puistossa - raikas ilma virkistää! 🌳",
     "🌳 Aamukävely Lauttasaaren Myllylammen ympäri - kaunis luontoreitti! 🦆",
-    "☀️ Kävele Lauttasaaren Meripuistoon ja nauti aamun rauhallisuudesta 🌸"
+    "☀️ Kävele Lauttasaaren Meripuistoon ja nauti aamun rauhallisuudesta 🌸",
+    "🌄 Käy aamulenkillä Lauttasaaren rantapolulla - virkistävä alku päivälle! 🌄",
+    "🏃‍♀️ Pieni aamukävely lähikauppaan - samalla liikettä ja asiointia 🏃‍♀️🛒",
+    "🌲 Nauti aamun rauhasta Lauttasaaren puistossa - linnut laulavat! 🌲🐦",
+    "☕ Aamukahvikierros ulos - ehkä Café Caruseliin? ☕😊"
   ],
   "isActive": true,
   "updatedAt": "2025-10-05T19:45:00Z"

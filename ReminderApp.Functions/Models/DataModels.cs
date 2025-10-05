@@ -3,6 +3,49 @@ using Newtonsoft.Json;
 
 namespace ReminderApp.Functions.Models;
 
+public class GreetingMessage
+{
+    [JsonPropertyName("id")]
+    [JsonProperty("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("clientId")]
+    [JsonProperty("clientId")]
+    public string ClientId { get; set; } = string.Empty;
+
+    [JsonPropertyName("type")]
+    [JsonProperty("type")]
+    public string Type { get; set; } = "greeting_messages";
+
+    [JsonPropertyName("timeSlot")]
+    [JsonProperty("timeSlot")]
+    public string TimeSlot { get; set; } = string.Empty; // morning, midday, afternoon, evening
+
+    [JsonPropertyName("hour")]
+    [JsonProperty("hour")]
+    public int Hour { get; set; }
+
+    [JsonPropertyName("messages")]
+    [JsonProperty("messages")]
+    public List<string> Messages { get; set; } = new();
+
+    [JsonPropertyName("activities_indoor")]
+    [JsonProperty("activities_indoor")]
+    public List<string> ActivitiesIndoor { get; set; } = new();
+
+    [JsonPropertyName("activities_outdoor")]
+    [JsonProperty("activities_outdoor")]
+    public List<string> ActivitiesOutdoor { get; set; } = new();
+
+    [JsonPropertyName("isActive")]
+    [JsonProperty("isActive")]
+    public bool IsActive { get; set; } = true;
+
+    [JsonPropertyName("updatedAt")]
+    [JsonProperty("updatedAt")]
+    public string UpdatedAt { get; set; } = string.Empty;
+}
+
 public class Reminder
 {
     [JsonPropertyName("id")]

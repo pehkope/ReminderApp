@@ -324,8 +324,8 @@ public class ReminderApi
         
         _logger.LogInformation("🕐 Current hour: {Hour}", hour);
         
-        // Hae älykkäät tervehdykset ja puuhaa klo 8, 12, 16, 20
-        var (greeting, activity) = _weatherService.GetGreetingAndActivity(weather, hour);
+        // Hae älykkäät tervehdykset ja puuhaa CosmosDB:stä klo 8, 12, 16, 20
+        var (greeting, activity) = await _weatherService.GetGreetingAndActivityAsync(weather, hour, clientId);
         
         _logger.LogInformation("👋 Greeting: '{Greeting}' (length: {Length})", greeting, greeting?.Length ?? 0);
         _logger.LogInformation("🎯 Activity: '{Activity}' (length: {Length})", activity, activity?.Length ?? 0);

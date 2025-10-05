@@ -11,16 +11,19 @@
     "Päivän keskellä tervehdys! ☀️ Muista syödä hyvin ja levätä hetki 🛋️"
   ],
   "activities_indoor": [
-    "🧹 Pieni siivoushetki kotona? Laita pyykkikoneeseen pyykki tai järjestele kaappeja 🏠",
-    "🎵 Kuuntele musiikkia ja nauti kahvihetkestä ☕",
     "📺 Katso televisiota lempiohjelmasi tai uusi sarja 📺🍿",
+    "🖼️ Järjestele kuvia ja muistele ihania hetkiä 🖼️💭",
     "📰 Lue Hesari alusta loppuun kaikessa rauhassa 📰☕",
     "📚 Uppoudu hyvän kirjan maailmaan 📚🛋️",
     "📞 Soita jollekkin tutulle ja vaihda kuulumiset 📞😊",
     "🎧 Kuuntele musiikkia tai äänikirjaa 🎧🎶",
     "🧩 Tee palapeliä tai ristisanatehtävää 🧩✍️",
+    "👩‍🍳 Kokeile jotain uutta reseptiä keittiössä 👩‍🍳🍰",
+    "🧹 Pieni siivoushetki kotona? Laita pyykkikoneeseen pyykki tai järjestele kaappeja ✨👚",
     "📝 Kirjoita kirje tai päiväkirjaa 📝💌",
-    "🧘‍♀️ Venyttele kevyesti tai tee jumppaliikkeitä 🧘‍♀️💪"
+    "🧘‍♀️ Venyttele kevyesti tai tee jumppaliikkeitä 🧘‍♀️💪",
+    "🎞️ Selaile vanhoja valokuva-albumeita ja muistele menneitä 🎞️💖",
+    "💻 Opettele jokin uusi taito verkossa (esim. kieli tai maalaus) 💻🎨"
   ],
   "activities_outdoor": [
     "🚶‍♀️ LOUNASKÄVELY: Kävele Lauttasaaren keskustaan (S-market, apteekki) ja takaisin 🛍️",
@@ -34,7 +37,12 @@
     "📸 Kävele Helsingin Esplanadilla ja katso kaupungin elämää 📸🌸🏙️",
     "📚 Käy Lauttasaaren kirjastossa lainaamassa uutta luettavaa 📚🚶‍♀️",
     "💐 Poikkea Lauttasaaren kukkakaupassa Kotkankadulla 💐😊",
-    "🏙️ Matkusta Helsingin keskustaan ja kävele Aleksanterinkatua pitkin 🚇✨"
+    "🏙️ Matkusta Helsingin keskustaan ja kävele Aleksanterinkatua pitkin 🚇✨",
+    "👵🚶‍♀️ Miten olisi kävelytreffit tänään ystävän kanssa? 👵🚶‍♀️☀️",
+    "☕🍰 Kysy jotakin tuttua kahvikutsuille kotiin tai kahvilaan ☕🍰",
+    "📱💬 Soita Ullalle tai Arvolle tai jollekkin muulle mukavalle tyypille! 📱💬",
+    "🍽️👭 Lähde kahville tai lounaalle ystävän kanssa ulos 🍽️👭",
+    "🏡💐 Vieraile ystävän tai sukulaisen luona kylässä 🏡💐"
   ],
   "isActive": true,
   "updatedAt": "2025-10-05T19:45:00Z"
