@@ -160,12 +160,30 @@ public class DailyTask
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = string.Empty;
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
     [JsonPropertyName("completed")]
     public bool Completed { get; set; }
+
+    [JsonPropertyName("requiresAck")]
+    public bool RequiresAck { get; set; }
+
+    [JsonPropertyName("isAckedToday")]
+    public bool IsAckedToday { get; set; }
+
+    [JsonPropertyName("timeOfDay")]
+    public string TimeOfDay { get; set; } = string.Empty;
 
     [JsonPropertyName("encouragingMessage")]
     public string EncouragingMessage { get; set; } = string.Empty;
 
     [JsonPropertyName("instructions")]
     public string Instructions { get; set; } = string.Empty;
+
+    [JsonPropertyName("acknowledgmentTimestamp")]
+    public string? AcknowledgmentTimestamp { get; set; }
 }

@@ -156,67 +156,22 @@ public class ReminderApi
             _logger.LogWarning("No photo found for client: {ClientId}", clientId);
         }
 
-        // Build daily tasks from foods and medications
-        var dailyTasks = new List<DailyTask>();
-
         // Get client settings (use defaults if not found)
         var clientSettings = client?.Settings ?? new ClientSettings();
 
-        // Add food tasks based on settings
-        if (clientSettings.UseFoodReminders)
-        {
-            if (clientSettings.FoodReminderType == "simple")
-            {
-                // Use custom meal times if defined, otherwise use defaults
-                var mealTimes = clientSettings.MealTimes?.Any() == true 
-                    ? clientSettings.MealTimes
-                    : new Dictionary<string, string>
-                    {
-                        { "08:00", "aamupala" },
-                        { "11:00", "lounas" },
-                        { "16:00", "päivällinen" },
-                        { "20:00", "iltapala" }
-                    };
+        // Build daily tasks - UUSI LOGIIKKA: Dynaamiset RUOKA ja PUUHAA kellonajan mukaan
+        var dailyTasks = CreateDynamicDailyTasks(clientId);
 
-                foreach (var meal in mealTimes.OrderBy(m => m.Key))
-                {
-                    var mealTime = meal.Key;
-                    var mealName = meal.Value;
-                    
-                    dailyTasks.Add(new DailyTask
-                    {
-                        Id = $"simple_food_{DateTime.Today:yyyyMMdd}_{mealTime.Replace(":", "")}",
-                        Type = "food",
-                        Time = mealTime,
-                        Text = $"🍽️ Muista {mealName}",
-                        Completed = false,
-                        EncouragingMessage = GetMealEncouragement(mealName)
-                    });
-                }
-            }
-            else // detailed food reminders
-            {
-                dailyTasks.AddRange(todaysFoods.Select(food => new DailyTask
-                {
-                    Id = food.Id,
-                    Type = "food",
-                    Time = food.TimeSlot,
-                    Text = food.Suggestions.Any() ? string.Join(", ", food.Suggestions) : "Ruokailu",
-                    Completed = food.Completed,
-                    EncouragingMessage = food.EncouragingMessage
-                }));
-            }
-        }
-        // If UseFoodReminders = false, no food tasks are added
-
-        // Add medication tasks
+        // Add medication tasks (säilytetään lääkemuistutukset)
         dailyTasks.AddRange(todaysMedications.Select(med => new DailyTask
         {
             Id = med.Id,
-            Type = "medication",
+            Type = "LÄÄKKEET",
             Time = med.Time,
-            Text = $"💊 {med.Name} - {med.Dosage}",
-            Completed = med.Completed,
+            Description = $"💊 {med.Name} - {med.Dosage}",
+            TimeOfDay = GetTimeOfDayForHour(med.Time),
+            RequiresAck = true,
+            IsAckedToday = false,
             Instructions = med.Instructions
         }));
 
@@ -328,28 +283,130 @@ public class ReminderApi
         
         _logger.LogInformation("🕐 Current hour (Helsinki): {Hour}, UTC: {UtcHour}", hour, DateTime.UtcNow.Hour);
         
-        // KORJAUS: Näytä viestit VAIN kellonaikoina 8, 12, 16, 20 (ei muulloin!)
-        string greeting = string.Empty;
-        string activity = string.Empty;
-        
-        // Tarkista onko oikea kellonajka viestille (8, 12, 16, 20)
-        var validMessageHours = new[] { 8, 12, 16, 20 };
-        if (validMessageHours.Contains(hour))
-        {
-            // Hae älykkäät tervehdykset ja puuhaa CosmosDB:stä
-            (greeting, activity) = await _weatherService.GetGreetingAndActivityAsync(weather, hour, clientId);
-            _logger.LogInformation("✅ Näytetään viesti klo {Hour}: Greeting='{Greeting}', Activity='{Activity}'", hour, greeting, activity);
-        }
-        else
-        {
-            _logger.LogInformation("⏰ Ei viesti-aikaa (klo {Hour}). Viestit vain klo 8, 12, 16, 20.", hour);
-        }
+        // Hae älykkäät tervehdykset ja puuhaa CosmosDB:stä (päivitetään klo 8, 12, 16, 20)
+        // Viestit näkyvät koko ajan, mutta vaihtuvat vain näinä aikoina
+        var (greeting, activity) = await _weatherService.GetGreetingAndActivityAsync(weather, hour, clientId);
+        _logger.LogInformation("👋 Viesti haettu tunniksi {Hour}: Greeting='{Greeting}', Activity='{Activity}'", hour, greeting, activity);
         
         // Lisää myös vanha recommendation
         var timeOfDay = GetCurrentTimeOfDay();
         weather.Recommendation = _weatherService.GetActivityRecommendation(weather, timeOfDay, clientId);
         
         return (weather, greeting, activity);
+    }
+
+    /// <summary>
+    /// Luo dynaamiset RUOKA ja PUUHAA tehtävät kellonajan mukaan
+    /// </summary>
+    private List<DailyTask> CreateDynamicDailyTasks(string clientId)
+    {
+        var tasks = new List<DailyTask>();
+        var today = DateTime.Today.ToString("yyyyMMdd");
+
+        // RUOKA-muistutukset kellonajan mukaan (kuitattavissa!)
+        tasks.Add(new DailyTask
+        {
+            Id = $"food_morning_{today}",
+            Type = "RUOKA",
+            Time = "08:00",
+            Description = "🍽️ Muista ravitseva aamupala",
+            TimeOfDay = "Aamu",
+            RequiresAck = true,
+            IsAckedToday = false
+        });
+
+        tasks.Add(new DailyTask
+        {
+            Id = $"food_midday_{today}",
+            Type = "RUOKA",
+            Time = "12:00",
+            Description = "🍽️ Muista lounas",
+            TimeOfDay = "Päivä",
+            RequiresAck = true,
+            IsAckedToday = false
+        });
+
+        tasks.Add(new DailyTask
+        {
+            Id = $"food_afternoon_{today}",
+            Type = "RUOKA",
+            Time = "16:00",
+            Description = "🍽️ Muista päivällinen",
+            TimeOfDay = "Ilta",
+            RequiresAck = true,
+            IsAckedToday = false
+        });
+
+        tasks.Add(new DailyTask
+        {
+            Id = $"food_evening_{today}",
+            Type = "RUOKA",
+            Time = "20:00",
+            Description = "🍽️ Muista iltapala",
+            TimeOfDay = "Ilta",
+            RequiresAck = true,
+            IsAckedToday = false
+        });
+
+        // PUUHAA-ehdotukset kellonajan mukaan (kuitattavissa!)
+        tasks.Add(new DailyTask
+        {
+            Id = $"activity_morning_{today}",
+            Type = "PUUHAA",
+            Time = "08:00",
+            Description = "🧘‍♀️ Verryttele ja venyttele - hyvä alku päivälle!",
+            TimeOfDay = "Aamu",
+            RequiresAck = true,
+            IsAckedToday = false
+        });
+
+        tasks.Add(new DailyTask
+        {
+            Id = $"activity_midday_{today}",
+            Type = "PUUHAA",
+            Time = "12:00",
+            Description = "🚶‍♀️ Ulkoile ja nauti luonnosta - sään mukaan!",
+            TimeOfDay = "Päivä",
+            RequiresAck = true,
+            IsAckedToday = false
+        });
+
+        tasks.Add(new DailyTask
+        {
+            Id = $"activity_evening_{today}",
+            Type = "PUUHAA",
+            Time = "20:00",
+            Description = "🌙 Valmistaudu rauhassa yöpuuhiin",
+            TimeOfDay = "Ilta",
+            RequiresAck = true,
+            IsAckedToday = false
+        });
+
+        _logger.LogInformation($"✅ Luotu {tasks.Count} dynaamista tehtävää asiakkaalle {clientId}");
+        return tasks;
+    }
+
+    /// <summary>
+    /// Määritä vuorokaudenaika tunnista (esim. "08:00" -> "Aamu")
+    /// </summary>
+    private static string GetTimeOfDayForHour(string timeStr)
+    {
+        if (string.IsNullOrEmpty(timeStr)) return "Aamu";
+        
+        // Parse hour from "HH:mm" format
+        var parts = timeStr.Split(':');
+        if (parts.Length > 0 && int.TryParse(parts[0], out var hour))
+        {
+            return hour switch
+            {
+                < 6 => "Yö",
+                < 12 => "Aamu",
+                < 18 => "Päivä",
+                _ => "Ilta"
+            };
+        }
+        
+        return "Aamu";
     }
 
     private static string GetCurrentTimeOfDay()
