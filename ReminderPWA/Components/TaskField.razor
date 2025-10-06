@@ -27,7 +27,7 @@
                 }
                 else if (task.RequiresAck && task.IsAckedToday)
                 {
-                    <span class="acked-pill">(✅ KUITATTU)</span>
+                    <span class="acked-badge">✅ KUITATTU</span>
                 }
             </div>
             @if (IsFoodTask(task) && showMealList && MealOptions != null && MealOptions.Any())

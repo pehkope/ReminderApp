@@ -33,6 +33,7 @@ html, body { text-size-adjust: 100%; }
 .general-task { border-left:4px solid #747d8c !important; }
 .completed { background: rgba(212,237,218,.9) !important; border-left:6px solid #28a745 !important; }
 .acked-pill { background:#2ecc71; color:#fff; font-weight:800; padding:6px 12px; border-radius:999px; font-size:.9rem; letter-spacing:.5px; }
+.acked-badge { background:#28a745; color:#fff; font-weight:700; padding:8px 16px; border-radius:12px; font-size:1rem; letter-spacing:1px; box-shadow:0 2px 6px rgba(40,167,69,.3); }
 .ok-button { background:#5c4b99; color:#fff; border:none; border-radius:16px; padding:8px 16px; font-weight:700; font-size:1rem; cursor:pointer; min-width:72px; min-height:40px; text-transform:uppercase; letter-spacing:.5px; }
 .ok-button:hover { background:#4a3d82; transform:scale(1.05); }
 

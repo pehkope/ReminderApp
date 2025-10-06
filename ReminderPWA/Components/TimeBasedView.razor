@@ -176,7 +176,20 @@
         if (ApiResponse?.DailyTasks == null) return [];
         
         // Filter tasks based on time of day
-        return ApiResponse.DailyTasks.Where(task => IsTaskRelevantForTime(task));
+        var filtered = ApiResponse.DailyTasks.Where(task => IsTaskRelevantForTime(task));
+        
+        // Sort by priority: LÄÄKKEET → RUOKA → PUUHAA → muut
+        return filtered.OrderBy(task => 
+        {
+            var type = task.Type?.ToUpperInvariant() ?? "";
+            return type switch
+            {
+                "LÄÄKKEET" => 1,
+                "RUOKA" => 2,
+                "PUUHAA" => 3,
+                _ => 4
+            };
+        });
     }
 
     private void OnPhotoClickHandler(DailyPhoto.PhotoClickArgs args)
