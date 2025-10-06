@@ -32,15 +32,15 @@
         public string Caption { get; set; } = "";
     }
 
-    private string ImageUrl => GetImageUrl();
+    private string? _cachedImageUrl;
+    private string ImageUrl => _cachedImageUrl ?? "";
     private string Caption => GetImageCaption();
 
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
-            Console.WriteLine($"🖼️ DailyPhoto initialized - ApiPhotoUrl: '{ApiPhotoUrl}', ApiPhotoCaption: '{ApiPhotoCaption}'");
-            Console.WriteLine($"🖼️ DailyPhoto effective URL: '{ImageUrl}', Caption: '{Caption}'");
+            Console.WriteLine($"🖼️ DailyPhoto initialized - URL: '{ImageUrl}', Caption: '{Caption}'");
         }
     }
 
@@ -52,35 +52,30 @@
         if (!string.Equals(_lastApiPhotoUrl, ApiPhotoUrl, StringComparison.Ordinal))
         {
             _lastApiPhotoUrl = ApiPhotoUrl;
-            var sanitized = SanitizeUrl(ApiPhotoUrl) ?? ApiPhotoUrl; // säilytä aiempi käytös, jos sanitointi ei pysty varmistamaan
+            var sanitized = SanitizeUrl(ApiPhotoUrl) ?? ApiPhotoUrl;
             var cacheBustered = AddCacheBuster(sanitized);
             _effectiveUrl = cacheBustered;
-
-            Console.WriteLine($"🖼️ DailyPhoto parameters changed - Original: '{ApiPhotoUrl}' -> Sanitized: '{sanitized}' -> Final: '{cacheBustered}'");
+            _cachedImageUrl = GetImageUrl(); // Cache the result
+            
+            Console.WriteLine($"🖼️ Photo URL updated: '{_cachedImageUrl}'");
         }
     }
 
     private string GetImageUrl()
     {
-        Console.WriteLine($"🖼️ GetImageUrl called - ApiPhotoUrl: '{ApiPhotoUrl}', FallbackUrl: '{FallbackUrl}'");
-        
         // Ensisijaisesti API:sta (vain kelvollinen absoluuttinen URL)
         if (!string.IsNullOrEmpty(ApiPhotoUrl))
         {
-            Console.WriteLine($"🖼️ Using API photo URL: '{ApiPhotoUrl}'");
             if (!string.IsNullOrEmpty(_effectiveUrl)) return _effectiveUrl;
         }
         // Fallback from parent (e.g., profile or weekly photo)
         if (!string.IsNullOrEmpty(FallbackUrl))
         {
-            Console.WriteLine($"🖼️ Using fallback URL: '{FallbackUrl}'");
             return AddCacheBuster(FallbackUrl);
         }
         
         // Toissijaisesti frontend:n viikottainen simulaatio (backend ei ole vielä käytössä)
-        var simulatedUrl = TestDataService.GetDefaultPhotoUrl();
-        Console.WriteLine($"🖼️ Using simulated URL (fallback): '{simulatedUrl}'");
-        return simulatedUrl;
+        return TestDataService.GetDefaultPhotoUrl();
     }
 
     private string GetImageCaption()
