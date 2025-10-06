@@ -102,24 +102,21 @@ public class CosmosDbService
             return null;
         }
 
-        // Filter to only photos that exist in Blob Storage (have BlobUrl)
+        // Prioritize Telegram photos (have BlobUrl), then fallback to Google Drive
         var blobPhotos = photos.Where(p => !string.IsNullOrEmpty(p.BlobUrl)).ToList();
         
-        if (!blobPhotos.Any())
+        if (blobPhotos.Any())
         {
-            // Fallback to all photos if no blob photos exist
-            _logger.LogWarning("⚠️ No photos with BlobUrl found for {ClientId}, using all photos", clientId);
-            var photoIndex = DateTime.Now.Day % photos.Count;
-            return photos[photoIndex];
+            // Use newest Telegram photo
+            var newestPhoto = blobPhotos.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
+            _logger.LogInformation("📸 Selected Telegram photo for {ClientId}: {PhotoId}", clientId, newestPhoto?.Id);
+            return newestPhoto;
         }
 
-        // Select the most recent photo with BlobUrl (Telegram photos are newest)
-        var newestPhoto = blobPhotos.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
-        
-        _logger.LogInformation("📸 Selected daily photo for {ClientId}: {PhotoId} from {CreatedAt}", 
-            clientId, newestPhoto?.Id, newestPhoto?.CreatedAt);
-        
-        return newestPhoto;
+        // Fallback to Google Drive photos (rotate daily)
+        _logger.LogInformation("📸 Using Google Drive photos for {ClientId}", clientId);
+        var photoIndex = DateTime.Now.Day % photos.Count;
+        return photos[photoIndex];
     }
 
     // Reminder operations
