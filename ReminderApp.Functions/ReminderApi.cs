@@ -362,18 +362,21 @@ public class ReminderApi
             });
         }
 
-        // LÄÄKKEET - Yksi yleinen muistutus (KUITATTAVA!)
-        // Ei eritellä mitä lääkkeitä, vain yleinen muistutus
-        tasks.Add(new DailyTask
+        // LÄÄKKEET - VAIN aamulla klo 8:00 (KUITATTAVA!)
+        // Äiti ottaa lääkkeet vain aamulla
+        if (hour == 8)
         {
-            Id = $"medication_{today}",
-            Type = "LÄÄKKEET",
-            Time = mealTime,
-            Description = "💊 Muista lääkkeet",
-            TimeOfDay = timeOfDay,
-            RequiresAck = true,
-            IsAckedToday = false
-        });
+            tasks.Add(new DailyTask
+            {
+                Id = $"medication_morning_{today}",
+                Type = "LÄÄKKEET",
+                Time = "08:00",
+                Description = "Lääkkeet", // Yksinkertainen teksti ilman emojia
+                TimeOfDay = "Aamu",
+                RequiresAck = true,
+                IsAckedToday = false
+            });
+        }
 
         _logger.LogInformation($"✅ Luotu {tasks.Count} tehtävää asiakkaalle {clientId} klo {hour}:00 ({timeOfDay})");
         return tasks;
