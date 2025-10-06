@@ -5,7 +5,7 @@
     
     @if (Tasks?.Any() == true)
     {
-        @foreach (var task in Tasks)
+        @foreach (var task in GetVisibleTasks())
         {
             <div class="task-item @GetTaskCssClass(task.Type) @(task.IsAckedToday ? "completed" : "")">
                 <div class="task-details">
@@ -51,9 +51,24 @@
     [Parameter] public string? NextMealType { get; set; }
     [Parameter] public string? NextMealTime { get; set; }
     [Parameter] public IEnumerable<string>? MealOptions { get; set; }
+    [Parameter] public bool ShowCompletedTasks { get; set; } = true; // Client setting: show completed tasks for memory-impaired users
 
     private bool showMealList = false;
     private string? selectedMealOption;
+
+    private IEnumerable<DailyTask> GetVisibleTasks()
+    {
+        if (Tasks == null) return Enumerable.Empty<DailyTask>();
+        
+        // If ShowCompletedTasks is false, hide completed tasks
+        if (!ShowCompletedTasks)
+        {
+            return Tasks.Where(t => !t.IsAckedToday);
+        }
+        
+        // Otherwise show all tasks
+        return Tasks;
+    }
 
     private bool ShouldShowOkButton(DailyTask task)
     {

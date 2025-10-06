@@ -26,6 +26,7 @@
             NextMealType="@ApiResponse?.NextMealType"
             NextMealTime="@ApiResponse?.NextMealTime"
             MealOptions="@ApiResponse?.MealOptions"
+            ShowCompletedTasks="@(ApiResponse?.Settings?.ShowCompletedTasks ?? true)"
             OnTaskAcknowledge="HandleTaskAcknowledge" />
 
         @* Tärkeä viesti (jos on) *@

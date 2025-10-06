@@ -114,6 +114,10 @@ public class ClientSettings
 
     [JsonPropertyName("mealTimes")]
     public Dictionary<string, string> MealTimes { get; set; } = new(); // Custom meal times: "08:00" -> "aamupala"
+
+    // UI behavior settings
+    [JsonPropertyName("showCompletedTasks")]
+    public bool ShowCompletedTasks { get; set; } = true; // Show completed tasks with "✅ KUITATTU" badge (helpful for memory issues)
 }
 
 public class WeatherInfo

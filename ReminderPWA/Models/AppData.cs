@@ -138,6 +138,9 @@ public class Settings
 
     [JsonPropertyName("usePhotos")]
     public bool UsePhotos { get; set; }
+
+    [JsonPropertyName("showCompletedTasks")]
+    public bool ShowCompletedTasks { get; set; } = true; // Show completed tasks with checkmark badge
 }
 
 public class UpcomingAppointment
