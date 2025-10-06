@@ -71,7 +71,7 @@ public class CosmosDbService
             }
 
             var query = new QueryDefinition(
-                "SELECT * FROM c WHERE c.clientId = @clientId AND c.isActive = true")
+                "SELECT * FROM c WHERE c.clientId = @clientId")
                 .WithParameter("@clientId", clientId);
             
             var iterator = container.GetItemQueryIterator<Photo>(query);
