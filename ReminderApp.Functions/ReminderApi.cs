@@ -159,24 +159,9 @@ public class ReminderApi
         // Get client settings (use defaults if not found)
         var clientSettings = client?.Settings ?? new ClientSettings();
 
-        // Build daily tasks - UUSI LOGIIKKA: Dynaamiset RUOKA ja PUUHAA kellonajan mukaan
+        // Build daily tasks - UUSI LOGIIKKA: Vain NYKYISEN AJAN mukaiset tehtävät
+        // Sisältää: RUOKA (kuitattava), PUUHAA (ei kuittausta), LÄÄKKEET (yleinen kuitattava)
         var dailyTasks = CreateDynamicDailyTasks(clientId);
-
-        // Add medication tasks (säilytetään lääkemuistutukset)
-        dailyTasks.AddRange(todaysMedications.Select(med => new DailyTask
-        {
-            Id = med.Id,
-            Type = "LÄÄKKEET",
-            Time = med.Time,
-            Description = $"💊 {med.Name} - {med.Dosage}",
-            TimeOfDay = GetTimeOfDayForHour(med.Time),
-            RequiresAck = true,
-            IsAckedToday = false,
-            Instructions = med.Instructions
-        }));
-
-        // Sort by time
-        dailyTasks = dailyTasks.OrderBy(t => t.Time).ToList();
 
         // Get weather with smart greetings and activities (klo 8, 12, 16, 20)
         var (weather, smartGreeting, smartActivity) = await GetWeatherWithGreetingAndActivity(clientId);
@@ -296,96 +281,101 @@ public class ReminderApi
     }
 
     /// <summary>
-    /// Luo dynaamiset RUOKA ja PUUHAA tehtävät kellonajan mukaan
+    /// Luo NYKYISEN KELLONAJAN mukaiset RUOKA, PUUHAA ja LÄÄKKEET tehtävät
     /// </summary>
     private List<DailyTask> CreateDynamicDailyTasks(string clientId)
     {
         var tasks = new List<DailyTask>();
         var today = DateTime.Today.ToString("yyyyMMdd");
+        
+        // Käytä Suomen aikavyöhykettä
+        var helsinkiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time");
+        var helsinkiTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, helsinkiTimeZone);
+        var hour = helsinkiTime.Hour;
 
-        // RUOKA-muistutukset kellonajan mukaan (KUITATTAVISSA!)
+        // Määritä nykyinen aikavälä ja luo VAIN sille sopivat tehtävät
+        string mealTime, mealDescription, activityDescription, timeOfDay;
+        bool hasActivity = true;
+
+        if (hour >= 6 && hour < 10) // Aamu 06:00-09:59
+        {
+            mealTime = "08:00";
+            mealDescription = "🍽️ Muista ravitseva aamupala";
+            activityDescription = "🧘‍♀️ Verryttele ja venyttele - hyvä alku päivälle!";
+            timeOfDay = "Aamu";
+        }
+        else if (hour >= 10 && hour < 14) // Päivä 10:00-13:59
+        {
+            mealTime = "12:00";
+            mealDescription = "🍽️ Muista lounas";
+            activityDescription = "🚶‍♀️ Ulkoile ja nauti luonnosta - sään mukaan!";
+            timeOfDay = "Päivä";
+        }
+        else if (hour >= 14 && hour < 18) // Iltapäivä 14:00-17:59
+        {
+            mealTime = "16:00";
+            mealDescription = "🍽️ Muista päivällinen";
+            activityDescription = "🌳 Käy kävelyllä tai soita ystävälle";
+            timeOfDay = "Ilta";
+        }
+        else if (hour >= 18 && hour < 22) // Ilta 18:00-21:59
+        {
+            mealTime = "20:00";
+            mealDescription = "🍽️ Muista iltapala";
+            activityDescription = string.Empty; // Ei puuhaata illalla
+            timeOfDay = "Ilta";
+            hasActivity = false;
+        }
+        else // Yö 22:00-05:59
+        {
+            mealTime = "20:00";
+            mealDescription = "🍽️ Lepää rauhassa";
+            activityDescription = string.Empty;
+            timeOfDay = "Yö";
+            hasActivity = false;
+        }
+
+        // RUOKA - NYKYISEN AJAN mukainen (KUITATTAVA!)
         tasks.Add(new DailyTask
         {
-            Id = $"food_morning_{today}",
+            Id = $"food_{mealTime.Replace(":", "")}_{today}",
             Type = "RUOKA",
-            Time = "08:00",
-            Description = "🍽️ Muista ravitseva aamupala",
-            TimeOfDay = "Aamu",
+            Time = mealTime,
+            Description = mealDescription,
+            TimeOfDay = timeOfDay,
             RequiresAck = true,
             IsAckedToday = false
         });
 
+        // PUUHAA - NYKYISEN AJAN mukainen (EI kuittausta)
+        if (hasActivity)
+        {
+            tasks.Add(new DailyTask
+            {
+                Id = $"activity_{mealTime.Replace(":", "")}_{today}",
+                Type = "PUUHAA",
+                Time = mealTime,
+                Description = activityDescription,
+                TimeOfDay = timeOfDay,
+                RequiresAck = false,
+                IsAckedToday = false
+            });
+        }
+
+        // LÄÄKKEET - Yksi yleinen muistutus (KUITATTAVA!)
+        // Ei eritellä mitä lääkkeitä, vain yleinen muistutus
         tasks.Add(new DailyTask
         {
-            Id = $"food_midday_{today}",
-            Type = "RUOKA",
-            Time = "12:00",
-            Description = "🍽️ Muista lounas",
-            TimeOfDay = "Päivä",
+            Id = $"medication_{today}",
+            Type = "LÄÄKKEET",
+            Time = mealTime,
+            Description = "💊 Muista lääkkeet",
+            TimeOfDay = timeOfDay,
             RequiresAck = true,
             IsAckedToday = false
         });
 
-        tasks.Add(new DailyTask
-        {
-            Id = $"food_afternoon_{today}",
-            Type = "RUOKA",
-            Time = "16:00",
-            Description = "🍽️ Muista päivällinen",
-            TimeOfDay = "Ilta",
-            RequiresAck = true,
-            IsAckedToday = false
-        });
-
-        tasks.Add(new DailyTask
-        {
-            Id = $"food_evening_{today}",
-            Type = "RUOKA",
-            Time = "20:00",
-            Description = "🍽️ Muista iltapala",
-            TimeOfDay = "Ilta",
-            RequiresAck = true,
-            IsAckedToday = false
-        });
-
-        // PUUHAA-ehdotukset kellonajan mukaan (EI kuittausta, vain ehdotus!)
-        // Klo 20 EI PUUHAATA
-        tasks.Add(new DailyTask
-        {
-            Id = $"activity_morning_{today}",
-            Type = "PUUHAA",
-            Time = "08:00",
-            Description = "🧘‍♀️ Verryttele ja venyttele - hyvä alku päivälle!",
-            TimeOfDay = "Aamu",
-            RequiresAck = false, // EI kuittausta
-            IsAckedToday = false
-        });
-
-        tasks.Add(new DailyTask
-        {
-            Id = $"activity_midday_{today}",
-            Type = "PUUHAA",
-            Time = "12:00",
-            Description = "🚶‍♀️ Ulkoile ja nauti luonnosta - sään mukaan!",
-            TimeOfDay = "Päivä",
-            RequiresAck = false, // EI kuittausta
-            IsAckedToday = false
-        });
-
-        tasks.Add(new DailyTask
-        {
-            Id = $"activity_afternoon_{today}",
-            Type = "PUUHAA",
-            Time = "16:00",
-            Description = "🌳 Käy kävelyllä tai soita ystävälle",
-            TimeOfDay = "Ilta",
-            RequiresAck = false, // EI kuittausta
-            IsAckedToday = false
-        });
-
-        // Klo 20:00 EI PUUHAATA - vain RUOKA
-
-        _logger.LogInformation($"✅ Luotu {tasks.Count} dynaamista tehtävää asiakkaalle {clientId}");
+        _logger.LogInformation($"✅ Luotu {tasks.Count} tehtävää asiakkaalle {clientId} klo {hour}:00 ({timeOfDay})");
         return tasks;
     }
 
