@@ -47,14 +47,14 @@ Value: (jätä tyhjäksi toistaiseksi - täytetään vaiheessa 3)
 
 ### A. Aseta Webhook URL
 
-Webhook URL = `https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/telegram/webhook`
+Webhook URL = `https://reminderapp-functions-hrhddjfeb0bpa0ee.westeurope-01.azurewebsites.net/api/telegram/webhook`
 
 #### PowerShell:
 
 ```powershell
 # Korvaa <YOUR_BOT_TOKEN> oikealla tokenilla
 $botToken = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
-$webhookUrl = "https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/telegram/webhook"
+$webhookUrl = "https://reminderapp-functions-hrhddjfeb0bpa0ee.westeurope-01.azurewebsites.net/api/telegram/webhook"
 
 # Aseta webhook
 Invoke-RestMethod -Uri "https://api.telegram.org/bot$botToken/setWebhook?url=$webhookUrl"
@@ -63,7 +63,7 @@ Invoke-RestMethod -Uri "https://api.telegram.org/bot$botToken/setWebhook?url=$we
 #### Tai selaimessa:
 
 ```
-https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://reminderapp-functions-hrhddjfeb0bpa0ee.swedencentral-01.azurewebsites.net/api/telegram/webhook
+https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://reminderapp-functions-hrhddjfeb0bpa0ee.westeurope-01.azurewebsites.net/api/telegram/webhook
 ```
 
 ✅ **Onnistunut vastaus:**
