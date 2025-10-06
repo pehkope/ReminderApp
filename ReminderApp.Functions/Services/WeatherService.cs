@@ -71,7 +71,7 @@ public class WeatherService
 
             return new WeatherInfo
             {
-                Description = $"Sää tänään: {temp:F1}°C, {weatherData.Weather[0].Description}.",
+                Description = weatherData.Weather[0].Description ?? "Ei saatavilla", // KORJAUS: Vain kuvaus, ei lämpötilaa!
                 Temperature = $"{temp:F1}°C",
                 Condition = mainWeather,
                 Humidity = weatherData.Main.Humidity,

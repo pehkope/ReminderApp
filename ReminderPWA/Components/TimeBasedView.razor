@@ -132,30 +132,26 @@
 
     private string GetContextualMessage()
     {
+        // KORJAUS: Käytä ensisijaisesti API:sta tulevaa älykkäistä tervehdystä
+        if (!string.IsNullOrWhiteSpace(ApiResponse?.Greeting))
+        {
+            return ApiResponse!.Greeting;
+        }
+
+        // Toiseksi: Vanha LatestReminder
         var message = ApiResponse?.LatestReminder;
-        
-        // Suodatetaan pois ei-toivotut viestit
         if (!string.IsNullOrEmpty(message))
         {
             // Estä "Tervetuloa!" ja muut ei-toivotut viestit
-            if (message.Contains("Tervetuloa") || 
-                message.Contains("Welcome") || 
-                message.Contains("tervetuloa"))
-            {
-                // putoa kuvatekstiin
-            }
-            else
+            if (!message.Contains("Tervetuloa") && 
+                !message.Contains("Welcome") && 
+                !message.Contains("tervetuloa"))
             {
                 return message;
             }
         }
 
-        // Jos varsinaista viestiä ei ole, näytä Telegram-kuvan kuvateksti viestikentässä
-        if (!string.IsNullOrWhiteSpace(ApiResponse?.DailyPhotoCaption))
-        {
-            return ApiResponse!.DailyPhotoCaption;
-        }
-        
+        // Fallback: Älä näytä kuvan kuvausta viestikentässä
         return string.Empty;
     }
 

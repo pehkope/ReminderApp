@@ -42,8 +42,9 @@
             }
         }
     }
-    else
+    else if (!string.IsNullOrWhiteSpace(DefaultActivityText))
     {
+        @* Näytä aktiviteetti vain jos se ei ole tyhjä *@
         <div class="task-item activity-task">
             <div class="task-details">
                 <i class="task-icon fas fa-sun"></i>

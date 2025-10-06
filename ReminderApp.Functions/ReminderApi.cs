@@ -328,11 +328,22 @@ public class ReminderApi
         
         _logger.LogInformation("🕐 Current hour (Helsinki): {Hour}, UTC: {UtcHour}", hour, DateTime.UtcNow.Hour);
         
-        // Hae älykkäät tervehdykset ja puuhaa CosmosDB:stä klo 8, 12, 16, 20
-        var (greeting, activity) = await _weatherService.GetGreetingAndActivityAsync(weather, hour, clientId);
+        // KORJAUS: Näytä viestit VAIN kellonaikoina 8, 12, 16, 20 (ei muulloin!)
+        string greeting = string.Empty;
+        string activity = string.Empty;
         
-        _logger.LogInformation("👋 Greeting: '{Greeting}' (length: {Length})", greeting, greeting?.Length ?? 0);
-        _logger.LogInformation("🎯 Activity: '{Activity}' (length: {Length})", activity, activity?.Length ?? 0);
+        // Tarkista onko oikea kellonajka viestille (8, 12, 16, 20)
+        var validMessageHours = new[] { 8, 12, 16, 20 };
+        if (validMessageHours.Contains(hour))
+        {
+            // Hae älykkäät tervehdykset ja puuhaa CosmosDB:stä
+            (greeting, activity) = await _weatherService.GetGreetingAndActivityAsync(weather, hour, clientId);
+            _logger.LogInformation("✅ Näytetään viesti klo {Hour}: Greeting='{Greeting}', Activity='{Activity}'", hour, greeting, activity);
+        }
+        else
+        {
+            _logger.LogInformation("⏰ Ei viesti-aikaa (klo {Hour}). Viestit vain klo 8, 12, 16, 20.", hour);
+        }
         
         // Lisää myös vanha recommendation
         var timeOfDay = GetCurrentTimeOfDay();
