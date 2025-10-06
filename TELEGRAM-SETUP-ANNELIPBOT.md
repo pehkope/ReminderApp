@@ -327,3 +327,5 @@ Perheenjäsenet voivat nyt lähettää:
 2. Testaa webhook: `/api/telegram/webhook` (POST)
 3. Tarkista Cosmos DB että data tallentuu
 
+
+<!-- Deploy trigger: 2025-10-06 11.53.06 -->
