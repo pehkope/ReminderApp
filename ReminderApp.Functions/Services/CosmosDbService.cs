@@ -114,10 +114,10 @@ public class CosmosDbService
         }
 
         // Select the most recent photo with BlobUrl (Telegram photos are newest)
-        var newestPhoto = blobPhotos.OrderByDescending(p => p.Timestamp ?? DateTime.MinValue).FirstOrDefault();
+        var newestPhoto = blobPhotos.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
         
-        _logger.LogInformation("📸 Selected daily photo for {ClientId}: {PhotoId} from {Timestamp}", 
-            clientId, newestPhoto?.Id, newestPhoto?.Timestamp);
+        _logger.LogInformation("📸 Selected daily photo for {ClientId}: {PhotoId} from {CreatedAt}", 
+            clientId, newestPhoto?.Id, newestPhoto?.CreatedAt);
         
         return newestPhoto;
     }
