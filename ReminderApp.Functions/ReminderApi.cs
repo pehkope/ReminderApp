@@ -38,7 +38,7 @@ public class ReminderApi
 
     [Function("ReminderApi")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "options", Route = "reminderapi")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", "options", Route = "ReminderAPI")]
         HttpRequestData req)
     // CORS fix deployed: 2025-10-01
     {
