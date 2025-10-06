@@ -320,9 +320,13 @@ public class ReminderApi
     private async Task<(WeatherInfo weather, string greeting, string activity)> GetWeatherWithGreetingAndActivity(string clientId)
     {
         var weather = await _weatherService.GetWeatherAsync("Helsinki,FI");
-        var hour = DateTime.Now.Hour;
         
-        _logger.LogInformation("🕐 Current hour: {Hour}", hour);
+        // Käytä Suomen aikavyöhykettä (EET/EEST)
+        var helsinkiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"); // Finland/Helsinki
+        var helsinkiTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, helsinkiTimeZone);
+        var hour = helsinkiTime.Hour;
+        
+        _logger.LogInformation("🕐 Current hour (Helsinki): {Hour}, UTC: {UtcHour}", hour, DateTime.UtcNow.Hour);
         
         // Hae älykkäät tervehdykset ja puuhaa CosmosDB:stä klo 8, 12, 16, 20
         var (greeting, activity) = await _weatherService.GetGreetingAndActivityAsync(weather, hour, clientId);
@@ -339,7 +343,10 @@ public class ReminderApi
 
     private static string GetCurrentTimeOfDay()
     {
-        var hour = DateTime.Now.Hour;
+        // Käytä Suomen aikavyöhykettä
+        var helsinkiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time");
+        var helsinkiTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, helsinkiTimeZone);
+        var hour = helsinkiTime.Hour;
         return hour switch
         {
             < 6 => "yö",

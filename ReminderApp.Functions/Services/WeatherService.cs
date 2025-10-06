@@ -100,6 +100,8 @@ public class WeatherService
     /// </summary>
     public async Task<(string greeting, string activity)> GetGreetingAndActivityAsync(WeatherInfo weather, int hour, string clientId = "mom")
     {
+        Console.WriteLine($"🕐 GetGreetingAndActivityAsync called with hour={hour}");
+        
         // Määritä oikea tunti tarkan ajan sijaan (8, 12, 16, 20)
         var targetHour = hour switch
         {
@@ -109,6 +111,8 @@ public class WeatherService
             >= 18 and < 22 => 20,
             _ => 20 // Default to evening
         };
+
+        Console.WriteLine($"🎯 Mapped hour {hour} to targetHour {targetHour}");
 
         // Hae viestit CosmosDB:stä
         var greetingMessage = await _cosmosDbService.GetGreetingMessageAsync(clientId, targetHour);
