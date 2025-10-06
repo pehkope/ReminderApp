@@ -87,6 +87,9 @@ public class BlobStorageService
             var containerName = uri.Segments[1].TrimEnd('/');
             var blobName = string.Join("", uri.Segments.Skip(2));
 
+            if (_blobServiceClient == null)
+                return blobUrl;
+
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = containerClient.GetBlobClient(blobName);
 

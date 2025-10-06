@@ -125,7 +125,12 @@ public class TelegramBotService
             _logger.LogInformation("📸 Processing photo from {Sender} for client {ClientId}", senderName, clientId);
 
             // Download photo from Telegram
-            var fileInfo = await _botClient!.GetFileAsync(photo.FileId);
+            if (_botClient == null)
+            {
+                return new TelegramWebhookResponse { Success = false, Message = "Bot client not initialized" };
+            }
+
+            var fileInfo = await _botClient.GetFileAsync(photo.FileId);
             if (string.IsNullOrEmpty(fileInfo.FilePath))
             {
                 return new TelegramWebhookResponse { Success = false, Message = "Could not get file path" };
@@ -271,7 +276,12 @@ public class TelegramBotService
         // Treat document as photo if it's an image
         try
         {
-            var fileInfo = await _botClient!.GetFileAsync(document.FileId);
+            if (_botClient == null)
+            {
+                return new TelegramWebhookResponse { Success = false, Message = "Bot client not initialized" };
+            }
+
+            var fileInfo = await _botClient.GetFileAsync(document.FileId);
             if (string.IsNullOrEmpty(fileInfo.FilePath))
             {
                 return new TelegramWebhookResponse { Success = false, Message = "Could not get document file path" };
