@@ -303,7 +303,7 @@ public class ReminderApi
         var tasks = new List<DailyTask>();
         var today = DateTime.Today.ToString("yyyyMMdd");
 
-        // RUOKA-muistutukset kellonajan mukaan (kuitattavissa!)
+        // RUOKA-muistutukset kellonajan mukaan (KUITATTAVISSA!)
         tasks.Add(new DailyTask
         {
             Id = $"food_morning_{today}",
@@ -348,7 +348,8 @@ public class ReminderApi
             IsAckedToday = false
         });
 
-        // PUUHAA-ehdotukset kellonajan mukaan (kuitattavissa!)
+        // PUUHAA-ehdotukset kellonajan mukaan (EI kuittausta, vain ehdotus!)
+        // Klo 20 EI PUUHAATA
         tasks.Add(new DailyTask
         {
             Id = $"activity_morning_{today}",
@@ -356,7 +357,7 @@ public class ReminderApi
             Time = "08:00",
             Description = "🧘‍♀️ Verryttele ja venyttele - hyvä alku päivälle!",
             TimeOfDay = "Aamu",
-            RequiresAck = true,
+            RequiresAck = false, // EI kuittausta
             IsAckedToday = false
         });
 
@@ -367,20 +368,22 @@ public class ReminderApi
             Time = "12:00",
             Description = "🚶‍♀️ Ulkoile ja nauti luonnosta - sään mukaan!",
             TimeOfDay = "Päivä",
-            RequiresAck = true,
+            RequiresAck = false, // EI kuittausta
             IsAckedToday = false
         });
 
         tasks.Add(new DailyTask
         {
-            Id = $"activity_evening_{today}",
+            Id = $"activity_afternoon_{today}",
             Type = "PUUHAA",
-            Time = "20:00",
-            Description = "🌙 Valmistaudu rauhassa yöpuuhiin",
+            Time = "16:00",
+            Description = "🌳 Käy kävelyllä tai soita ystävälle",
             TimeOfDay = "Ilta",
-            RequiresAck = true,
+            RequiresAck = false, // EI kuittausta
             IsAckedToday = false
         });
+
+        // Klo 20:00 EI PUUHAATA - vain RUOKA
 
         _logger.LogInformation($"✅ Luotu {tasks.Count} dynaamista tehtävää asiakkaalle {clientId}");
         return tasks;
