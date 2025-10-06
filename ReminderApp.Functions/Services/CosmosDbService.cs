@@ -102,10 +102,24 @@ public class CosmosDbService
             return null;
         }
 
-        // Select photo based on current date
-        var today = DateTime.Now;
-        var photoIndex = today.Day % photos.Count;
-        return photos[photoIndex];
+        // Filter to only photos that exist in Blob Storage (have BlobUrl)
+        var blobPhotos = photos.Where(p => !string.IsNullOrEmpty(p.BlobUrl)).ToList();
+        
+        if (!blobPhotos.Any())
+        {
+            // Fallback to all photos if no blob photos exist
+            _logger.LogWarning("⚠️ No photos with BlobUrl found for {ClientId}, using all photos", clientId);
+            var photoIndex = DateTime.Now.Day % photos.Count;
+            return photos[photoIndex];
+        }
+
+        // Select the most recent photo with BlobUrl (Telegram photos are newest)
+        var newestPhoto = blobPhotos.OrderByDescending(p => p.Timestamp ?? DateTime.MinValue).FirstOrDefault();
+        
+        _logger.LogInformation("📸 Selected daily photo for {ClientId}: {PhotoId} from {Timestamp}", 
+            clientId, newestPhoto?.Id, newestPhoto?.Timestamp);
+        
+        return newestPhoto;
     }
 
     // Reminder operations
