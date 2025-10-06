@@ -386,6 +386,34 @@
     ]
   },
   {
+    "name": "TelegramTest",
+    "scriptFile": "ReminderApp.Functions.dll",
+    "entryPoint": "ReminderApp.Functions.TelegramTestApi.TestWebhook",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "telegram/test",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
     "name": "TwilioToken",
     "scriptFile": "ReminderApp.Functions.dll",
     "entryPoint": "ReminderApp.Functions.TwilioApi.GetToken",
