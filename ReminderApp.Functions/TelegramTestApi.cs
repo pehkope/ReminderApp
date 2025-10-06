@@ -28,11 +28,12 @@ public class TelegramTestApi
         await response.WriteAsJsonAsync(new
         {
             success = true,
-            message = "Telegram test endpoint works!",
+            message = "Telegram test endpoint works! (12.40)",
             timestamp = DateTime.UtcNow
         });
 
         return response;
     }
 }
+
 
