@@ -1,0 +1,16 @@
+{
+  "id": "activity_social_4",
+  "activityType": "social",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Voisitko soittaa ystävälle? ☎️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Ystävä ilahtuu puhelustasi! 😊",
+    "Kuulumisten vaihto piristää! 💕",
+    "Soita ja juttele! 📞"
+  ],
+  "category": "activity"
+}

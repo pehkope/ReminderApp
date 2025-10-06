@@ -1,0 +1,17 @@
+{
+  "activityType": "indoor",
+  "id": "activity_indoor_cold_3",
+  "weatherCondition": "cold",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Pakkasta! Lämmin tee ja hyvä kirja! 📚☕",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Kylmää! Kahvi ja lehti! ☕📰",
+    "Pakkas! Radio ja lämpö! 📻🔥",
+    "Kylmä! Lämmin juoma ja rentoutumista! 🫖"
+  ],
+  "category": "activity"
+}

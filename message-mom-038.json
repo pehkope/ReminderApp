@@ -1,0 +1,17 @@
+{
+  "activityType": "indoor",
+  "id": "activity_indoor_cold_4",
+  "weatherCondition": "cold",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Talvipäivä! Pysytään lämpimänä sisällä! 🏠",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Pakkanen! Nauti kotona! 🛋️",
+    "Kylmä! Hyvin lämmitä sisällä! 🔥",
+    "Talvi! Mukavaa kotona! ☕"
+  ],
+  "category": "activity"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "afternoon_greeting_mom_4",
+  "timeSlot": "afternoon",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Iltapäivä! Kohta päivällinen-aika! 🍽️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Ilta lähestyy! Pian ruoka-aika! 🥘",
+    "Iltapäivä! Päivällinen tulossa! 🍲",
+    "Hei! Kohta syödään! 🍴"
+  ],
+  "category": "greeting"
+}

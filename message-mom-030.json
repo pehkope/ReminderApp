@@ -1,0 +1,17 @@
+{
+  "activityType": "outdoor",
+  "id": "activity_outdoor_good_2",
+  "weatherCondition": "good",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Voisit istua hetkeksi pihalla ja nauttia säästä ☀️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Lämmin ilma - nauti ulkona! 🌸",
+    "Kaunis päivä - hyvä hetki olla ulkona 🌺",
+    "Istu hetkeksi ulos ja nauti auringosta ☀️"
+  ],
+  "category": "activity"
+}

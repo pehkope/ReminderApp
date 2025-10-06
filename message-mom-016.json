@@ -1,0 +1,16 @@
+{
+  "id": "afternoon_greeting_mom_2",
+  "timeSlot": "afternoon",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Iltapäivä on hieno aika nauttia hetkestä! ☕",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Kahvihetki! Nauti rauhassa! 😊",
+    "Iltapäivätee kutsuu! 🫖",
+    "Pieni välipala piristää! 🍪"
+  ],
+  "category": "greeting"
+}

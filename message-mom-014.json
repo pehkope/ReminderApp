@@ -1,0 +1,16 @@
+{
+  "id": "noon_greeting_mom_6",
+  "timeSlot": "noon",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Kaunis keskipäivä! Olet tehnyt hyvin! 🌟",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Hyvä! Olet pärjännyt loistavasti! 💪",
+    "Mahtavaa! Jatka samaan malliin! ❤️",
+    "Hienoa! Olet tehnyt hyvää työtä! 😊"
+  ],
+  "category": "greeting"
+}

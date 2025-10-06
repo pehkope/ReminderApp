@@ -1,0 +1,16 @@
+{
+  "id": "activity_social_1",
+  "activityType": "social",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Soita lapsille/lapsenlapsille! He ilahtuvat! 📞💕",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Ota yhteyttä perheeseen! He kaipaavat sinua! ❤️",
+    "Soita rakkaallesi! Kuulumisten vaihto lämmittää! 📱",
+    "Perhe haluaa kuulla sinusta! Soita! 💙"
+  ],
+  "category": "activity"
+}

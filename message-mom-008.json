@@ -1,0 +1,16 @@
+{
+  "id": "morning_greeting_mom_8",
+  "timeSlot": "morning",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hyvää huomenta! Sinä olet mahtava! 🌟",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Huomenta! Pärjäät loistavasti! 💪",
+    "Hyvää aamua! Olet ihailtava! ❤️",
+    "Terve äiti! Olet vahva ja ihana! 💖"
+  ],
+  "category": "greeting"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "morning_greeting_mom_4",
+  "timeSlot": "morning",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hyvää aamua! Muista aloittaa rauhallisesti 🧘‍♀️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Ei hoppu! Ota aamu rennosti 😊",
+    "Rauhallista aloitusta päivään! ☕",
+    "Hyvää huomenta! Nautitaan aamusta 🌅"
+  ],
+  "category": "greeting"
+}

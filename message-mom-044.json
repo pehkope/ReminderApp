@@ -1,0 +1,17 @@
+{
+  "activityType": "indoor",
+  "id": "activity_indoor_rain_5",
+  "weatherCondition": "rainy",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Sade! Soita ystävälle ja juttele! 📞",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Sataa! Hyvä aika puhelulle! ☎️",
+    "Vesisade! Kuulumisten vaihto! 💕",
+    "Sateista! Pidä yhteyttä! 📱"
+  ],
+  "category": "activity"
+}

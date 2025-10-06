@@ -1,0 +1,16 @@
+{
+  "id": "morning_greeting_mom_3",
+  "timeSlot": "morning",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Uusi päivä on täynnä mahdollisuuksia! 🌟",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Kaunis aamu edessä! ✨",
+    "Tänään on hyvä päivä! 😊",
+    "Aloitetaan päivä iloisella mielellä! 💕"
+  ],
+  "category": "greeting"
+}

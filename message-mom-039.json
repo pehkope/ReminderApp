@@ -1,0 +1,17 @@
+{
+  "activityType": "indoor",
+  "id": "activity_indoor_cold_5",
+  "weatherCondition": "cold",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Kylmä päivä! Soita läheisille ja juttele! 📞",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Pakkas! Hyvä aika puhelulle! ☎️",
+    "Kylmää! Kuulumisten vaihto lämmittää! 💕",
+    "Talvi! Pidä yhteyttä läheisiin! 📱"
+  ],
+  "category": "activity"
+}

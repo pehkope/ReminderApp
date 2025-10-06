@@ -1,0 +1,16 @@
+{
+  "id": "evening_greeting_mom_2",
+  "timeSlot": "evening",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Huomenna uusi päivä alkaa! Nuku hyvin 💙",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Rauhallista yötä! Huomenna taas uusi päivä 💤",
+    "Hyvää yötä! Nuku rauhassa 🌙",
+    "Rentouttavaa iltaa ja hyvää yötä! 💙"
+  ],
+  "category": "greeting"
+}

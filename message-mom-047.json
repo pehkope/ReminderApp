@@ -1,0 +1,16 @@
+{
+  "id": "activity_social_3",
+  "activityType": "social",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Lähetä viesti perheelle! He ilahtuvat! 💌",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Kirjoita viesti läheisille! 💕",
+    "Ota yhteyttä! Olet tärkeä! ❤️",
+    "Perhe haluaa kuulla sinusta! 📱"
+  ],
+  "category": "activity"
+}

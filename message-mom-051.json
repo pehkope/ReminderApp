@@ -1,0 +1,16 @@
+{
+  "id": "encouragement_medication_1",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Lääkkeet ovat tärkeä osa terveyttäsi 💊",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "context": "medication",
+  "type": "message",
+  "variants": [
+    "Muista ottaa lääkkeet - ne auttavat sinua! 💙",
+    "Lääkkeiden otto on tärkeää 💊",
+    "Hyvä kun muistat lääkkeet! ❤️"
+  ],
+  "category": "encouragement"
+}

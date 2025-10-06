@@ -1,0 +1,17 @@
+{
+  "activityType": "outdoor",
+  "id": "activity_outdoor_good_3",
+  "weatherCondition": "good",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Upea ilma! Lyhyt kävelyretki lähimetsään? 🌲",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Loistava sää! Pieni lenkki tekee hyvää! 🚶‍♀️",
+    "Täydellinen päivä ulkoiluun! 🌤️",
+    "Hieno ilma! Ulos nauttimaan luonnosta! 🌳"
+  ],
+  "category": "activity"
+}

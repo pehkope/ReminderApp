@@ -1,0 +1,16 @@
+{
+  "id": "morning_greeting_mom_6",
+  "timeSlot": "morning",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hyvää huomenta! Katsotaan mitä kaunista päivä tuo! 🌸",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Terve äiti! Joka päivä on lahja! 🎁",
+    "Hyvää aamua! Nautitaan yhdessä! 😊",
+    "Huomenta! Hienoja hetkiä edessä! ✨"
+  ],
+  "category": "greeting"
+}

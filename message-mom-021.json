@@ -1,0 +1,16 @@
+{
+  "id": "evening_greeting_mom_1",
+  "timeSlot": "evening",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hyvää iltaa, rakas äiti! 🌙",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Hyvää iltaa! 🌙",
+    "Rauhallista iltaa, äiti! ✨",
+    "Hei äiti! Päivä lähestyy loppuaan 🌆"
+  ],
+  "category": "greeting"
+}

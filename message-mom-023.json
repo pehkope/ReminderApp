@@ -1,0 +1,16 @@
+{
+  "id": "evening_greeting_mom_3",
+  "timeSlot": "evening",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Ilta on aikaa rentoutua ja levätä 🌆",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Terve! Rauhallinen ilta edessä! 😌",
+    "Hei! Ota rennosti illalla! 🛋️",
+    "Ilta! Rentoutumisen aika! ✨"
+  ],
+  "category": "greeting"
+}

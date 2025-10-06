@@ -1,0 +1,16 @@
+{
+  "id": "encouragement_general_4",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Joka päivä olet tehnyt hyvin! 🌟",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "context": "general",
+  "type": "message",
+  "variants": [
+    "Olet tehnyt loistavaa työtä! 💪",
+    "Pärjäät mainiosti! ❤️",
+    "Olet vahva ja upea! 💖"
+  ],
+  "category": "encouragement"
+}

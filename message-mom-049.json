@@ -1,0 +1,16 @@
+{
+  "id": "encouragement_food_1",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hyvä ruoka antaa voimia päivään! 💪",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "context": "food",
+  "type": "message",
+  "variants": [
+    "Muista syödä hyvin - se on tärkeää! ❤️",
+    "Herkullinen ateria tekee hyvää! 😊",
+    "Nauti ruoasta rauhassa 🍽️"
+  ],
+  "category": "encouragement"
+}

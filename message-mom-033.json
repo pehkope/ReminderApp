@@ -1,0 +1,17 @@
+{
+  "activityType": "outdoor",
+  "id": "activity_outdoor_good_5",
+  "weatherCondition": "good",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Ihana ilma! Lyhyt kävelylenkki naapuriin? 👋",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Hyvä sää! Voisit käydä naapurissa! 😊",
+    "Kaunis päivä! Pieni kävelykierros! 🚶‍♀️",
+    "Lämmin ilma! Tapaa tuttuja ulkona! 💕"
+  ],
+  "category": "activity"
+}

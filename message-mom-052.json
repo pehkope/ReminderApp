@@ -1,0 +1,16 @@
+{
+  "id": "encouragement_medication_2",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Lääkkeet auttavat jaksamaan! Hyvä kun muistat! 💪",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "context": "medication",
+  "type": "message",
+  "variants": [
+    "Lääkkeet ovat tärkeitä! 💊",
+    "Muista lääkkeet! Ne auttavat! 💙",
+    "Hyvä! Lääkkeet otettu! ❤️"
+  ],
+  "category": "encouragement"
+}

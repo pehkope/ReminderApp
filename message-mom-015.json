@@ -1,0 +1,16 @@
+{
+  "id": "afternoon_greeting_mom_1",
+  "timeSlot": "afternoon",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Iltapäivää, äiti! 🌤️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Hyvää iltapäivää! ☕",
+    "Hei äiti! Päivällinen-aika lähestyy 🍽️",
+    "Terve! Toivottavasti päivä on mennyt hyvin 😊"
+  ],
+  "category": "greeting"
+}

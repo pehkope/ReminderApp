@@ -1,0 +1,17 @@
+{
+  "activityType": "indoor",
+  "id": "activity_indoor_cold_2",
+  "weatherCondition": "cold",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Kylmä ilma - hyvä hetki sisäpuuhille ❄️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Pakkanen puree - pysy lämpimänä sisällä! 🏠",
+    "Kylmää ulkona - nauti lämpö sisällä ☕",
+    "Pakkaspäivä - ihaile talvimaisemaa ikkunasta 🪟"
+  ],
+  "category": "activity"
+}

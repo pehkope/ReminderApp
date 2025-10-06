@@ -1,0 +1,16 @@
+{
+  "id": "morning_greeting_mom_7",
+  "timeSlot": "morning",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hyvää aamua! Muista juoda vettä ja venytellä! 💧",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Huomenta! Pieni venyttely piristää! 🤸‍♀️",
+    "Hyvää aamua! Juoda vettä ja liikkua vähän! 🚶‍♀️",
+    "Terve! Aloita päivä pienellä liikkeellä! 💪"
+  ],
+  "category": "greeting"
+}

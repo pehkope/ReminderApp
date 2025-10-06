@@ -1,0 +1,17 @@
+{
+  "activityType": "indoor",
+  "id": "activity_indoor_rain_3",
+  "weatherCondition": "rainy",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Sateinen ilma! Lämmin tee ja radio! ☕📻",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Sataa! Kahvi ja hyvä kirja! ☕📖",
+    "Vesisade! Mukavaa sisällä! 🏠",
+    "Sade! Rauhallinen päivä kotona! 🛋️"
+  ],
+  "category": "activity"
+}

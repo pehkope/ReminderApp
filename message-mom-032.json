@@ -1,0 +1,17 @@
+{
+  "activityType": "outdoor",
+  "id": "activity_outdoor_good_4",
+  "weatherCondition": "good",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Aurinkoa! Voisit käydä parvekkeella/pihalla! ☀️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Lämmin päivä! Raikas ilma piristää! 🌞",
+    "Kaunis sää! Hetki ulkona tekee hyvää! 🌸",
+    "Aurinkoista! Nauti ulkona hetki! 🌺"
+  ],
+  "category": "activity"
+}

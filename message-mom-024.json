@@ -1,0 +1,16 @@
+{
+  "id": "evening_greeting_mom_4",
+  "timeSlot": "evening",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hyvää iltaa! Päivä on ollut hyvä! 😊",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Ilta! Olet pärjännyt hienosti! 💪",
+    "Terve! Mukava päivä takana! ❤️",
+    "Hei! Olet tehnyt hyvin tänään! 🌟"
+  ],
+  "category": "greeting"
+}

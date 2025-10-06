@@ -1,0 +1,16 @@
+{
+  "id": "noon_greeting_mom_5",
+  "timeSlot": "noon",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hei! Muista juoda vettä ja levätä hetki! 💧",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Terve! Pieni tauko piristää! 🧘‍♀️",
+    "Hei äiti! Vettä ja lepoa! 💦",
+    "Päivää! Nestettä ja hetki rauhaa! 😌"
+  ],
+  "category": "greeting"
+}

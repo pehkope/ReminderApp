@@ -1,0 +1,16 @@
+{
+  "id": "encouragement_general_1",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Olet rakas ja tärkeä! ❤️",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "context": "general",
+  "type": "message",
+  "variants": [
+    "Muistathan että välitämme sinusta! 💙",
+    "Olet tärkeä meille! ❤️",
+    "Ajattelemme sinua! 💕"
+  ],
+  "category": "encouragement"
+}

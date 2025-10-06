@@ -1,0 +1,16 @@
+{
+  "id": "noon_greeting_mom_4",
+  "timeSlot": "noon",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Lounasaikaa! Muista nauttia ruoasta rauhassa 🍴",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Syödään hyvin! Ei kiirettä! 😊",
+    "Lounas odottaa! Ota aikaa! 🍽️",
+    "Ruoka-aika! Nautitaan rauhassa! 🥘"
+  ],
+  "category": "greeting"
+}

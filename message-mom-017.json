@@ -1,0 +1,16 @@
+{
+  "id": "afternoon_greeting_mom_3",
+  "timeSlot": "afternoon",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Hei äiti! Miten päivä on sujunut? 😊",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Terve! Toivottavasti mukava päivä! 🌞",
+    "Päivää! Onko ollut hyvä päivä? 💕",
+    "Hei! Kaikki hyvin? 😊"
+  ],
+  "category": "greeting"
+}

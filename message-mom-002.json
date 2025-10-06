@@ -1,0 +1,17 @@
+{
+  "id": "morning_greeting_mom_2",
+  "timeSlot": "morning",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Toivottavasti nukuit hyvin! 😊",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Hyvää aamua! Toivottavasti lepäsit hyvin 💤",
+    "Hyvää huomenta! Uusi päivä on alkanut 🌅",
+    "Terve äiti! Toivottavasti yö oli rauhallinen 🌙",
+    "Hyvää aamua! Virkistäviä unia takana? 😊"
+  ],
+  "category": "greeting"
+}

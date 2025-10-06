@@ -1,0 +1,16 @@
+{
+  "id": "encouragement_food_2",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Syöminen on tärkeää! Nauti ruoasta! 🍴",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "context": "food",
+  "type": "message",
+  "variants": [
+    "Hyvä ruoka on tärkeä! 🥗",
+    "Muista syödä kunnolla! 🍽️",
+    "Nauti ateriasta rauhassa! 😊"
+  ],
+  "category": "encouragement"
+}

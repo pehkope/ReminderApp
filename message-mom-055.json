@@ -1,0 +1,16 @@
+{
+  "id": "encouragement_general_3",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Kiitos että olet! Olet meille rakas! 💕",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "context": "general",
+  "type": "message",
+  "variants": [
+    "Olet ihana! Kiitos sinusta! ❤️",
+    "Rakas äiti! Olet tärkeä! 💙",
+    "Välitämme sinusta aina! 💖"
+  ],
+  "category": "encouragement"
+}

@@ -1,0 +1,17 @@
+{
+  "activityType": "indoor",
+  "id": "activity_indoor_cold_1",
+  "weatherCondition": "cold",
+  "updatedAt": "2025-10-06T10:29:27.0294589+03:00",
+  "isActive": true,
+  "text": "Kylmää ulkona - nauti kuppi kahvia sisällä ☕",
+  "createdAt": "2025-10-06T10:29:27.0294589+03:00",
+  "clientId": "mom",
+  "type": "message",
+  "variants": [
+    "Pakkaspäivä - hyvä päivä lukea kirjaa 📖",
+    "Kylmä sää - rentoudu sisällä lämpimän peiton alla 🛋️",
+    "Pakkas puree - kuuntele radiota ja nauti lämmöstä 📻"
+  ],
+  "category": "activity"
+}
