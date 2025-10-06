@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using ReminderApp.Functions.Services;
 using ReminderApp.Functions.Models;
 using System.Net;
-using System.Text.Json;
+using Newtonsoft.Json;
 using Telegram.Bot.Types;
 
 namespace ReminderApp.Functions;
@@ -55,7 +55,8 @@ public class TelegramBotApi
                 return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Empty request body");
             }
 
-            var update = JsonSerializer.Deserialize<Update>(requestBody);
+            // Use Newtonsoft.Json (same as Telegram.Bot library uses)
+            var update = JsonConvert.DeserializeObject<Update>(requestBody);
             if (update == null)
             {
                 _logger.LogWarning("Failed to parse Telegram update");
@@ -63,6 +64,9 @@ public class TelegramBotApi
             }
 
             _logger.LogInformation("Processing Telegram update {UpdateId}", update.Id);
+            
+            // DEBUG: Log the raw update to see what Telegram is sending
+            _logger.LogInformation("DEBUG: Raw update JSON: {UpdateJson}", requestBody);
 
             // Process the update
             var result = await _telegramBotService.ProcessWebhookUpdateAsync(update);
@@ -93,7 +97,13 @@ public class TelegramBotApi
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Critical error in Telegram webhook processing");
+            _logger.LogError("❌ Critical error in Telegram webhook processing: {ErrorMessage}", ex.Message);
+            _logger.LogError("❌ Exception type: {ExceptionType}", ex.GetType().Name);
+            _logger.LogError("❌ Stack trace: {StackTrace}", ex.StackTrace);
+            if (ex.InnerException != null)
+            {
+                _logger.LogError("❌ Inner exception: {InnerMessage}", ex.InnerException.Message);
+            }
             return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, 
                 "Webhook processing failed", ex.Message);
         }
@@ -118,7 +128,7 @@ public class TelegramBotApi
             }
 
             var requestBody = await req.ReadAsStringAsync();
-            var requestData = JsonSerializer.Deserialize<Dictionary<string, object>>(requestBody ?? "{}");
+            var requestData = JsonConvert.DeserializeObject<Dictionary<string, object>>(requestBody ?? "{}");
 
             var chatIdStr = requestData?.GetValueOrDefault("chatId")?.ToString();
             var message = requestData?.GetValueOrDefault("message")?.ToString();
@@ -339,9 +349,9 @@ public class TelegramBotApi
         response.Headers.Add("X-Content-Type-Options", "nosniff");
         response.Headers.Add("X-Frame-Options", "DENY");
         
-        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions 
+        var json = JsonConvert.SerializeObject(data, new Newtonsoft.Json.JsonSerializerSettings 
         { 
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
+            ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
         });
         await response.WriteStringAsync(json);
         

@@ -1,4 +1,5 @@
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Logging;
 using ReminderApp.Functions.Models;
 using System.Text.Json;
 using Newtonsoft.Json;
@@ -11,9 +12,12 @@ public class CosmosDbService
     private readonly CosmosClient? _cosmosClient;
     private readonly Database? _database;
     private readonly string _databaseId;
+    private readonly ILogger _logger;
 
-    public CosmosDbService()
+    public CosmosDbService(ILoggerFactory loggerFactory)
     {
+        _logger = loggerFactory.CreateLogger<CosmosDbService>();
+        
         var connectionString = Environment.GetEnvironmentVariable("COSMOS_CONNECTION_STRING");
         _databaseId = Environment.GetEnvironmentVariable("COSMOS_DATABASE") ?? "ReminderAppDB";
 
@@ -32,11 +36,11 @@ public class CosmosDbService
                 
                 _cosmosClient = new CosmosClient(connectionString, options);
                 _database = _cosmosClient.GetDatabase(_databaseId);
-                Console.WriteLine("CosmosDB initialized with camelCase serialization");
+                _logger.LogInformation("CosmosDB initialized with camelCase serialization");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to initialize Cosmos DB: {ex.Message}");
+                _logger.LogError(ex, "Failed to initialize Cosmos DB: {ErrorMessage}", ex.Message);
             }
         }
     }
@@ -246,19 +250,34 @@ public class CosmosDbService
     // Create operations
     public async Task<T?> CreateItemAsync<T>(T item, string containerName) where T : class
     {
-        if (!IsConfigured) return null;
+        if (!IsConfigured)
+        {
+            _logger.LogError("❌ CosmosDB not configured - cannot create item in {ContainerName}", containerName);
+            return null;
+        }
 
         try
         {
             var container = GetContainer(containerName);
-            if (container == null) return null;
+            if (container == null)
+            {
+                _logger.LogError("❌ Container {ContainerName} not found", containerName);
+                return null;
+            }
 
+            _logger.LogInformation("📝 Creating item in {ContainerName}...", containerName);
             var response = await container.CreateItemAsync(item);
+            _logger.LogInformation("✅ Item created successfully in {ContainerName}", containerName);
             return response.Resource;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating item in {containerName}: {ex.Message}");
+            _logger.LogError(ex, "❌ Error creating item in {ContainerName}: {ErrorMessage}", containerName, ex.Message);
+            _logger.LogError("❌ Exception type: {ExceptionType}", ex.GetType().Name);
+            if (ex.InnerException != null)
+            {
+                _logger.LogError("❌ Inner exception: {InnerMessage}", ex.InnerException.Message);
+            }
             return null;
         }
     }

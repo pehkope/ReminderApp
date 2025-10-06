@@ -165,8 +165,10 @@ public class TelegramBotService
             var savedPhoto = await _cosmosDbService.CreateItemAsync(photoRecord, "Photos");
             if (savedPhoto == null)
             {
-                _logger.LogError("Failed to save photo record to Cosmos DB");
-                return new TelegramWebhookResponse { Success = false, Message = "Failed to save photo record" };
+                _logger.LogError("❌ Failed to save photo record to Cosmos DB");
+                _logger.LogError("❌ Photo details: Id={Id}, ClientId={ClientId}, BlobUrl={BlobUrl}", 
+                    photoRecord.Id, photoRecord.ClientId, photoRecord.BlobUrl);
+                return new TelegramWebhookResponse { Success = false, Message = "Failed to save photo record to Cosmos DB" };
             }
 
             _logger.LogInformation("✅ Photo processed successfully: {PhotoId} for {ClientId}", photoRecord.Id, clientId);
@@ -203,14 +205,16 @@ public class TelegramBotService
             _logger.LogInformation("💬 Processing text message from {Sender} for client {ClientId}", senderName, clientId);
 
             // Handle commands
-            if (text.StartsWith("/start") || text.StartsWith("/id"))
+            if (text.StartsWith("/start") || text.StartsWith("/id") || text.StartsWith("/myid"))
             {
                 await SendMessageAsync(message.Chat.Id, 
-                    $"Terve {senderName}! 👋\n\n" +
-                    $"Chat ID: {message.Chat.Id}\n" +
-                    $"Voit lähettää kuvia ja viestejä {clientId}:lle.\n\n" +
-                    $"💡 Vinkki: Lisää kuvan kuvatekstiin #client:mom jos haluat lähettää toiselle asiakkaalle.");
+                    $"👋 Terve {senderName}!\n\n" +
+                    $"🆔 Sinun Chat ID: **{message.Chat.Id}**\n\n" +
+                    $"📸 Voit lähettää kuvia ja viestejä {clientId}:lle\n" +
+                    $"💬 Viestit tallentuvat ja näkyvät PWA:ssa\n\n" +
+                    $"💡 Vinkki: Jos haluat lähettää toiselle asiakkaalle, lisää kuvatekstiin #client:nimi");
                 
+                _logger.LogInformation("ℹ️ Sent Chat ID {ChatId} to {Sender}", message.Chat.Id, senderName);
                 return new TelegramWebhookResponse { Success = true, Message = "Command processed" };
             }
 
