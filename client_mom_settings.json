@@ -2,8 +2,48 @@
   "id": "client_mom",
   "clientId": "mom",
   "type": "client",
+  "fullName": "Anna Virtanen",
+  "preferredName": "Anna",
   "name": "Äiti",
   "displayName": "Rakas Äiti",
+  "gender": "female",
+  "dateOfBirth": "1950-03-15",
+  "contacts": [
+    {
+      "id": "contact_matti",
+      "name": "Matti Virtanen",
+      "relationship": "Poika",
+      "phone": "+358401234567",
+      "email": "matti.virtanen@example.com",
+      "isPrimary": true,
+      "canReceiveAlerts": true,
+      "telegramChatId": "",
+      "notes": "Pääyhteyshenkilö, soittaa usein"
+    },
+    {
+      "id": "contact_liisa",
+      "name": "Liisa Korhonen",
+      "relationship": "Tytär",
+      "phone": "+358409876543",
+      "email": "liisa.korhonen@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": true,
+      "telegramChatId": "",
+      "notes": "Käy kylässä viikonloppuisin"
+    }
+  ],
+  "address": {
+    "street": "Lauttasaarentie 123",
+    "city": "Helsinki",
+    "postalCode": "00200",
+    "country": "Finland"
+  },
+  "emergencyInfo": {
+    "allergies": [],
+    "medications": ["Aspirin 100mg aamuisin"],
+    "medicalConditions": [],
+    "emergencyNotes": "Muistihäiriöitä, tarvitsee päivittäistä tukea"
+  },
   "timezone": "Europe/Helsinki",
   "language": "fi",
   "settings": {
@@ -29,6 +69,6 @@
     "showCompletedTasks": true
   },
   "createdAt": "2025-01-01T00:00:00Z",
-  "updatedAt": "2025-10-07T12:00:00Z"
+  "updatedAt": "2025-10-07T14:00:00Z"
 }
 

@@ -291,11 +291,32 @@ public class Client
     [JsonPropertyName("type")]
     public string Type { get; set; } = "client";
 
+    [JsonPropertyName("fullName")]
+    public string FullName { get; set; } = string.Empty; // Koko nimi: "Anna Virtanen"
+
+    [JsonPropertyName("preferredName")]
+    public string PreferredName { get; set; } = string.Empty; // Kutsumanimi: "Anna"
+
     [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty; // Vanha kenttä (yhteensopivuus)
 
     [JsonPropertyName("displayName")]
-    public string DisplayName { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty; // Vanha kenttä (yhteensopivuus)
+
+    [JsonPropertyName("gender")]
+    public string Gender { get; set; } = "female"; // "male", "female", "other"
+
+    [JsonPropertyName("dateOfBirth")]
+    public string DateOfBirth { get; set; } = string.Empty; // ISO 8601: "1950-03-15"
+
+    [JsonPropertyName("contacts")]
+    public List<ContactPerson> Contacts { get; set; } = new();
+
+    [JsonPropertyName("address")]
+    public Address? Address { get; set; }
+
+    [JsonPropertyName("emergencyInfo")]
+    public EmergencyInfo? EmergencyInfo { get; set; }
 
     [JsonPropertyName("timezone")]
     public string Timezone { get; set; } = "Europe/Helsinki";
@@ -311,4 +332,64 @@ public class Client
 
     [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class ContactPerson
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("relationship")]
+    public string Relationship { get; set; } = string.Empty; // "Poika", "Tytär", "Hoitaja", "Puoliso"
+
+    [JsonPropertyName("phone")]
+    public string Phone { get; set; } = string.Empty;
+
+    [JsonPropertyName("email")]
+    public string Email { get; set; } = string.Empty;
+
+    [JsonPropertyName("isPrimary")]
+    public bool IsPrimary { get; set; } = false;
+
+    [JsonPropertyName("canReceiveAlerts")]
+    public bool CanReceiveAlerts { get; set; } = true;
+
+    [JsonPropertyName("telegramChatId")]
+    public string TelegramChatId { get; set; } = string.Empty;
+
+    [JsonPropertyName("notes")]
+    public string Notes { get; set; } = string.Empty;
+}
+
+public class Address
+{
+    [JsonPropertyName("street")]
+    public string Street { get; set; } = string.Empty;
+
+    [JsonPropertyName("city")]
+    public string City { get; set; } = string.Empty;
+
+    [JsonPropertyName("postalCode")]
+    public string PostalCode { get; set; } = string.Empty;
+
+    [JsonPropertyName("country")]
+    public string Country { get; set; } = "Finland";
+}
+
+public class EmergencyInfo
+{
+    [JsonPropertyName("allergies")]
+    public List<string> Allergies { get; set; } = new();
+
+    [JsonPropertyName("medications")]
+    public List<string> Medications { get; set; } = new();
+
+    [JsonPropertyName("medicalConditions")]
+    public List<string> MedicalConditions { get; set; } = new();
+
+    [JsonPropertyName("emergencyNotes")]
+    public string EmergencyNotes { get; set; } = string.Empty;
 }

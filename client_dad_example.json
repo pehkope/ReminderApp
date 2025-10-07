@@ -1,0 +1,91 @@
+{
+  "id": "client_dad",
+  "clientId": "dad",
+  "type": "client",
+  "fullName": "Pekka Korhonen",
+  "preferredName": "Pekka",
+  "name": "Isä",
+  "displayName": "Rakas Isä",
+  "gender": "male",
+  "dateOfBirth": "1948-07-22",
+  "contacts": [
+    {
+      "id": "contact_timo",
+      "name": "Timo Korhonen",
+      "relationship": "Poika",
+      "phone": "+358501112222",
+      "email": "timo.korhonen@example.com",
+      "isPrimary": true,
+      "canReceiveAlerts": true,
+      "telegramChatId": "",
+      "notes": "Asuu lähellä, käy päivittäin"
+    },
+    {
+      "id": "contact_maria",
+      "name": "Maria Korhonen",
+      "relationship": "Tytär",
+      "phone": "+358503334444",
+      "email": "maria.korhonen@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": true,
+      "telegramChatId": "",
+      "notes": "Asuu Turussa, soittaa säännöllisesti"
+    },
+    {
+      "id": "contact_nurse",
+      "name": "Sairaanhoitaja Leena",
+      "relationship": "Hoitaja",
+      "phone": "+358505556666",
+      "email": "leena@hoitopalvelu.fi",
+      "isPrimary": false,
+      "canReceiveAlerts": true,
+      "telegramChatId": "",
+      "notes": "Käy tiistaisin ja torstaisin"
+    }
+  ],
+  "address": {
+    "street": "Mannerheimintie 456",
+    "city": "Helsinki",
+    "postalCode": "00100",
+    "country": "Finland"
+  },
+  "emergencyInfo": {
+    "allergies": ["Penisilliini"],
+    "medications": [
+      "Metformin 500mg x2 päivässä",
+      "Atorvastatin 20mg iltaisin"
+    ],
+    "medicalConditions": [
+      "Diabetes type 2",
+      "Korkea kolesteroli"
+    ],
+    "emergencyNotes": "Diabeteksen vuoksi tärkeää muistaa lääkkeet"
+  },
+  "timezone": "Europe/Helsinki",
+  "language": "fi",
+  "settings": {
+    "useWeather": true,
+    "usePhotos": true,
+    "useTelegram": true,
+    "useSMS": true,
+    "useFoodReminders": true,
+    "foodReminderType": "simple",
+    "simpleReminderText": "Aika syödä ja ottaa lääkkeet",
+    "mealTimes": {
+      "07:00": "Aamupala",
+      "11:00": "Lounas",
+      "15:00": "Päivällinen",
+      "19:00": "Iltapala"
+    },
+    "messageSchedule": {
+      "morningHour": 7,
+      "noonHour": 11,
+      "afternoonHour": 15,
+      "eveningHour": 19
+    },
+    "showCompletedTasks": false
+  },
+  "createdAt": "2025-01-01T00:00:00Z",
+  "updatedAt": "2025-10-07T14:00:00Z"
+}
+
