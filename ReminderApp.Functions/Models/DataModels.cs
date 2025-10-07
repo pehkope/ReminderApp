@@ -3,6 +3,43 @@ using Newtonsoft.Json;
 
 namespace ReminderApp.Functions.Models;
 
+// UUSI inspiroiva viesti-malli (ilman ruoka/lääke mainintoja)
+public class MessageCard
+{
+    [JsonPropertyName("id")]
+    [JsonProperty("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("clientId")]
+    [JsonProperty("clientId")]
+    public string ClientId { get; set; } = string.Empty;
+
+    [JsonPropertyName("timeOfDay")]
+    [JsonProperty("timeOfDay")]
+    public string TimeOfDay { get; set; } = string.Empty; // morning, noon, afternoon, evening
+
+    [JsonPropertyName("weatherCondition")]
+    [JsonProperty("weatherCondition")]
+    public string WeatherCondition { get; set; } = string.Empty; // sunny, cloudy, rain, any
+
+    [JsonPropertyName("greeting")]
+    [JsonProperty("greeting")]
+    public string Greeting { get; set; } = string.Empty;
+
+    [JsonPropertyName("activityTag")]
+    [JsonProperty("activityTag")]
+    public string ActivityTag { get; set; } = string.Empty; // outdoor, indoor, social
+
+    [JsonPropertyName("activitySuggestion")]
+    [JsonProperty("activitySuggestion")]
+    public string ActivitySuggestion { get; set; } = string.Empty;
+
+    [JsonPropertyName("isActive")]
+    [JsonProperty("isActive")]
+    public bool IsActive { get; set; } = true;
+}
+
+// VANHA tuntikohtainen viesti-malli (yhteensopivuus varten)
 public class GreetingMessage
 {
     [JsonPropertyName("id")]

@@ -102,61 +102,41 @@ public class WeatherService
     {
         Console.WriteLine($"🕐 GetGreetingAndActivityAsync called with hour={hour}");
         
-        // Määritä oikea tunti tarkan ajan sijaan (8, 12, 16, 20)
-        var targetHour = hour switch
+        // Määritä aikavyöhyke (timeOfDay)
+        var timeOfDay = hour switch
         {
-            >= 6 and < 10 => 8,
-            >= 10 and < 14 => 12,
-            >= 14 and < 18 => 16,
-            >= 18 and < 22 => 20,
-            _ => 20 // Default to evening
+            >= 6 and < 10 => "morning",
+            >= 10 and < 14 => "noon",
+            >= 14 and < 18 => "afternoon",
+            >= 18 and < 24 => "evening",
+            _ => "evening" // yö
         };
 
-        Console.WriteLine($"🎯 Mapped hour {hour} to targetHour {targetHour}");
+        // Määritä säätila (weatherCondition)
+        // Priorisoi: kylmä > sade > pilvinen > aurinkoinen
+        var weatherCondition = weather.IsCold ? "cold"
+                             : weather.IsRaining ? "rain" 
+                             : weather.Description.Contains("pilv", StringComparison.OrdinalIgnoreCase) ? "cloudy"
+                             : "sunny";
 
-        // Hae viestit CosmosDB:stä
-        var greetingMessage = await _cosmosDbService.GetGreetingMessageAsync(clientId, targetHour);
+        Console.WriteLine($"🎯 Mapped hour {hour} to timeOfDay={timeOfDay}, weatherCondition={weatherCondition}");
+
+        // Hae viestit UUDELLA MessageCard-rakenteella
+        var messageCards = await _cosmosDbService.GetMessageCardsAsync(clientId, timeOfDay, weatherCondition);
         
-        if (greetingMessage == null || !greetingMessage.Messages.Any())
+        if (!messageCards.Any())
         {
-            Console.WriteLine($"⚠️ No greeting messages found for hour {targetHour}, using fallback");
+            Console.WriteLine($"⚠️ No message cards found for {timeOfDay}/{weatherCondition}, using fallback");
             return GetFallbackGreetingAndActivity(weather, hour);
         }
 
-        // 1. TERVEHDYS - Satunnaisesti listalta
-        var greeting = greetingMessage.Messages[_random.Next(greetingMessage.Messages.Count)];
+        // Valitse satunnainen viesti listalta
+        var selectedCard = messageCards[_random.Next(messageCards.Count)];
 
-        // 2. PUUHAA - Sään mukaan
-        string activity;
-        
-        if (weather.IsRaining || weather.IsCold)
-        {
-            // SISÄPUUHAA (huono sää)
-            if (greetingMessage.ActivitiesIndoor.Any())
-            {
-                var indoorActivities = greetingMessage.ActivitiesIndoor;
-                activity = indoorActivities[_random.Next(indoorActivities.Count)];
-            }
-            else
-            {
-                activity = "🏠 Rentoudu kotona ja nauti lämpimästä juomasta ☕";
-            }
-        }
-        else
-        {
-            // ULKOILU (hyvä sää!)
-            if (greetingMessage.ActivitiesOutdoor.Any())
-            {
-                var outdoorActivities = greetingMessage.ActivitiesOutdoor;
-                activity = outdoorActivities[_random.Next(outdoorActivities.Count)];
-            }
-            else
-            {
-                activity = "🚶‍♀️ Kävele ulos nauttimaan hyvästä säästä! ☀️";
-            }
-        }
+        var greeting = selectedCard.Greeting;
+        var activity = selectedCard.ActivitySuggestion;
 
-        Console.WriteLine($"✅ Selected greeting and activity from CosmosDB for hour {targetHour}");
+        Console.WriteLine($"✅ Selected message card: {selectedCard.Id}");
         return (greeting, activity);
     }
 

@@ -1,0 +1,434 @@
+[
+  {
+    "id": "morning_sunny_1",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "sunny",
+    "greeting": "Huomenta, äiti! Tänään on loistava päivä aloittaa uusia juttuja! 🌞",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Kävelylenkki lähikauppaan hakemaan jotain pientä 🛒🚶‍♀️",
+    "isActive": true
+  },
+  {
+    "id": "morning_sunny_2",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "sunny",
+    "greeting": "Aurinkoista huomenta, äiti! ☀️🌷 Toivottavasti nukuit hyvin. Kaunis päivä alkaa! ❤️",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Istahda puistonpenkille 15 minuutiksi nauttimaan ilmasta 🌳🌬️",
+    "isActive": true
+  },
+  {
+    "id": "morning_sunny_3",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "sunny",
+    "greeting": "Rakas äiti ❤️ Aurinko paistaa juuri sinulle tänään! ☀️",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Kävele Lauttasaaren kauniilla rannoilla 🌷🌊",
+    "isActive": true
+  },
+  {
+    "id": "morning_sunny_4",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "sunny",
+    "greeting": "Nouse ylös ja loista, äiti! ✨🌞",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Mitä jos kävisit vaikka Stockmannilla ja/tai Sokoksella katselemassa? 🤗🛍️",
+    "isActive": true
+  },
+  {
+    "id": "morning_cloudy_1",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cloudy",
+    "greeting": "Hyvää huomenta äiti armas! 🌸☺️ Rauhallinen päivä edessä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Lue Hesari alusta loppuun kaikessa rauhassa 📰☕",
+    "isActive": true
+  },
+  {
+    "id": "morning_cloudy_2",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cloudy",
+    "greeting": "Aamukahvi ja lempeä ajatus sinulle, äiti ☕💛",
+    "activityTag": "indoor",
+    "activitySuggestion": "Uppoudu hyvän kirjan maailmaan 📚🛋️",
+    "isActive": true
+  },
+  {
+    "id": "morning_cloudy_3",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cloudy",
+    "greeting": "Lempeää herätystä, rakas äiti! 🥰☕",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Pieni happihyppely pihalla tai parvekkeella 🪴🌼",
+    "isActive": true
+  },
+  {
+    "id": "morning_rain_1",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "rain",
+    "greeting": "Hyvää huomenta! 🌧️ Sateinen aamu - pysytään lämpimässä sisällä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Katso televisiota lempiohjelmasi tai uusi sarja 📺🍿",
+    "isActive": true
+  },
+  {
+    "id": "morning_rain_2",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "rain",
+    "greeting": "Mukavaa heräämistä aamuun äiti 🥰🌼 Sateinen päivä on hyvä sisäpäivä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Järjestele kuvia ja muistele ihania hetkiä 🖼️💭",
+    "isActive": true
+  },
+  {
+    "id": "morning_rain_3",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "rain",
+    "greeting": "Aamun taikaa sinulle, äiti! 🌟☕ Sateinen aamu kutsuu sisälle.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Tee palapeliä tai ristisanatehtävää 🧩✍️",
+    "isActive": true
+  },
+  {
+    "id": "morning_social_1",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "any",
+    "greeting": "Huomenta mutter ⚙️💖 Tänään odottaa uusi seikkailu!",
+    "activityTag": "social",
+    "activitySuggestion": "Soita Ullalle tai Arvolle tai jollekkin muulle mukavalle tyypille! 📱💬",
+    "isActive": true
+  },
+  {
+    "id": "morning_social_2",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "any",
+    "greeting": "Hyvää huomenta maailman parhaalle äidille! 🥇❤️",
+    "activityTag": "social",
+    "activitySuggestion": "Kysy jotakin tuttua kahvikutsuille kotiin tai kahvilaan ☕🍰",
+    "isActive": true
+  },
+  {
+    "id": "noon_sunny_1",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "sunny",
+    "greeting": "Mukavaa päivää! ☀️ Aurinko lämmittää - nauti!",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Tänään voisit ajaa metrolla Kalasatamaan saakka ja kierrellä Redissä ☀️🚇",
+    "isActive": true
+  },
+  {
+    "id": "noon_sunny_2",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "sunny",
+    "greeting": "Hyvää päivää! 🌞 Upea sää jatkuu!",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Tänään voisit ajaa metrolla Itäkeskukseen saakka ja kierrellä siellä kaupoissa ☀️🛍️",
+    "isActive": true
+  },
+  {
+    "id": "noon_sunny_3",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "sunny",
+    "greeting": "Aurinkoinen päivä jatkuu, äiti! ☀️💖",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Poikkea kukkakaupassa ja piristä päivääsi kukilla 💐😊",
+    "isActive": true
+  },
+  {
+    "id": "noon_cloudy_1",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "cloudy",
+    "greeting": "Mukavaa päivää! 🌥️ Rauhallinen sää.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Kuuntele musiikkia tai äänikirjaa 🎧🎶",
+    "isActive": true
+  },
+  {
+    "id": "noon_cloudy_2",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "cloudy",
+    "greeting": "Hyvää päivää! ☁️ Kaunis päivä jatkuu.",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Kierrä kortteli ympäri rauhalliseen tahtiin ja tarkkaile ympäristöä 🚶‍♀️🏘️",
+    "isActive": true
+  },
+  {
+    "id": "noon_rain_1",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "rain",
+    "greeting": "Mukavaa päivää! 🌧️ Sateinen, mutta kaunis päivä!",
+    "activityTag": "indoor",
+    "activitySuggestion": "Pientä järjestelyä kotona, vaikka vaatekaappi? ✨👚",
+    "isActive": true
+  },
+  {
+    "id": "noon_rain_2",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "rain",
+    "greeting": "Rauhallista päivää, äiti! 🌧️ Sadepäivä sopii sisäpuuhiin.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Selaile vanhoja valokuva-albumeita ja muistele menneitä 🎞️💖",
+    "isActive": true
+  },
+  {
+    "id": "noon_social_1",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "any",
+    "greeting": "Hyvää päivää, äiti! 💕 Muistathan kuinka rakas olet!",
+    "activityTag": "social",
+    "activitySuggestion": "Miten olisi kävelytreffit tänään ystävän kanssa? 👵🚶‍♀️☀️",
+    "isActive": true
+  },
+  {
+    "id": "noon_social_2",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "any",
+    "greeting": "Mukavaa päivää sinulle, rakas äiti! 💖",
+    "activityTag": "social",
+    "activitySuggestion": "Lähde kahville tai lounaalle ystävän kanssa ulos 🍽️👭",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_sunny_1",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "sunny",
+    "greeting": "Kaunista iltapäivää! 🌅 Aurinko laskee kauniisti.",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Jos on kiva ilma, ota kirja mukaan ja lue hetki ulkona puistossa 📖🌳☀️",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_sunny_2",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "sunny",
+    "greeting": "Hyvää iltapäivää! 🌞 Aurinko vielä paistaa!",
+    "activityTag": "outdoor",
+    "activitySuggestion": "Valokuvaa luontoa tai kaupunkia kävelylläsi 📸🌸🏙️",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_cloudy_1",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "cloudy",
+    "greeting": "Kaunista iltapäivää! 🌥️ Rauhallinen päivä loppuu.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Venyttele kevyesti tai tee jumppaliikkeitä 🧘‍♀️💪",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_rain_1",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "rain",
+    "greeting": "Hyvää iltapäivää! 🌧️ Sateinen ilta tulossa.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Kirjoita kirje tai päiväkirjaa 📝💌",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_social_1",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "any",
+    "greeting": "Kaunista iltapäivää! 💕 Lapset ajattelevat sinua!",
+    "activityTag": "social",
+    "activitySuggestion": "Vieraile ystävän tai sukulaisen luona kylässä 🏡💐",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_social_2",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "any",
+    "greeting": "Ihanaa iltapäivää, äiti! 💖",
+    "activityTag": "social",
+    "activitySuggestion": "Mitä jos laittaisit viestin vanhalle ystävälle ja kysyisit kuulumisia? ✉️😊",
+    "isActive": true
+  },
+  {
+    "id": "evening_1",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "any",
+    "greeting": "Rauhallista iltaa, äiti! 🌙 Päivä on ollut hyvä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Rentoudu ja valmistaudu yöhön 😴",
+    "isActive": true
+  },
+  {
+    "id": "evening_2",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "any",
+    "greeting": "Hyvää iltaa! 🌃 Kaunis päivä päättyy.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Aika levätä 💤",
+    "isActive": true
+  },
+  {
+    "id": "evening_3",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "any",
+    "greeting": "Rauhallista iltaa! ✨ Olet tehnyt hyvin tänään.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Nuku hyvin, huomenna on uusi päivä 🌟",
+    "isActive": true
+  },
+  {
+    "id": "evening_4",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "any",
+    "greeting": "Kaunista iltaa sinulle, äiti! 💖🌅",
+    "activityTag": "indoor",
+    "activitySuggestion": "Aloita päivä rauhassa aamupalan kera ☕🥣",
+    "isActive": true
+  },
+  {
+    "id": "evening_5",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "any",
+    "greeting": "Ihanaa uutta iltaa, äiti! 🌿💖",
+    "activityTag": "indoor",
+    "activitySuggestion": "Kuuntele rentouttavaa musiikkia 🎧",
+    "isActive": true
+  },
+  {
+    "id": "evening_social_1",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "any",
+    "greeting": "Rauhallista iltaa! 💕 Lapset rakastavat sinua!",
+    "activityTag": "social",
+    "activitySuggestion": "Jos haluat, soita vielä lapsille 📞 (mutta ei pakko!)",
+    "isActive": true
+  },
+  {
+    "id": "morning_cold_1",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cold",
+    "greeting": "Huomenta äiti! ❄️ Ulkona on kylmä - pysytään lämpimässä sisällä!",
+    "activityTag": "indoor",
+    "activitySuggestion": "Nauti lämmintä aamukahvia ja herkkua kotona ☕🥐",
+    "isActive": true
+  },
+  {
+    "id": "morning_cold_2",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cold",
+    "greeting": "Kylmää aamua, rakas äiti! 🥶 Pysytään lämpimässä sisällä tänään.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Lue Hesari tai kirja lämpimän viltin alla 📰🛋️",
+    "isActive": true
+  },
+  {
+    "id": "morning_cold_3",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cold",
+    "greeting": "Hyvää huomenta! ❄️☕ Talvinen aamu - mukava pysyä sisällä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Katso televisiota ja nauti lämpimästä juomasta ☕📺",
+    "isActive": true
+  },
+  {
+    "id": "noon_cold_1",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "cold",
+    "greeting": "Mukavaa päivää! ❄️ Kylmä päivä - hyvä olla lämpimässä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Kuuntele musiikkia tai radiota 🎶📻",
+    "isActive": true
+  },
+  {
+    "id": "noon_cold_2",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "cold",
+    "greeting": "Hyvää päivää äiti! 🥶 Pakkaspäivä - mukava olla sisällä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Soita ystävälle ja jutustele lämpimän kahvikupillisen äärellä ☕📞",
+    "isActive": true
+  },
+  {
+    "id": "noon_cold_3",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "cold",
+    "greeting": "Talvista päivää! ❄️☃️ Liian kylmä ulos - nautitaan sisällä!",
+    "activityTag": "indoor",
+    "activitySuggestion": "Järjestele kuvia tai tee ristisanoja ✍️🖼️",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_cold_1",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "cold",
+    "greeting": "Kylmää iltapäivää! ❄️ Pysytään lämpimässä kotona.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Lämpimän teen tai kahvin aika ☕🍪",
+    "isActive": true
+  },
+  {
+    "id": "afternoon_cold_2",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "cold",
+    "greeting": "Rakas äiti! 🥶 Pakkanen puree - hyvä olla sisällä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Lue kirja tai lehti rauhassa 📚☕",
+    "isActive": true
+  },
+  {
+    "id": "evening_cold_1",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "cold",
+    "greeting": "Kylmää iltaa! ❄️🌙 Mukavaa että olet lämpimässä sisällä.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Rentoudu ja valmistaudu yöhön 😴🛏️",
+    "isActive": true
+  },
+  {
+    "id": "evening_cold_2",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "cold",
+    "greeting": "Rauhallista iltaa! 🥶💤 Talvinen ilta - lepää hyvin.",
+    "activityTag": "indoor",
+    "activitySuggestion": "Nuku lämpimästi ja hyvin, huomenna on uusi päivä 🌟",
+    "isActive": true
+  }
+]
+
+

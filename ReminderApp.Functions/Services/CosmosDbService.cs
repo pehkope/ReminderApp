@@ -321,7 +321,7 @@ public class CosmosDbService
         }
     }
 
-    // Greeting Messages operations
+    // Greeting Messages operations (VANHA - tuntikohtainen)
     public async Task<GreetingMessage?> GetGreetingMessageAsync(string clientId, int hour)
     {
         if (!IsConfigured) return null;
@@ -356,6 +356,49 @@ public class CosmosDbService
         {
             Console.WriteLine($"❌ Error fetching greeting message for {clientId} at hour {hour}: {ex.Message}");
             return null;
+        }
+    }
+
+    // UUSI: Hae inspiroiva viesti (timeOfDay + weather-pohjainen)
+    public async Task<List<MessageCard>> GetMessageCardsAsync(string clientId, string timeOfDay, string weatherCondition)
+    {
+        if (!IsConfigured) return new List<MessageCard>();
+
+        try
+        {
+            var container = GetContainer("Messages");
+            if (container == null) return new List<MessageCard>();
+
+            // Hae viestit jotka sopivat aikaan JA säähän TAI ovat "any" sään osalta
+            var query = new QueryDefinition(
+                @"SELECT * FROM c 
+                  WHERE c.clientId = @clientId 
+                  AND c.timeOfDay = @timeOfDay 
+                  AND (c.weatherCondition = @weatherCondition OR c.weatherCondition = 'any')
+                  AND c.isActive = true")
+                .WithParameter("@clientId", clientId)
+                .WithParameter("@timeOfDay", timeOfDay)
+                .WithParameter("@weatherCondition", weatherCondition);
+
+            var iterator = container.GetItemQueryIterator<MessageCard>(query);
+            var results = new List<MessageCard>();
+            
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            _logger.LogInformation("📬 Found {Count} message cards for {ClientId} at {TimeOfDay} with {Weather}", 
+                results.Count, clientId, timeOfDay, weatherCondition);
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error fetching message cards for {ClientId} at {TimeOfDay} with {Weather}", 
+                clientId, timeOfDay, weatherCondition);
+            return new List<MessageCard>();
         }
     }
 
