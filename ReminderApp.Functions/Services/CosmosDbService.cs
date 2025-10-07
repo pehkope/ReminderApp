@@ -103,12 +103,15 @@ public class CosmosDbService
         }
 
         // Prioritize Telegram photos (have BlobUrl), then fallback to Google Drive
+        // TÄRKEÄ: Järjestä AINA samalla tavalla ID:n mukaan, jotta lista pysyy stabiilina
         var blobPhotos = photos.Where(p => !string.IsNullOrEmpty(p.BlobUrl))
-            .OrderByDescending(p => p.CreatedAt) // Järjestä uusimmasta vanhimpaan
+            .OrderBy(p => p.Id) // Stabiili järjestys ID:n mukaan
             .ToList();
         
         // Jos Google Drive kuvia (ei BlobUrl), lisää nekin rotaatioon
-        var drivePhotos = photos.Where(p => string.IsNullOrEmpty(p.BlobUrl)).ToList();
+        var drivePhotos = photos.Where(p => string.IsNullOrEmpty(p.BlobUrl))
+            .OrderBy(p => p.Id) // Stabiili järjestys
+            .ToList();
         var allPhotos = blobPhotos.Concat(drivePhotos).ToList();
 
         if (!allPhotos.Any())
@@ -117,17 +120,20 @@ public class CosmosDbService
         }
 
         // Laske päiväkohtainen indeksi rotaatiovälin mukaan
-        // rotationDays = 1: Vaihtu päivittäin (DayOfYear % count)
-        // rotationDays = 2: Vaihtu joka 2. päivä ((DayOfYear / 2) % count)
-        var daysSinceYearStart = DateTime.Now.DayOfYear;
-        var rotationPeriod = daysSinceYearStart / rotationDays;
+        // PARANNUS: Käytä DayOfYear + Year yhdistelmää jotta rotaatio jatkuu vuosien yli
+        var today = DateTime.Now;
+        var daysSinceEpoch = (int)(today - new DateTime(2025, 1, 1)).TotalDays; // Päivät vuoden 2025 alusta
+        var rotationPeriod = daysSinceEpoch / rotationDays;
+        
+        // TÄRKEÄ: photoIndex lasketaan AINA samaan tapaan riippumatta kuvamäärästä
+        // Jos uusia kuvia tulee, ne lisätään LOPPUUN, vanha rotaatio jatkuu
         var photoIndex = rotationPeriod % allPhotos.Count;
 
         var selectedPhoto = allPhotos[photoIndex];
         
         var photoType = !string.IsNullOrEmpty(selectedPhoto.BlobUrl) ? "Telegram" : "Google Drive";
-        _logger.LogInformation("📸 Selected {PhotoType} photo for {ClientId} (rotation: {RotationDays} days, index: {Index}/{Total}): {PhotoId}", 
-            photoType, clientId, rotationDays, photoIndex + 1, allPhotos.Count, selectedPhoto.Id);
+        _logger.LogInformation("📸 Selected {PhotoType} photo for {ClientId} (rotation: {RotationDays} days, day: {Day}, index: {Index}/{Total}): {PhotoId}", 
+            photoType, clientId, rotationDays, daysSinceEpoch, photoIndex + 1, allPhotos.Count, selectedPhoto.Id);
         
         return selectedPhoto;
     }
