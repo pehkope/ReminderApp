@@ -118,6 +118,8 @@
       "15:00": "Päivällinen",
       "19:00": "Iltapala"
     },
+    "useMedicationReminders": true,
+    "medicationReminderTime": "08:00",
     "messageSchedule": {
       "morningHour": 8,
       "noonHour": 12,

@@ -162,7 +162,7 @@ public class ReminderApi
 
         // Build daily tasks - UUSI LOGIIKKA: Vain NYKYISEN AJAN mukaiset tehtävät
         // Sisältää: RUOKA (kuitattava), PUUHAA (ei kuittausta), LÄÄKKEET (yleinen kuitattava)
-        var dailyTasks = CreateDynamicDailyTasks(clientId);
+        var dailyTasks = CreateDynamicDailyTasks(clientId, clientSettings);
 
         // Get weather with smart greetings and activities (klo 8, 12, 16, 20)
         var (weather, smartGreeting, smartActivity) = await GetWeatherWithGreetingAndActivity(clientId);
@@ -322,7 +322,7 @@ public class ReminderApi
     /// <summary>
     /// Luo NYKYISEN KELLONAJAN mukaiset RUOKA, PUUHAA ja LÄÄKKEET tehtävät
     /// </summary>
-    private List<DailyTask> CreateDynamicDailyTasks(string clientId)
+    private List<DailyTask> CreateDynamicDailyTasks(string clientId, ClientSettings settings)
     {
         var tasks = new List<DailyTask>();
         var today = DateTime.Today.ToString("yyyyMMdd");
@@ -339,28 +339,28 @@ public class ReminderApi
         if (hour >= 6 && hour < 10) // Aamu 06:00-09:59
         {
             mealTime = "08:00";
-            mealDescription = "🍽️ Muista ravitseva aamupala";
+            mealDescription = "🍽️ Muista syödä";  // YLEINEN - ei spesifistä ruokaa
             activityDescription = "🧘‍♀️ Verryttele ja venyttele - hyvä alku päivälle!";
             timeOfDay = "Aamu";
         }
         else if (hour >= 10 && hour < 14) // Päivä 10:00-13:59
         {
             mealTime = "12:00";
-            mealDescription = "🍽️ Muista lounas";
+            mealDescription = "🍽️ Muista syödä";  // YLEINEN - ei spesifistä ruokaa
             activityDescription = "🚶‍♀️ Ulkoile ja nauti luonnosta - sään mukaan!";
             timeOfDay = "Päivä";
         }
         else if (hour >= 14 && hour < 18) // Iltapäivä 14:00-17:59
         {
             mealTime = "16:00";
-            mealDescription = "🍽️ Muista päivällinen";
+            mealDescription = "🍽️ Muista syödä";  // YLEINEN - ei spesifistä ruokaa
             activityDescription = "🌳 Käy kävelyllä tai soita ystävälle";
             timeOfDay = "Ilta";
         }
         else if (hour >= 18 && hour < 22) // Ilta 18:00-21:59
         {
             mealTime = "20:00";
-            mealDescription = "🍽️ Muista iltapala";
+            mealDescription = "🍽️ Muista syödä";  // YLEINEN - ei spesifistä ruokaa
             activityDescription = string.Empty; // Ei puuhaata illalla
             timeOfDay = "Ilta";
             hasActivity = false;
@@ -375,16 +375,20 @@ public class ReminderApi
         }
 
         // RUOKA - NYKYISEN AJAN mukainen (KUITATTAVA!)
-        tasks.Add(new DailyTask
+        // Asiakaskohtainen asetus: useFoodReminders
+        if (settings.UseFoodReminders)
         {
-            Id = $"food_{mealTime.Replace(":", "")}_{today}",
-            Type = "RUOKA",
-            Time = mealTime,
-            Description = mealDescription,
-            TimeOfDay = timeOfDay,
-            RequiresAck = true,
-            IsAckedToday = false
-        });
+            tasks.Add(new DailyTask
+            {
+                Id = $"food_{mealTime.Replace(":", "")}_{today}",
+                Type = "RUOKA",
+                Time = mealTime,
+                Description = mealDescription,
+                TimeOfDay = timeOfDay,
+                RequiresAck = true,
+                IsAckedToday = false
+            });
+        }
 
         // PUUHAA - NYKYISEN AJAN mukainen (EI kuittausta)
         if (hasActivity)
@@ -402,15 +406,17 @@ public class ReminderApi
         }
 
         // LÄÄKKEET - VAIN aamulla klo 8:00 (KUITATTAVA!)
-        // Äiti ottaa lääkkeet vain aamulla
-        if (hour == 8)
+        // TÄRKEÄ: EI SAA SANOA MITÄ LÄÄKKEITÄ OTTAA (laki kieltää ilman lääkeviraston lupaa)
+        // Vain yleinen muistutus!
+        // Asiakaskohtainen asetus: useMedicationReminders
+        if (settings.UseMedicationReminders && hour == 8)
         {
             tasks.Add(new DailyTask
             {
                 Id = $"medication_morning_{today}",
                 Type = "LÄÄKKEET",
-                Time = "08:00",
-                Description = "Lääkkeet", // Yksinkertainen teksti ilman emojia
+                Time = settings.MedicationReminderTime,
+                Description = "💊 Muista lääkkeet", // YLEINEN - ei spesifisiä lääkkeitä
                 TimeOfDay = "Aamu",
                 RequiresAck = true,
                 IsAckedToday = false

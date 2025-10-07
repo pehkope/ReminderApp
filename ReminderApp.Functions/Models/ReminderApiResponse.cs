@@ -136,6 +136,13 @@ public class ClientSettings
     [JsonPropertyName("mealTimes")]
     public Dictionary<string, string> MealTimes { get; set; } = new(); // Custom meal times: "08:00" -> "aamupala"
 
+    // Medication reminder settings
+    [JsonPropertyName("useMedicationReminders")]
+    public bool UseMedicationReminders { get; set; } = true;
+
+    [JsonPropertyName("medicationReminderTime")]
+    public string MedicationReminderTime { get; set; } = "08:00"; // Default: aamulla klo 8
+
     // Message schedule settings (asiakaskohtaiset viesti-ajat)
     [JsonPropertyName("messageSchedule")]
     public MessageSchedule MessageSchedule { get; set; } = new();

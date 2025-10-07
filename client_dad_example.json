@@ -106,13 +106,15 @@
     "photoRotationDays": 2,
     "useFoodReminders": true,
     "foodReminderType": "simple",
-    "simpleReminderText": "Aika syödä ja ottaa lääkkeet",
+    "simpleReminderText": "Muista syödä",
     "mealTimes": {
       "07:00": "Aamupala",
       "11:00": "Lounas",
       "15:00": "Päivällinen",
       "19:00": "Iltapala"
     },
+    "useMedicationReminders": false,
+    "medicationReminderTime": "07:00",
     "messageSchedule": {
       "morningHour": 7,
       "noonHour": 11,
