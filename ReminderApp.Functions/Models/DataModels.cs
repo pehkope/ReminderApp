@@ -352,6 +352,51 @@ public class Client
         // Priority 3: Default
         return "Helsinki,FI";
     }
+
+    /// <summary>
+    /// Get family contacts (Poika, Tytär, Puoliso, etc.)
+    /// </summary>
+    public List<ContactPerson> GetFamilyContacts()
+    {
+        return Contacts.Where(c => 
+            c.Relationship.Contains("Poika", StringComparison.OrdinalIgnoreCase) ||
+            c.Relationship.Contains("Tytär", StringComparison.OrdinalIgnoreCase) ||
+            c.Relationship.Contains("Puoliso", StringComparison.OrdinalIgnoreCase) ||
+            c.Relationship.Contains("Sisar", StringComparison.OrdinalIgnoreCase) ||
+            c.Relationship.Contains("Veli", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+    }
+
+    /// <summary>
+    /// Get friends
+    /// </summary>
+    public List<ContactPerson> GetFriends()
+    {
+        return Contacts.Where(c => 
+            c.Relationship.Equals("Ystävä", StringComparison.OrdinalIgnoreCase) ||
+            c.Relationship.Equals("Friend", StringComparison.OrdinalIgnoreCase))
+        .OrderBy(c => c.Name)
+        .ToList();
+    }
+
+    /// <summary>
+    /// Get caregivers/nurses
+    /// </summary>
+    public List<ContactPerson> GetCaregivers()
+    {
+        return Contacts.Where(c => 
+            c.Relationship.Contains("Hoitaja", StringComparison.OrdinalIgnoreCase) ||
+            c.Relationship.Contains("Sairaanhoitaja", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+    }
+
+    /// <summary>
+    /// Get primary contact (for emergencies)
+    /// </summary>
+    public ContactPerson? GetPrimaryContact()
+    {
+        return Contacts.FirstOrDefault(c => c.IsPrimary);
+    }
 }
 
 public class ContactPerson

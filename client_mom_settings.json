@@ -30,6 +30,50 @@
       "canReceiveAlerts": true,
       "telegramChatId": "",
       "notes": "Käy kylässä viikonloppuisin"
+    },
+    {
+      "id": "friend_ulla",
+      "name": "Ulla Mäkinen",
+      "relationship": "Ystävä",
+      "phone": "+358405551234",
+      "email": "ulla.makinen@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Entinen työkaveri, soita tiistaisin klo 14"
+    },
+    {
+      "id": "friend_arvo",
+      "name": "Arvo Nieminen",
+      "relationship": "Ystävä",
+      "phone": "+358405559876",
+      "email": "arvo.nieminen@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Naapuri, käy kahvilla joka toinen viikko"
+    },
+    {
+      "id": "friend_maija",
+      "name": "Maija Virtanen",
+      "relationship": "Ystävä",
+      "phone": "+358405552468",
+      "email": "",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Kirkkokaveri, soita perjantaisin"
+    },
+    {
+      "id": "friend_hannele",
+      "name": "Hannele Virtanen",
+      "relationship": "Ystävä",
+      "phone": "+358405553690",
+      "email": "",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Vanha ystävä, käy lounaalla kerran kuussa"
     }
   ],
   "address": {

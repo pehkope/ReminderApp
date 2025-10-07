@@ -41,6 +41,39 @@
       "canReceiveAlerts": true,
       "telegramChatId": "",
       "notes": "Käy tiistaisin ja torstaisin"
+    },
+    {
+      "id": "friend_pekka",
+      "name": "Pekka Virtanen",
+      "relationship": "Ystävä",
+      "phone": "+358405554321",
+      "email": "pekka.virtanen@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Golfkaveri, pelaavat keskiviikkoisin"
+    },
+    {
+      "id": "friend_jorma",
+      "name": "Jorma Nieminen",
+      "relationship": "Ystävä",
+      "phone": "+358405558765",
+      "email": "jorma.nieminen@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Entinen työkaveri, tapaa kerran kuussa"
+    },
+    {
+      "id": "friend_kalevi",
+      "name": "Kalevi Mäkinen",
+      "relationship": "Ystävä",
+      "phone": "+358405551122",
+      "email": "",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Naapuri, saunaystävä"
     }
   ],
   "address": {
