@@ -1,0 +1,83 @@
+[
+  {
+    "id": "msg_morning_sunny_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "sunny",
+    "greeting": "Hyvää huomenta kultaseni! ☀️",
+    "activityTag": "social",
+    "activitySuggestion": "Kaunis päivä! Soita {friend}lle ja ehdota kävelylenkkiä! 📞☀️",
+    "isActive": true
+  },
+  {
+    "id": "msg_noon_sunny_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "sunny",
+    "greeting": "Hyvää päivää! 🌞",
+    "activityTag": "social",
+    "activitySuggestion": "Ihana sää! Soita {friend}lle ja ehdota kahvia ulkona! ☕☀️",
+    "isActive": true
+  },
+  {
+    "id": "msg_afternoon_sunny_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "sunny",
+    "greeting": "Mukavaa iltapäivää! 🌅",
+    "activityTag": "social",
+    "activitySuggestion": "Soita {friend}lle ja kerro kuulumisia! Kaunis ilta kävelyllä? 🚶‍♀️",
+    "isActive": true
+  },
+  {
+    "id": "msg_morning_cloudy_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cloudy",
+    "greeting": "Hyvää huomenta! ☁️",
+    "activityTag": "social",
+    "activitySuggestion": "Soita {friend}lle ja kysy kuulumisia! Mukava hetki jutella ☕",
+    "isActive": true
+  },
+  {
+    "id": "msg_noon_cloudy_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "noon",
+    "weatherCondition": "cloudy",
+    "greeting": "Päivää kultaseni! ☁️",
+    "activityTag": "social",
+    "activitySuggestion": "Kaupassa käynnin jälkeen soita {friend}lle! 📞",
+    "isActive": true
+  },
+  {
+    "id": "msg_evening_any_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "evening",
+    "weatherCondition": "any",
+    "greeting": "Hyvää iltaa kultaseni! 🌙",
+    "activityTag": "social",
+    "activitySuggestion": "Rauhallinen ilta! Soita {friend}lle ja toivota hyvää iltaa 💕",
+    "isActive": true
+  },
+  {
+    "id": "msg_morning_cold_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "morning",
+    "weatherCondition": "cold",
+    "greeting": "Hyvää huomenta! Pakkasta! ❄️",
+    "activityTag": "indoor",
+    "activitySuggestion": "Pysytään sisällä lämpimässä! Soita {friend}lle ja jutella kahvikupin ääressä ☕",
+    "isActive": true
+  },
+  {
+    "id": "msg_afternoon_rain_call_friend",
+    "clientId": "mom",
+    "timeOfDay": "afternoon",
+    "weatherCondition": "rain",
+    "greeting": "Iltapäivää! Sataa vettä 🌧️",
+    "activityTag": "indoor",
+    "activitySuggestion": "Kiva sää olla sisällä! Soita {friend}lle ja kuuntele mitä kuuluu 📞",
+    "isActive": true
+  }
+]
+
