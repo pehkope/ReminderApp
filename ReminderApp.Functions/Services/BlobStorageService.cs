@@ -93,16 +93,20 @@ public class BlobStorageService
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = containerClient.GetBlobClient(blobName);
 
-            // Luo SAS token (voimassa 1 tunti)
+            // Luo SAS token (voimassa 24h - sama URL koko päivän ajan)
             if (blobClient.CanGenerateSasUri)
             {
+                // Pyöristä alkuaika päivän alkuun jotta sama token koko päivän
+                var today = DateTime.UtcNow.Date;
+                var tomorrow = today.AddDays(1);
+                
                 var sasBuilder = new BlobSasBuilder
                 {
                     BlobContainerName = containerName,
                     BlobName = blobName,
                     Resource = "b", // b = blob
-                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
-                    ExpiresOn = DateTimeOffset.UtcNow.AddHours(1)
+                    StartsOn = new DateTimeOffset(today),
+                    ExpiresOn = new DateTimeOffset(tomorrow.AddHours(2)) // Vanhenee huomenna klo 02:00
                 };
 
                 sasBuilder.SetPermissions(BlobSasPermissions.Read);
