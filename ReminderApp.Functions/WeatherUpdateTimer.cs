@@ -28,9 +28,14 @@ public class WeatherUpdateTimer
     /// = 6 päivitystä päivässä
     /// </summary>
     [Function("WeatherUpdateTimer")]
-    public async Task Run([TimerTrigger("0 */4 * * *")] object myTimer)
+    public async Task Run([TimerTrigger("0 */4 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("⏰ Weather update timer triggered at: {Time}", DateTime.UtcNow);
+
+        if (myTimer.ScheduleStatus is not null)
+        {
+            _logger.LogInformation("⏰ Next timer schedule at: {NextSchedule}", myTimer.ScheduleStatus.Next);
+        }
 
         try
         {
