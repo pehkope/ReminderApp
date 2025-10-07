@@ -10,70 +10,81 @@
   "dateOfBirth": "1950-03-15",
   "contacts": [
     {
-      "id": "contact_matti",
-      "name": "Matti Virtanen",
+      "id": "contact_petri",
+      "name": "Petri",
       "relationship": "Poika",
-      "phone": "+358401234567",
-      "email": "matti.virtanen@example.com",
+      "phone": "+358XXXXXXXXX",
+      "email": "petri@example.com",
       "isPrimary": true,
       "canReceiveAlerts": true,
       "telegramChatId": "",
       "notes": "Pääyhteyshenkilö, soittaa usein"
     },
     {
-      "id": "contact_liisa",
-      "name": "Liisa Korhonen",
+      "id": "contact_tiitta",
+      "name": "Tiitta",
       "relationship": "Tytär",
-      "phone": "+358409876543",
-      "email": "liisa.korhonen@example.com",
+      "phone": "+358XXXXXXXXX",
+      "email": "tiitta@example.com",
       "isPrimary": false,
       "canReceiveAlerts": true,
       "telegramChatId": "",
-      "notes": "Käy kylässä viikonloppuisin"
+      "notes": "Äidin tyttö"
     },
     {
-      "id": "friend_ulla",
-      "name": "Ulla Mäkinen",
-      "relationship": "Ystävä",
-      "phone": "+358405551234",
-      "email": "ulla.makinen@example.com",
+      "id": "contact_aapo",
+      "name": "Aapo",
+      "relationship": "Sisarenpoika",
+      "phone": "+358XXXXXXXXX",
+      "email": "aapo@example.com",
       "isPrimary": false,
       "canReceiveAlerts": false,
       "telegramChatId": "",
-      "notes": "Entinen työkaveri, soita tiistaisin klo 14"
+      "notes": "Siskon poika"
     },
     {
-      "id": "friend_arvo",
-      "name": "Arvo Nieminen",
-      "relationship": "Ystävä",
-      "phone": "+358405559876",
-      "email": "arvo.nieminen@example.com",
+      "id": "contact_ella",
+      "name": "Ella",
+      "relationship": "Sisarentytär",
+      "phone": "+358XXXXXXXXX",
+      "email": "ella@example.com",
       "isPrimary": false,
       "canReceiveAlerts": false,
       "telegramChatId": "",
-      "notes": "Naapuri, käy kahvilla joka toinen viikko"
+      "notes": "Siskon tyttö"
     },
     {
-      "id": "friend_maija",
-      "name": "Maija Virtanen",
+      "id": "contact_jussi",
+      "name": "Jussi",
+      "relationship": "Lapsenlapsi",
+      "phone": "+358XXXXXXXXX",
+      "email": "jussi@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Petrin poika, äidin lapsenlapsi"
+    },
+    {
+      "id": "contact_henna",
+      "name": "Henna",
+      "relationship": "Lapsenlapsi",
+      "phone": "+358XXXXXXXXX",
+      "email": "henna@example.com",
+      "isPrimary": false,
+      "canReceiveAlerts": false,
+      "telegramChatId": "",
+      "notes": "Petrin tyttö, äidin lapsenlapsi"
+    },
+    {
+      "id": "friend_eeva",
+      "name": "Eeva",
       "relationship": "Ystävä",
-      "phone": "+358405552468",
+      "phone": "+358XXXXXXXXX",
       "email": "",
       "isPrimary": false,
       "canReceiveAlerts": false,
       "telegramChatId": "",
-      "notes": "Kirkkokaveri, soita perjantaisin"
-    },
-    {
-      "id": "friend_hannele",
-      "name": "Hannele Virtanen",
-      "relationship": "Ystävä",
-      "phone": "+358405553690",
-      "email": "",
-      "isPrimary": false,
-      "canReceiveAlerts": false,
-      "telegramChatId": "",
-      "notes": "Vanha ystävä, käy lounaalla kerran kuussa"
+      "notes": "Äidin tuttu (selvitetään lisää)"
     }
   ],
   "address": {
