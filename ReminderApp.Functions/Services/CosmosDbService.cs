@@ -402,6 +402,68 @@ public class CosmosDbService
         }
     }
 
+    // Weather Cache operations
+    public async Task<WeatherCache?> GetWeatherCacheAsync(string location)
+    {
+        if (!IsConfigured) return null;
+
+        try
+        {
+            var container = GetContainer("WeatherCache");
+            if (container == null) return null;
+
+            var id = $"weather_{location.Replace(",", "_").Replace(" ", "")}";
+            
+            var response = await container.ReadItemAsync<WeatherCache>(id, new PartitionKey(location));
+            var cache = response.Resource;
+
+            // Tarkista onko cache vanhentunut
+            if (cache.ExpiresAt < DateTime.UtcNow)
+            {
+                _logger.LogInformation("🌤️ Weather cache expired for {Location}", location);
+                return null;
+            }
+
+            _logger.LogInformation("✅ Weather cache hit for {Location} (fetched {MinutesAgo} minutes ago)", 
+                location, (DateTime.UtcNow - cache.FetchedAt).TotalMinutes);
+            
+            return cache;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _logger.LogInformation("🌤️ No weather cache found for {Location}", location);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error fetching weather cache for {Location}", location);
+            return null;
+        }
+    }
+
+    public async Task<bool> SaveWeatherCacheAsync(WeatherCache weatherCache)
+    {
+        if (!IsConfigured) return false;
+
+        try
+        {
+            var container = GetContainer("WeatherCache");
+            if (container == null) return false;
+
+            await container.UpsertItemAsync(weatherCache, new PartitionKey(weatherCache.Location));
+            
+            _logger.LogInformation("✅ Weather cache saved for {Location} (expires in {Hours} hours)", 
+                weatherCache.Location, (weatherCache.ExpiresAt - DateTime.UtcNow).TotalHours);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error saving weather cache for {Location}", weatherCache.Location);
+            return false;
+        }
+    }
+
     // Get client settings
     public async Task<Client?> GetClientAsync(string clientId)
     {

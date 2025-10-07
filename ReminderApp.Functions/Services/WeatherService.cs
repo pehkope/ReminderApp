@@ -24,9 +24,30 @@ public class WeatherService
     public bool IsConfigured => !string.IsNullOrEmpty(_weatherApiKey);
 
     /// <summary>
-    /// Get weather information for location using same logic as GAS code
+    /// Get weather information with caching (checks cache first, then OpenWeatherMap)
     /// </summary>
     public async Task<WeatherInfo> GetWeatherAsync(string location = "Helsinki")
+    {
+        // 1. Try cache first
+        var cache = await _cosmosDbService.GetWeatherCacheAsync(location);
+        if (cache != null)
+        {
+            return ConvertCacheToWeatherInfo(cache);
+        }
+
+        // 2. Fetch from OpenWeatherMap
+        var weather = await FetchWeatherFromApiAsync(location);
+
+        // 3. Save to cache (async, no await)
+        _ = SaveWeatherToCacheAsync(location, weather);
+
+        return weather;
+    }
+
+    /// <summary>
+    /// Fetch weather directly from OpenWeatherMap API (no cache)
+    /// </summary>
+    public async Task<WeatherInfo> FetchWeatherFromApiAsync(string location = "Helsinki")
     {
         var fallbackWeather = GetFallbackWeather();
         
@@ -303,6 +324,64 @@ public class WeatherService
             IsRaining = false,
             IsCold = false
         };
+    }
+
+    /// <summary>
+    /// Convert WeatherCache to WeatherInfo
+    /// </summary>
+    private WeatherInfo ConvertCacheToWeatherInfo(WeatherCache cache)
+    {
+        return new WeatherInfo
+        {
+            Description = cache.Description,
+            Temperature = $"{cache.Temperature:F1}°C",
+            Condition = cache.Description.ToLowerInvariant().Contains("pilv") ? "clouds" : "clear",
+            Humidity = cache.Humidity,
+            WindSpeed = cache.WindSpeed,
+            IsGood = cache.Temperature >= 15 && !cache.IsRaining && !cache.IsCold,
+            IsRaining = cache.IsRaining,
+            IsCold = cache.IsCold,
+            Recommendation = cache.Recommendation
+        };
+    }
+
+    /// <summary>
+    /// Save weather to cache (async)
+    /// </summary>
+    private async Task SaveWeatherToCacheAsync(string location, WeatherInfo weather)
+    {
+        try
+        {
+            var tempValue = weather.Temperature.Replace("°C", "").Trim();
+            if (!double.TryParse(tempValue, out var temperature))
+            {
+                temperature = 12.0; // fallback
+            }
+
+            var cache = new WeatherCache
+            {
+                Id = $"weather_{location.Replace(",", "_").Replace(" ", "")}",
+                Location = location,
+                Temperature = temperature,
+                FeelsLike = temperature, // Could calculate from humidity + wind
+                Description = weather.Description,
+                Icon = weather.Condition,
+                Humidity = weather.Humidity,
+                WindSpeed = weather.WindSpeed,
+                IsRaining = weather.IsRaining,
+                IsCold = weather.IsCold,
+                Recommendation = weather.Recommendation,
+                FetchedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddHours(4), // Cache for 4 hours
+                Source = "OpenWeatherMap"
+            };
+
+            await _cosmosDbService.SaveWeatherCacheAsync(cache);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to save weather cache: {ex.Message}");
+        }
     }
 
     /// <summary>

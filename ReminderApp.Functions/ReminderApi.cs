@@ -259,7 +259,13 @@ public class ReminderApi
 
     private async Task<(WeatherInfo weather, string greeting, string activity)> GetWeatherWithGreetingAndActivity(string clientId)
     {
-        var weather = await _weatherService.GetWeatherAsync("Helsinki,FI");
+        // Hae asiakaskohtainen sääsijainti
+        var client = await _cosmosDbService.GetClientAsync(clientId);
+        var weatherLocation = client?.GetWeatherLocation() ?? "Helsinki,FI";
+        
+        _logger.LogInformation("🌍 Using weather location for {ClientId}: {Location}", clientId, weatherLocation);
+        
+        var weather = await _weatherService.GetWeatherAsync(weatherLocation);
         
         // Käytä Suomen aikavyöhykettä (EET/EEST)
         var helsinkiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"); // Finland/Helsinki

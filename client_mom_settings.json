@@ -46,6 +46,7 @@
   },
   "timezone": "Europe/Helsinki",
   "language": "fi",
+  "weatherLocation": null,
   "settings": {
     "useWeather": true,
     "usePhotos": true,

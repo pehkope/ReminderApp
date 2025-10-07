@@ -44,9 +44,9 @@
     }
   ],
   "address": {
-    "street": "Mannerheimintie 456",
-    "city": "Helsinki",
-    "postalCode": "00100",
+    "street": "Hämeenkatu 25",
+    "city": "Tampere",
+    "postalCode": "33100",
     "country": "Finland"
   },
   "emergencyInfo": {
@@ -63,6 +63,7 @@
   },
   "timezone": "Europe/Helsinki",
   "language": "fi",
+  "weatherLocation": null,
   "settings": {
     "useWeather": true,
     "usePhotos": true,

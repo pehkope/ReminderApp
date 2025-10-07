@@ -324,6 +324,9 @@ public class Client
     [JsonPropertyName("language")]
     public string Language { get; set; } = "fi";
 
+    [JsonPropertyName("weatherLocation")]
+    public string? WeatherLocation { get; set; } // Optional: "Tampere,FI" (defaults to address.city)
+
     [JsonPropertyName("settings")]
     public ClientSettings Settings { get; set; } = new();
 
@@ -332,6 +335,23 @@ public class Client
 
     [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Get weather location (prioritizes custom weatherLocation, then address.city, then default)
+    /// </summary>
+    public string GetWeatherLocation()
+    {
+        // Priority 1: Custom weatherLocation
+        if (!string.IsNullOrEmpty(WeatherLocation))
+            return WeatherLocation;
+
+        // Priority 2: address.city
+        if (Address != null && !string.IsNullOrEmpty(Address.City))
+            return $"{Address.City},FI";
+
+        // Priority 3: Default
+        return "Helsinki,FI";
+    }
 }
 
 public class ContactPerson
@@ -392,4 +412,89 @@ public class EmergencyInfo
 
     [JsonPropertyName("emergencyNotes")]
     public string EmergencyNotes { get; set; } = string.Empty;
+}
+
+public class WeatherCache
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty; // "weather_<location>"
+
+    [JsonPropertyName("location")]
+    public string Location { get; set; } = string.Empty; // "Helsinki,FI"
+
+    [JsonPropertyName("temperature")]
+    public double Temperature { get; set; }
+
+    [JsonPropertyName("feelsLike")]
+    public double FeelsLike { get; set; }
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
+    [JsonPropertyName("icon")]
+    public string Icon { get; set; } = string.Empty;
+
+    [JsonPropertyName("humidity")]
+    public int Humidity { get; set; }
+
+    [JsonPropertyName("windSpeed")]
+    public double WindSpeed { get; set; }
+
+    [JsonPropertyName("isRaining")]
+    public bool IsRaining { get; set; }
+
+    [JsonPropertyName("isCold")]
+    public bool IsCold { get; set; }
+
+    [JsonPropertyName("recommendation")]
+    public string Recommendation { get; set; } = string.Empty;
+
+    [JsonPropertyName("fetchedAt")]
+    public DateTime FetchedAt { get; set; } = DateTime.UtcNow;
+
+    [JsonPropertyName("expiresAt")]
+    public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddHours(4);
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "OpenWeatherMap";
+
+    // Weather change detection
+    [JsonPropertyName("previousTemperature")]
+    public double? PreviousTemperature { get; set; }
+
+    [JsonPropertyName("temperatureTrend")]
+    public string TemperatureTrend { get; set; } = "stable"; // "warming", "cooling", "stable"
+
+    [JsonPropertyName("forecast")]
+    public List<WeatherForecastItem> Forecast { get; set; } = new();
+
+    [JsonPropertyName("smartSuggestion")]
+    public string SmartSuggestion { get; set; } = string.Empty; // Proactive suggestion
+}
+
+public class WeatherForecastItem
+{
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = string.Empty; // "2025-10-08"
+
+    [JsonPropertyName("dayOfWeek")]
+    public string DayOfWeek { get; set; } = string.Empty; // "Tiistai"
+
+    [JsonPropertyName("tempMax")]
+    public double TempMax { get; set; }
+
+    [JsonPropertyName("tempMin")]
+    public double TempMin { get; set; }
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
+    [JsonPropertyName("icon")]
+    public string Icon { get; set; } = string.Empty;
+
+    [JsonPropertyName("rainProbability")]
+    public int RainProbability { get; set; }
+
+    [JsonPropertyName("isGoodForOutdoor")]
+    public bool IsGoodForOutdoor { get; set; }
 }
