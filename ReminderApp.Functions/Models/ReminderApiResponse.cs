@@ -120,6 +120,9 @@ public class ClientSettings
     [JsonPropertyName("enableCallFeature")]
     public bool EnableCallFeature { get; set; } = true;
 
+    [JsonPropertyName("photoRotationDays")]
+    public int PhotoRotationDays { get; set; } = 1; // 1 = päivittäin, 2 = joka toinen päivä
+
     // Food reminder settings
     [JsonPropertyName("useFoodReminders")]
     public bool UseFoodReminders { get; set; } = true;

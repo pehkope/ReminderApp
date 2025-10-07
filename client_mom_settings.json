@@ -108,6 +108,7 @@
     "useTelegram": true,
     "useSMS": false,
     "enableCallFeature": true,
+    "photoRotationDays": 1,
     "useFoodReminders": true,
     "foodReminderType": "detailed",
     "simpleReminderText": "Muista syödä",

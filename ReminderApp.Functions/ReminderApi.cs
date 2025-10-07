@@ -123,9 +123,10 @@ public class ReminderApi
             _logger.LogWarning("Cosmos DB not configured, using in-memory data");
         }
 
-        // Get daily photo
+        // Get daily photo (fetch client settings first for rotation days)
         _logger.LogInformation("Fetching daily photo for client: {ClientId}", clientId);
-        var photo = await GetDailyPhoto(clientId);
+        var photoRotationDays = client?.Settings?.PhotoRotationDays ?? 1;
+        var photo = await GetDailyPhoto(clientId, photoRotationDays);
         
         _logger.LogInformation("Photo object is null: {IsNull}", photo == null);
         if (photo != null)
@@ -265,20 +266,20 @@ public class ReminderApi
         }
     }
 
-    private async Task<Photo?> GetDailyPhoto(string clientId)
+    private async Task<Photo?> GetDailyPhoto(string clientId, int rotationDays = 1)
     {
         // Try Cosmos DB first
         if (_cosmosDbService.IsConfigured)
         {
-            var photo = await _cosmosDbService.GetDailyPhotoAsync(clientId);
+            var photo = await _cosmosDbService.GetDailyPhotoAsync(clientId, rotationDays);
             if (photo != null)
             {
-                _logger.LogInformation("Found photo from Cosmos DB for {ClientId}", clientId);
+                _logger.LogInformation("Found photo from Cosmos DB for {ClientId} (rotation: {RotationDays} days)", clientId, rotationDays);
                 return photo;
             }
         }
 
-        // Fallback to Google Sheets
+        // Fallback to Google Sheets (uses daily rotation by default)
         _logger.LogInformation("Trying Google Sheets fallback for {ClientId}", clientId);
         var fallbackPhoto = await _googleSheetsService.GetFallbackPhotoAsync(clientId);
         if (fallbackPhoto != null)

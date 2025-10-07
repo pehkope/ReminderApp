@@ -93,7 +93,7 @@ public class CosmosDbService
         }
     }
 
-    public async Task<Photo?> GetDailyPhotoAsync(string clientId)
+    public async Task<Photo?> GetDailyPhotoAsync(string clientId, int rotationDays = 1)
     {
         var photos = await GetPhotosAsync(clientId);
         
@@ -103,20 +103,33 @@ public class CosmosDbService
         }
 
         // Prioritize Telegram photos (have BlobUrl), then fallback to Google Drive
-        var blobPhotos = photos.Where(p => !string.IsNullOrEmpty(p.BlobUrl)).ToList();
+        var blobPhotos = photos.Where(p => !string.IsNullOrEmpty(p.BlobUrl))
+            .OrderByDescending(p => p.CreatedAt) // Järjestä uusimmasta vanhimpaan
+            .ToList();
         
-        if (blobPhotos.Any())
+        // Jos Google Drive kuvia (ei BlobUrl), lisää nekin rotaatioon
+        var drivePhotos = photos.Where(p => string.IsNullOrEmpty(p.BlobUrl)).ToList();
+        var allPhotos = blobPhotos.Concat(drivePhotos).ToList();
+
+        if (!allPhotos.Any())
         {
-            // Use newest Telegram photo
-            var newestPhoto = blobPhotos.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
-            _logger.LogInformation("📸 Selected Telegram photo for {ClientId}: {PhotoId}", clientId, newestPhoto?.Id);
-            return newestPhoto;
+            return null;
         }
 
-        // Fallback to Google Drive photos (rotate daily)
-        _logger.LogInformation("📸 Using Google Drive photos for {ClientId}", clientId);
-        var photoIndex = DateTime.Now.Day % photos.Count;
-        return photos[photoIndex];
+        // Laske päiväkohtainen indeksi rotaatiovälin mukaan
+        // rotationDays = 1: Vaihtu päivittäin (DayOfYear % count)
+        // rotationDays = 2: Vaihtu joka 2. päivä ((DayOfYear / 2) % count)
+        var daysSinceYearStart = DateTime.Now.DayOfYear;
+        var rotationPeriod = daysSinceYearStart / rotationDays;
+        var photoIndex = rotationPeriod % allPhotos.Count;
+
+        var selectedPhoto = allPhotos[photoIndex];
+        
+        var photoType = !string.IsNullOrEmpty(selectedPhoto.BlobUrl) ? "Telegram" : "Google Drive";
+        _logger.LogInformation("📸 Selected {PhotoType} photo for {ClientId} (rotation: {RotationDays} days, index: {Index}/{Total}): {PhotoId}", 
+            photoType, clientId, rotationDays, photoIndex + 1, allPhotos.Count, selectedPhoto.Id);
+        
+        return selectedPhoto;
     }
 
     // Reminder operations
