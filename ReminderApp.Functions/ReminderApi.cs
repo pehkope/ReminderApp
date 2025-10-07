@@ -166,6 +166,37 @@ public class ReminderApi
         // Get weather with smart greetings and activities (klo 8, 12, 16, 20)
         var (weather, smartGreeting, smartActivity) = await GetWeatherWithGreetingAndActivity(clientId);
 
+        // Build quick call contacts (top 3 friends + primary contact)
+        var quickCallContacts = new List<QuickCallContact>();
+        if (client != null && clientSettings.EnableCallFeature)
+        {
+            // Add primary contact first (family)
+            var primaryContact = client.GetPrimaryContact();
+            if (primaryContact != null)
+            {
+                quickCallContacts.Add(new QuickCallContact
+                {
+                    Name = primaryContact.Name.Split(' ')[0], // Etunimi vain
+                    Phone = primaryContact.Phone,
+                    Relationship = primaryContact.Relationship
+                });
+            }
+
+            // Add top 3 friends
+            var friends = client.GetFriends().Take(3);
+            foreach (var friend in friends)
+            {
+                quickCallContacts.Add(new QuickCallContact
+                {
+                    Name = friend.Name.Split(' ')[0], // Etunimi vain
+                    Phone = friend.Phone,
+                    Relationship = friend.Relationship
+                });
+            }
+
+            _logger.LogInformation("📞 Quick call contacts prepared: {Count} contacts", quickCallContacts.Count);
+        }
+
         // Build response
         var response = new ReminderApiResponse
         {
@@ -191,7 +222,8 @@ public class ReminderApi
             Storage = storageType,
             Foods = todaysFoods,
             Medications = todaysMedications,
-            Appointments = upcomingAppointments
+            Appointments = upcomingAppointments,
+            QuickCallContacts = quickCallContacts
         };
 
 

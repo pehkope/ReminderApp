@@ -96,6 +96,7 @@
     "usePhotos": true,
     "useTelegram": true,
     "useSMS": false,
+    "enableCallFeature": true,
     "useFoodReminders": true,
     "foodReminderType": "detailed",
     "simpleReminderText": "Muista syödä",

@@ -86,6 +86,21 @@ public class ReminderApiResponse
 
     [JsonPropertyName("appointments")]
     public List<Appointment> Appointments { get; set; } = new();
+
+    [JsonPropertyName("quickCallContacts")]
+    public List<QuickCallContact> QuickCallContacts { get; set; } = new();
+}
+
+public class QuickCallContact
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("phone")]
+    public string Phone { get; set; } = string.Empty;
+
+    [JsonPropertyName("relationship")]
+    public string Relationship { get; set; } = string.Empty;
 }
 
 public class ClientSettings
@@ -101,6 +116,9 @@ public class ClientSettings
 
     [JsonPropertyName("useSMS")]
     public bool UseSMS { get; set; } = false;
+
+    [JsonPropertyName("enableCallFeature")]
+    public bool EnableCallFeature { get; set; } = true;
 
     // Food reminder settings
     [JsonPropertyName("useFoodReminders")]

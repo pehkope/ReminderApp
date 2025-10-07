@@ -102,6 +102,7 @@
     "usePhotos": true,
     "useTelegram": true,
     "useSMS": true,
+    "enableCallFeature": true,
     "useFoodReminders": true,
     "foodReminderType": "simple",
     "simpleReminderText": "Aika syödä ja ottaa lääkkeet",

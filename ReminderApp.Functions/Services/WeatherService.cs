@@ -156,6 +156,28 @@ public class WeatherService
         var greeting = selectedCard.Greeting;
         var activity = selectedCard.ActivitySuggestion;
 
+        // Personalisoi viestit ystävien nimillä (jos sisältää {friend})
+        if (client != null && (activity.Contains("{friend}") || greeting.Contains("{friend}")))
+        {
+            var friends = client.GetFriends();
+            if (friends.Any())
+            {
+                var randomFriend = friends[_random.Next(friends.Count)];
+                var friendName = randomFriend.Name.Split(' ')[0]; // Etunimi vain
+                
+                greeting = greeting.Replace("{friend}", friendName);
+                activity = activity.Replace("{friend}", friendName);
+                
+                Console.WriteLine($"👥 Personalized with friend: {friendName}");
+            }
+            else
+            {
+                // Fallback jos ei ystäviä
+                greeting = greeting.Replace("{friend}", "ystävälle");
+                activity = activity.Replace("{friend}", "ystävälle");
+            }
+        }
+
         Console.WriteLine($"✅ Selected message card: {selectedCard.Id}");
         return (greeting, activity);
     }
