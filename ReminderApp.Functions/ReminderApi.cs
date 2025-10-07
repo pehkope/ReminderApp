@@ -423,7 +423,7 @@ public class ReminderApi
             });
         }
 
-        _logger.LogInformation($"✅ Luotu {tasks.Count} tehtävää asiakkaalle {clientId} klo {hour}:00 ({timeOfDay})");
+        _logger.LogInformation($"✅ Luotu {tasks.Count} tehtävää asiakkaalle {clientId} klo {hour}:00 ({timeOfDay}) - LAKI-MUKAINEN v2");
         return tasks;
     }
 
