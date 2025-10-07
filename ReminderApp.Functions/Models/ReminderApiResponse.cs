@@ -115,9 +115,28 @@ public class ClientSettings
     [JsonPropertyName("mealTimes")]
     public Dictionary<string, string> MealTimes { get; set; } = new(); // Custom meal times: "08:00" -> "aamupala"
 
+    // Message schedule settings (asiakaskohtaiset viesti-ajat)
+    [JsonPropertyName("messageSchedule")]
+    public MessageSchedule MessageSchedule { get; set; } = new();
+
     // UI behavior settings
     [JsonPropertyName("showCompletedTasks")]
     public bool ShowCompletedTasks { get; set; } = true; // Show completed tasks with "✅ KUITATTU" badge (helpful for memory issues)
+}
+
+public class MessageSchedule
+{
+    [JsonPropertyName("morningHour")]
+    public int MorningHour { get; set; } = 8;
+
+    [JsonPropertyName("noonHour")]
+    public int NoonHour { get; set; } = 12;
+
+    [JsonPropertyName("afternoonHour")]
+    public int AfternoonHour { get; set; } = 16;
+
+    [JsonPropertyName("eveningHour")]
+    public int EveningHour { get; set; } = 20;
 }
 
 public class WeatherInfo

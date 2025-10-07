@@ -96,21 +96,20 @@ public class WeatherService
     }
 
     /// <summary>
-    /// Hae tervehdys ja puuhaa-ehdotus äidille (klo 8, 12, 16, 20) CosmosDB:stä
+    /// Hae tervehdys ja puuhaa-ehdotus asiakkaalle CosmosDB:stä (käyttää asiakaskohtaisia aikoja)
     /// </summary>
     public async Task<(string greeting, string activity)> GetGreetingAndActivityAsync(WeatherInfo weather, int hour, string clientId = "mom")
     {
         Console.WriteLine($"🕐 GetGreetingAndActivityAsync called with hour={hour}");
         
-        // Määritä aikavyöhyke (timeOfDay)
-        var timeOfDay = hour switch
-        {
-            >= 6 and < 10 => "morning",
-            >= 10 and < 14 => "noon",
-            >= 14 and < 18 => "afternoon",
-            >= 18 and < 24 => "evening",
-            _ => "evening" // yö
-        };
+        // Hae asiakaskohtaiset asetukset (sisältää messageSchedule)
+        var client = await _cosmosDbService.GetClientAsync(clientId);
+        var schedule = client?.Settings?.MessageSchedule ?? new MessageSchedule();
+
+        Console.WriteLine($"📅 Using schedule for {clientId}: morning={schedule.MorningHour}, noon={schedule.NoonHour}, afternoon={schedule.AfternoonHour}, evening={schedule.EveningHour}");
+
+        // Määritä aikavyöhyke (timeOfDay) asiakaskohtaisten aikojen mukaan
+        var timeOfDay = DetermineTimeOfDay(hour, schedule);
 
         // Määritä säätila (weatherCondition)
         // Priorisoi: kylmä > sade > pilvinen > aurinkoinen
@@ -138,6 +137,33 @@ public class WeatherService
 
         Console.WriteLine($"✅ Selected message card: {selectedCard.Id}");
         return (greeting, activity);
+    }
+
+    /// <summary>
+    /// Määritä aikavyöhyke (timeOfDay) asiakaskohtaisten aikojen mukaan
+    /// </summary>
+    private string DetermineTimeOfDay(int hour, MessageSchedule schedule)
+    {
+        // Laske aikavälit asiakaskohtaisten aikojen mukaan
+        var morningStart = Math.Max(6, schedule.MorningHour - 2);
+        var morningEnd = schedule.MorningHour + 2;
+        
+        var noonStart = morningEnd;
+        var noonEnd = schedule.NoonHour + 2;
+        
+        var afternoonStart = noonEnd;
+        var afternoonEnd = schedule.AfternoonHour + 2;
+        
+        var eveningStart = afternoonEnd;
+
+        if (hour >= morningStart && hour < morningEnd)
+            return "morning";
+        else if (hour >= noonStart && hour < noonEnd)
+            return "noon";
+        else if (hour >= afternoonStart && hour < afternoonEnd)
+            return "afternoon";
+        else
+            return "evening";
     }
 
     /// <summary>

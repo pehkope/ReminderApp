@@ -1,0 +1,34 @@
+{
+  "id": "client_mom",
+  "clientId": "mom",
+  "type": "client",
+  "name": "Äiti",
+  "displayName": "Rakas Äiti",
+  "timezone": "Europe/Helsinki",
+  "language": "fi",
+  "settings": {
+    "useWeather": true,
+    "usePhotos": true,
+    "useTelegram": true,
+    "useSMS": false,
+    "useFoodReminders": true,
+    "foodReminderType": "detailed",
+    "simpleReminderText": "Muista syödä",
+    "mealTimes": {
+      "08:00": "Aamupala",
+      "12:00": "Lounas",
+      "15:00": "Päivällinen",
+      "19:00": "Iltapala"
+    },
+    "messageSchedule": {
+      "morningHour": 8,
+      "noonHour": 12,
+      "afternoonHour": 16,
+      "eveningHour": 20
+    },
+    "showCompletedTasks": true
+  },
+  "createdAt": "2025-01-01T00:00:00Z",
+  "updatedAt": "2025-10-07T12:00:00Z"
+}
+
